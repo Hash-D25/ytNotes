@@ -308,6 +308,15 @@ export default function NotesList({
                       onToggleExpand={() => toggleNoteExpansion(idx)}
                       onTimestampClick={() => handleTimestampClick(note.timestamp)}
                       onYouTubeClick={() => handleYouTubeClick(note.timestamp)}
+                      screenshot={(() => {
+                        const screenshotData = note.screenshotPath ? {
+                          path: note.screenshotPath,
+                          timestamp: note.timestamp,
+                          createdAt: note.createdAt
+                        } : null;
+                        console.log(`Note ${idx} screenshot data:`, screenshotData);
+                        return screenshotData;
+                      })()}
                     >
                       <div className="flex items-center gap-2 flex-shrink-0 mt-4 justify-end">
                         <button
@@ -348,10 +357,30 @@ export default function NotesList({
           </div>
         </>
       ) : (
-        <ScreenshotsList 
-          video={video} 
-          onScreenshotDelete={handleScreenshotDelete}
-        />
+        <div>
+          {(() => {
+            try {
+              return (
+                <ScreenshotsList 
+                  video={video} 
+                  onScreenshotDelete={handleScreenshotDelete}
+                  onTimestampClick={handleTimestampClick}
+                  onYouTubeClick={handleYouTubeClick}
+                />
+              );
+            } catch (error) {
+              console.error('Error rendering ScreenshotsList:', error);
+              return (
+                <div className="text-center py-12 bg-white rounded-xl shadow-md border border-gray-200">
+                  <Camera className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+                  <p className="text-gray-500 text-lg">
+                    Error loading screenshots. Please try refreshing the page.
+                  </p>
+                </div>
+              );
+            }
+          })()}
+        </div>
       )}
     </div>
   );
