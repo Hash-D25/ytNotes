@@ -1,11 +1,13 @@
 const express = require('express');
 const router = express.Router();
 const Video = require('../models/Video');
+const fs = require('fs');
+const path = require('path');
 
 // POST /bookmark
 router.post('/', async (req, res) => {
   try {
-    const { videoId, videoTitle, timestamp, note } = req.body;
+    const { videoId, videoTitle, timestamp, note, screenshot } = req.body;
     if (!videoId || !videoTitle || typeof timestamp !== 'number' || !note) {
       return res.status(400).json({ error: 'Missing required fields' });
     }
@@ -13,20 +15,70 @@ router.post('/', async (req, res) => {
     let video = await Video.findOne({ videoId });
     const noteObj = { timestamp, note };
 
-    if (!video) {
-      // First bookmark for this video
-      video = new Video({
-        videoId,
-        videoTitle,
-        notes: [noteObj],
-      });
-      await video.save();
+    // Handle screenshot if provided
+    if (screenshot) {
+      try {
+        // Create screenshots directory if it doesn't exist
+        const screenshotsDir = path.join(__dirname, '../screenshots');
+        if (!fs.existsSync(screenshotsDir)) {
+          fs.mkdirSync(screenshotsDir, { recursive: true });
+        }
+
+        // Generate filename with videoId and timestamp
+        const filename = `${videoId}_${timestamp}_${Date.now()}.png`;
+        const filepath = path.join(screenshotsDir, filename);
+
+        // Remove data URL prefix and save base64 image
+        const base64Data = screenshot.replace(/^data:image\/png;base64,/, '');
+        fs.writeFileSync(filepath, base64Data, 'base64');
+
+        // Add screenshot path to note
+        noteObj.screenshotPath = `/screenshots/${filename}`;
+
+        // Also add to screenshots array
+        const screenshotObj = {
+          timestamp,
+          path: `/screenshots/${filename}`,
+          createdAt: new Date()
+        };
+
+        if (!video) {
+          video = new Video({
+            videoId,
+            videoTitle,
+            notes: [noteObj],
+            screenshots: [screenshotObj]
+          });
+        } else {
+          video.notes.push(noteObj);
+          video.screenshots.push(screenshotObj);
+        }
+      } catch (screenshotError) {
+        console.error('Screenshot save error:', screenshotError);
+        // Continue without screenshot if there's an error
+        if (!video) {
+          video = new Video({
+            videoId,
+            videoTitle,
+            notes: [noteObj],
+          });
+        } else {
+          video.notes.push(noteObj);
+        }
+      }
     } else {
-      // Append note
-      video.notes.push(noteObj);
-      await video.save();
+      if (!video) {
+        video = new Video({
+          videoId,
+          videoTitle,
+          notes: [noteObj],
+        });
+      } else {
+        video.notes.push(noteObj);
+      }
     }
 
+    await video.save();
     res.status(201).json({ success: true, video });
   } catch (err) {
     res.status(500).json({ error: 'Server error', details: err.message });
@@ -71,6 +123,49 @@ router.patch('/:videoId/:noteIdx/like', async (req, res) => {
     if (!video.notes[req.params.noteIdx]) return res.status(404).json({ error: 'Note not found' });
     video.notes[req.params.noteIdx].liked = liked;
     await video.save();
+    res.json({ success: true, video });
+  } catch (err) {
+    res.status(500).json({ error: 'Server error', details: err.message });
+  }
+});
+
+// GET /bookmark/:videoId/screenshots
+router.get('/:videoId/screenshots', async (req, res) => {
+  try {
+    const video = await Video.findOne({ videoId: req.params.videoId });
+    if (!video) {
+      return res.status(404).json({ error: 'Video not found' });
+    }
+    
+    res.json({ 
+      success: true, 
+      screenshots: video.screenshots || [] 
+    });
+  } catch (err) {
+    res.status(500).json({ error: 'Server error', details: err.message });
+  }
+});
+
+// DELETE /bookmark/:videoId/screenshots/:screenshotIdx
+router.delete('/:videoId/screenshots/:screenshotIdx', async (req, res) => {
+  try {
+    const video = await Video.findOne({ videoId: req.params.videoId });
+    if (!video) return res.status(404).json({ error: 'Video not found' });
+    
+    const screenshotIdx = parseInt(req.params.screenshotIdx);
+    if (!video.screenshots[screenshotIdx]) return res.status(404).json({ error: 'Screenshot not found' });
+    
+    // Delete the file from filesystem
+    const screenshotPath = video.screenshots[screenshotIdx].path;
+    const filepath = path.join(__dirname, '..', screenshotPath);
+    if (fs.existsSync(filepath)) {
+      fs.unlinkSync(filepath);
+    }
+    
+    // Remove from database
+    video.screenshots.splice(screenshotIdx, 1);
+    await video.save();
+    
     res.json({ success: true, video });
   } catch (err) {
     res.status(500).json({ error: 'Server error', details: err.message });

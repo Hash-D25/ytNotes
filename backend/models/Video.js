@@ -8,11 +8,18 @@ const noteSchema = new mongoose.Schema({
   liked: { type: Boolean, default: false },
 });
 
+const screenshotSchema = new mongoose.Schema({
+  timestamp: { type: Number, required: true },
+  path: { type: String, required: true },
+  createdAt: { type: Date, default: Date.now },
+});
+
 const videoSchema = new mongoose.Schema({
   videoId: { type: String, required: true, unique: true },
   videoTitle: { type: String, required: true },
   createdAt: { type: Date, default: Date.now },
   notes: [noteSchema],
+  screenshots: [screenshotSchema],
   favorite: { type: Boolean, default: false },
 });
 
