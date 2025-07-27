@@ -1,0 +1,101 @@
+{
+  "tech_stack": [
+    "JavaScript",
+    "Node.js (Express)",
+    "MongoDB (Mongoose)",
+    "React",
+    "Vite",
+    "Tailwind CSS",
+    "DaisyUI",
+    "Chrome Extension (Manifest V3)"
+  ],
+  "features": [
+    {
+      "name": "POST /bookmark",
+      "description": "Save a timestamped note for a YouTube video. Creates a new video entry if it doesn't exist, or appends a note to an existing video.",
+      "files": ["backend/routes/bookmark.js", "backend/models/Video.js", "backend/server.js"],
+      "api_doc": {
+        "openapi": "3.0.0",
+        "info": { "title": "ytNotes API", "version": "1.0.0" },
+        "paths": {
+          "/bookmark": {
+            "post": {
+              "summary": "Save a note for a YouTube video",
+              "requestBody": {
+                "required": true,
+                "content": {
+                  "application/json": {
+                    "schema": {
+                      "type": "object",
+                      "properties": {
+                        "videoId": { "type": "string" },
+                        "videoTitle": { "type": "string" },
+                        "timestamp": { "type": "integer" },
+                        "note": { "type": "string" }
+                      },
+                      "required": ["videoId", "videoTitle", "timestamp", "note"]
+                    }
+                  }
+                }
+              },
+              "responses": {
+                "201": { "description": "Note saved" },
+                "400": { "description": "Missing required fields" },
+                "500": { "description": "Server error" }
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "GET /videos",
+      "description": "Fetch all videos with their associated notes, sorted by creation date (newest first).",
+      "files": ["backend/routes/videos.js", "backend/models/Video.js", "backend/server.js"],
+      "api_doc": {
+        "openapi": "3.0.0",
+        "info": { "title": "ytNotes API", "version": "1.0.0" },
+        "paths": {
+          "/videos": {
+            "get": {
+              "summary": "Get all videos with notes",
+              "responses": {
+                "200": {
+                  "description": "A list of videos with notes",
+                  "content": {
+                    "application/json": {
+                      "schema": {
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "_id": { "type": "string" },
+                            "videoId": { "type": "string" },
+                            "videoTitle": { "type": "string" },
+                            "createdAt": { "type": "string", "format": "date-time" },
+                            "notes": {
+                              "type": "array",
+                              "items": {
+                                "type": "object",
+                                "properties": {
+                                  "timestamp": { "type": "integer" },
+                                  "note": { "type": "string" },
+                                  "createdAt": { "type": "string", "format": "date-time" }
+                                }
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                },
+                "500": { "description": "Server error" }
+              }
+            }
+          }
+        }
+      }
+    }
+  ]
+} 
