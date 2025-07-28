@@ -1,26 +1,37 @@
 // Create and inject the custom popup HTML
 function createPopupHTML() {
+  // YouTube dark/light theme detection
+  const isDark = document.documentElement.getAttribute('dark') !== null || document.documentElement.classList.contains('dark') || (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches);
+  const bg = isDark ? '#212121' : '#fff';
+  const border = isDark ? '#303030' : '#ccc';
+  const shadow = isDark ? '0 4px 24px rgba(0,0,0,0.7)' : '0 4px 12px rgba(0,0,0,0.15)';
+  const text = isDark ? '#fff' : '#222';
+  const subtext = isDark ? '#aaa' : '#555';
+  const btnBlue = '#fc466b';
+  const btnGray = isDark ? '#383838' : '#f2f2f2';
+  const btnGrayText = isDark ? '#fff' : '#222';
+  const btnGrayBorder = isDark ? '#555' : '#ccc';
+
   const popupHTML = `
-    <div id="yt-notes-popup" style="display: none; position: absolute; z-index: 10000; background: white; border: 1px solid #ccc; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); padding: 16px; min-width: 300px; max-width: 400px;">
-      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
-        <h3 style="margin: 0; font-size: 16px; color: #333;">YouTube Notes</h3>
-        <button id="yt-notes-close" style="background: none; border: none; font-size: 18px; cursor: pointer; color: #666;">×</button>
+    <div id="yt-notes-popup" style="display: none; position: absolute; z-index: 10000; background: ${bg}; border: 1px solid ${border}; border-radius: 12px; box-shadow: ${shadow}; padding: 20px 20px 16px 20px; min-width: 320px; max-width: 400px; font-family: Roboto, Arial, sans-serif; color: ${text};">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;">
+        <h3 style="margin: 0; font-size: 18px; color: ${text}; font-weight: 500; letter-spacing: 0.01em;">YouTube Notes</h3>
+        <button id="yt-notes-close" style="background: none; border: none; font-size: 22px; cursor: pointer; color: ${subtext}; line-height: 1;">×</button>
       </div>
       <div style="margin-bottom: 12px;">
-        <label style="display: flex; align-items: center; gap: 8px; font-size: 14px;">
-          <input type="checkbox" id="yt-notes-screenshot" checked style="margin: 0;">
+        <label style="display: flex; align-items: center; gap: 8px; font-size: 14px; color: ${subtext};">
+          <input type="checkbox" id="yt-notes-screenshot" checked style="margin: 0; accent-color: ${btnBlue};">
           Capture screenshot
         </label>
       </div>
-      <textarea id="yt-notes-textarea" placeholder="Add your note here..." style="width: 100%; height: 80px; padding: 8px; border: 1px solid #ddd; border-radius: 4px; resize: vertical; font-family: inherit; margin-bottom: 12px;"></textarea>
-      <div style="display: flex; gap: 8px;">
-        <button id="yt-notes-save" style="flex: 1; padding: 8px 16px; background: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 14px;">Save Note</button>
-        <button id="yt-notes-cancel" style="flex: 1; padding: 8px 16px; background: #6c757d; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 14px;">Cancel</button>
+      <textarea id="yt-notes-textarea" placeholder="Add your note here..." style="width: 100%; height: 80px; padding: 10px; border: 1px solid ${border}; border-radius: 6px; resize: vertical; font-family: inherit; font-size: 15px; background: ${isDark ? '#181818' : '#fafafa'}; color: ${text}; margin-bottom: 14px; transition: border 0.2s; box-sizing: border-box;"></textarea>
+      <div style="display: flex; gap: 10px; margin-bottom: 2px;">
+        <button id="yt-notes-save" style="flex: 1; padding: 10px 0; background: ${btnBlue}; color: #fff; border: none; border-radius: 6px; cursor: pointer; font-size: 15px; font-weight: 500; letter-spacing: 0.01em; transition: background 0.2s;">Save Note</button>
+        <button id="yt-notes-cancel" style="flex: 1; padding: 10px 0; background: ${btnGray}; color: ${btnGrayText}; border: 1px solid ${btnGrayBorder}; border-radius: 6px; cursor: pointer; font-size: 15px; font-weight: 500; letter-spacing: 0.01em; transition: background 0.2s;">Cancel</button>
       </div>
-      <div id="yt-notes-status" style="margin-top: 8px; padding: 8px; border-radius: 4px; font-size: 12px; display: none;"></div>
+      <div id="yt-notes-status" style="margin-top: 10px; padding: 8px; border-radius: 4px; font-size: 13px; display: none;"></div>
     </div>
   `;
-  
   const div = document.createElement('div');
   div.innerHTML = popupHTML;
   document.body.appendChild(div.firstElementChild);
@@ -330,7 +341,10 @@ function initializePopup() {
   
   // Keyboard shortcuts
   document.addEventListener('keydown', (e) => {
-    if (e.key === 'b' && !e.ctrlKey && !e.altKey && !e.metaKey) {
+    // Only trigger shortcut if not focused in input/textarea/contenteditable
+    const active = document.activeElement;
+    const isInput = active && (active.tagName === 'INPUT' || active.tagName === 'TEXTAREA' || active.isContentEditable);
+    if (!isInput && e.key === 'b' && !e.ctrlKey && !e.altKey && !e.metaKey) {
       e.preventDefault();
       const videoPlayer = document.querySelector('.html5-video-player');
       if (videoPlayer) {
@@ -338,7 +352,6 @@ function initializePopup() {
         showPopup(rect.left + rect.width / 2, rect.top + rect.height / 2);
       }
     }
-    
     // Escape key to close popup
     if (e.key === 'Escape') {
       hidePopup();
