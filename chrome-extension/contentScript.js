@@ -205,6 +205,76 @@ function hidePopup() {
   }
 }
 
+// Add silent highlight marker
+async function addSilentHighlight() {
+  const video = document.querySelector('video');
+  const title = document.title.replace(' - YouTube', '');
+  const url = new URL(window.location.href);
+  const videoId = url.searchParams.get('v');
+  
+  if (!video || !videoId) {
+    console.warn('Could not get video info for silent highlight');
+    return;
+  }
+
+  try {
+    const requestBody = {
+      videoId,
+      videoTitle: title,
+      timestamp: Math.floor(video.currentTime),
+      note: "I'm highlighter"
+    };
+
+    // Retry logic for network requests
+    let retries = 3;
+    let lastError;
+    
+    while (retries > 0) {
+      try {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
+        
+        const res = await fetch('http://localhost:5000/bookmark', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(requestBody),
+          signal: controller.signal
+        });
+        
+        clearTimeout(timeoutId);
+        
+        if (res.ok) {
+          console.log('Silent highlight marker added successfully');
+          
+          // Refresh timeline markers after saving
+          setTimeout(() => {
+            addBookmarkMarkers();
+          }, 500);
+          
+          return; // Success, exit the function
+        } else {
+          throw new Error(`Server error: ${res.status} ${res.statusText}`);
+        }
+      } catch (error) {
+        lastError = error;
+        retries--;
+        
+        if (error.name === 'AbortError') {
+          console.warn('Request timeout, retrying...');
+        } else if (retries > 0) {
+          console.warn(`Request failed, retrying... (${retries} attempts left)`);
+          await new Promise(resolve => setTimeout(resolve, 1000)); // Wait 1 second before retry
+        }
+      }
+    }
+    
+    // All retries failed
+    console.warn('Failed to add silent highlight marker:', lastError.message);
+  } catch (error) {
+    console.warn('Error adding silent highlight marker:', error.message);
+  }
+}
+
 // Save note functionality
 async function saveNote() {
   const note = document.getElementById('yt-notes-textarea').value.trim();
@@ -351,6 +421,11 @@ function initializePopup() {
         const rect = videoPlayer.getBoundingClientRect();
         showPopup(rect.left + rect.width / 2, rect.top + rect.height / 2);
       }
+    }
+    // 'h' key for silent highlight marker
+    if (!isInput && e.key === 'h' && !e.ctrlKey && !e.altKey && !e.metaKey) {
+      e.preventDefault();
+      addSilentHighlight();
     }
     // Escape key to close popup
     if (e.key === 'Escape') {
