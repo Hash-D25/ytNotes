@@ -1,5 +1,11 @@
 // Create and inject the custom popup HTML
 function createPopupHTML() {
+  // Always remove existing popup first
+  const existingPopup = document.getElementById('yt-notes-popup');
+  if (existingPopup) {
+    existingPopup.remove();
+  }
+  
   // YouTube dark/light theme detection
   const isDark = document.documentElement.getAttribute('dark') !== null || document.documentElement.classList.contains('dark') || (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches);
   const bg = isDark ? '#212121' : '#fff';
@@ -26,8 +32,8 @@ function createPopupHTML() {
       </div>
       <textarea id="yt-notes-textarea" placeholder="Add your note here..." style="width: 100%; height: 80px; padding: 10px; border: 1px solid ${border}; border-radius: 6px; resize: vertical; font-family: inherit; font-size: 15px; background: ${isDark ? '#181818' : '#fafafa'}; color: ${text}; margin-bottom: 14px; transition: border 0.2s; box-sizing: border-box;"></textarea>
       <div style="display: flex; gap: 10px; margin-bottom: 2px;">
-        <button id="yt-notes-save" style="flex: 1; padding: 10px 0; background: ${btnBlue}; color: #fff; border: none; border-radius: 6px; cursor: pointer; font-size: 15px; font-weight: 500; letter-spacing: 0.01em; transition: background 0.2s;">Save Note</button>
-        <button id="yt-notes-cancel" style="flex: 1; padding: 10px 0; background: ${btnGray}; color: ${btnGrayText}; border: 1px solid ${btnGrayBorder}; border-radius: 6px; cursor: pointer; font-size: 15px; font-weight: 500; letter-spacing: 0.01em; transition: background 0.2s;">Cancel</button>
+        <button id="yt-notes-save" onclick="window.ytNotesSaveNote && window.ytNotesSaveNote()" style="flex: 1; padding: 10px 0; background: ${btnBlue}; color: #fff; border: none; border-radius: 6px; cursor: pointer; font-size: 15px; font-weight: 500; letter-spacing: 0.01em; transition: background 0.2s;">Save Note</button>
+        <button id="yt-notes-cancel" onclick="window.ytNotesHidePopup && window.ytNotesHidePopup()" style="flex: 1; padding: 10px 0; background: ${btnGray}; color: ${btnGrayText}; border: 1px solid ${btnGrayBorder}; border-radius: 6px; cursor: pointer; font-size: 15px; font-weight: 500; letter-spacing: 0.01em; transition: background 0.2s;">Cancel</button>
       </div>
       <div id="yt-notes-status" style="margin-top: 10px; padding: 8px; border-radius: 4px; font-size: 13px; display: none;"></div>
     </div>
@@ -151,8 +157,20 @@ async function addBookmarkMarkers() {
 
 // Show popup at the specified position
 function showPopup(x, y) {
-  const popup = document.getElementById('yt-notes-popup');
-  if (!popup) return;
+  let popup = document.getElementById('yt-notes-popup');
+  
+  // If popup doesn't exist, create it
+  if (!popup) {
+    createPopupHTML();
+    popup = document.getElementById('yt-notes-popup');
+    if (!popup) {
+      console.error('Failed to create popup');
+      return;
+    }
+  }
+  
+  // Rebind event listeners every time popup is shown
+  bindPopupEventListeners();
   
   // First make the popup visible but off-screen to get its dimensions
   popup.style.display = 'block';
@@ -180,7 +198,16 @@ function showPopup(x, y) {
     }
   }
   
-  document.getElementById('yt-notes-textarea').focus();
+  const textarea = document.getElementById('yt-notes-textarea');
+  if (textarea) {
+    textarea.focus();
+  }
+  
+  // Ensure save button is enabled when popup is shown
+  const saveBtn = document.getElementById('yt-notes-save');
+  if (saveBtn) {
+    saveBtn.disabled = false;
+  }
 }
 
 // Hide popup
@@ -250,8 +277,6 @@ async function addSilentScreenshot() {
         clearTimeout(timeoutId);
         
         if (res.ok) {
-          console.log('Silent screenshot captured successfully');
-          
           // Refresh timeline markers after saving
           setTimeout(() => {
             addBookmarkMarkers();
@@ -320,8 +345,6 @@ async function addSilentHighlight() {
         clearTimeout(timeoutId);
         
         if (res.ok) {
-          console.log('Silent highlight marker added successfully');
-          
           // Refresh timeline markers after saving
           setTimeout(() => {
             addBookmarkMarkers();
@@ -358,9 +381,12 @@ async function saveNote() {
   const statusEl = document.getElementById('yt-notes-status');
   const saveBtn = document.getElementById('yt-notes-save');
   
-  if (!note) return;
+  if (!note) {
+    if (saveBtn) saveBtn.disabled = false; // Re-enable button
+    return;
+  }
   
-  saveBtn.disabled = true;
+  if (saveBtn) saveBtn.disabled = true;
   statusEl.textContent = 'Saving...';
   statusEl.style.display = 'block';
   statusEl.style.background = '#d1ecf1';
@@ -428,6 +454,11 @@ async function saveNote() {
           statusEl.style.border = '1px solid #c3e6cb';
           document.getElementById('yt-notes-textarea').value = '';
           
+          // Re-enable save button immediately after success
+          if (saveBtn) {
+            saveBtn.disabled = false;
+          }
+          
           // Refresh timeline markers after saving
           setTimeout(() => {
             addBookmarkMarkers();
@@ -464,26 +495,33 @@ async function saveNote() {
     statusEl.style.border = '1px solid #f5c6cb';
   }
   
-  saveBtn.disabled = false;
+  if (saveBtn) saveBtn.disabled = false; // Always re-enable button
 }
+
+// Global flag to prevent multiple initializations
+let popupInitialized = false;
 
 // Initialize popup functionality
 function initializePopup() {
+  // Prevent re-initialization
+  if (popupInitialized) {
+    return;
+  }
+  
+  popupInitialized = true;
+  
   // Create popup HTML
   createPopupHTML();
   
-  // Add event listeners
-  document.getElementById('yt-notes-close').onclick = hidePopup;
-  document.getElementById('yt-notes-cancel').onclick = hidePopup;
-  document.getElementById('yt-notes-save').onclick = saveNote;
+  // Bind event listeners
+  bindPopupEventListeners();
   
-  // Close popup when clicking outside
-  document.addEventListener('click', (e) => {
-    const popup = document.getElementById('yt-notes-popup');
-    if (popup && !popup.contains(e.target) && !e.target.id.includes('yt-notes')) {
-      hidePopup();
-    }
-  });
+  // Add click outside handler (only once)
+  addClickOutsideHandler();
+  
+  // Make functions globally available for inline onclick
+  window.ytNotesSaveNote = saveNote;
+  window.ytNotesHidePopup = hidePopup;
   
   // Keyboard shortcuts
   document.addEventListener('keydown', (e) => {
@@ -513,6 +551,60 @@ function initializePopup() {
       hidePopup();
     }
   });
+}
+
+// Bind popup event listeners
+function bindPopupEventListeners() {
+  // Use a simple, direct approach
+  const saveBtn = document.getElementById('yt-notes-save');
+  const closeBtn = document.getElementById('yt-notes-close');
+  const cancelBtn = document.getElementById('yt-notes-cancel');
+  
+  // Direct onclick assignment - this is the most reliable method
+  if (saveBtn) {
+    // Remove any existing listeners first
+    saveBtn.onclick = null;
+    saveBtn.onclick = function(e) {
+      e.preventDefault();
+      e.stopPropagation();
+      saveNote();
+    };
+  }
+  
+  if (closeBtn) {
+    // Remove any existing listeners first
+    closeBtn.onclick = null;
+    closeBtn.onclick = function(e) {
+      e.preventDefault();
+      e.stopPropagation();
+      hidePopup();
+    };
+  }
+  
+  if (cancelBtn) {
+    // Remove any existing listeners first
+    cancelBtn.onclick = null;
+    cancelBtn.onclick = function(e) {
+      e.preventDefault();
+      e.stopPropagation();
+      hidePopup();
+    };
+  }
+}
+
+// Global click outside handler (only add once)
+let clickOutsideHandlerAdded = false;
+function addClickOutsideHandler() {
+  if (clickOutsideHandlerAdded) return;
+  
+  document.addEventListener('click', (e) => {
+    const popup = document.getElementById('yt-notes-popup');
+    if (popup && !popup.contains(e.target) && !e.target.id.includes('yt-notes')) {
+      hidePopup();
+    }
+  });
+  
+  clickOutsideHandlerAdded = true;
 }
 
 // Inject bookmark button
@@ -549,6 +641,93 @@ function injectBookmarkButton() {
   videoPlayer.appendChild(btn);
 }
 
+// Inject dashboard button next to subscribe button
+function injectDashboardButton() {
+  if (document.getElementById('yt-dashboard-btn')) return;
+  
+  // Try multiple selectors to find the right container
+  let actionsContainer = document.querySelector('#actions #buttons');
+  if (!actionsContainer) {
+    actionsContainer = document.querySelector('#actions');
+  }
+  if (!actionsContainer) {
+    actionsContainer = document.querySelector('#buttons');
+  }
+  if (!actionsContainer) {
+    // Fallback to subscribe button area
+    const subscribeButton = document.querySelector('#subscribe-button ytd-subscribe-button-renderer');
+    if (subscribeButton) {
+      actionsContainer = subscribeButton.parentNode;
+    }
+  }
+  
+  if (!actionsContainer) {
+    console.warn('Could not find actions container for dashboard button');
+    return;
+  }
+  
+  const dashboardBtn = document.createElement('button');
+  dashboardBtn.id = 'yt-dashboard-btn';
+  dashboardBtn.title = 'ytNotes dashboard';
+  dashboardBtn.style.cssText = `
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 8px;
+    border-radius: 50%;
+    transition: background-color 0.2s;
+    margin-left: 8px;
+    display: inline-flex;
+    align-items: center;
+    vertical-align: middle;
+    flex-shrink: 0;
+  `;
+  
+  const img = document.createElement('img');
+  img.src = chrome.runtime.getURL('icon48.png');
+  img.style.cssText = `
+    width: 32px;
+    height: 32px;
+    display: block;
+  `;
+  
+  // Add error handling for image loading
+  img.onerror = () => {
+    console.warn('Failed to load icon48.png, trying fallback...');
+    img.src = chrome.runtime.getURL('icon128.png');
+    img.onerror = () => {
+      console.warn('Failed to load icon128.png, trying icon32.png...');
+      img.src = chrome.runtime.getURL('icon32.png');
+      img.onerror = () => {
+        console.error('All icon files failed to load');
+        // Fallback to text
+        dashboardBtn.innerHTML = '📊';
+        dashboardBtn.style.fontSize = '20px';
+      };
+    };
+  };
+  
+  dashboardBtn.appendChild(img);
+  
+  dashboardBtn.addEventListener('click', (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    // Open dashboard in new tab
+    window.open('http://localhost:5173', '_blank');
+  });
+  
+  dashboardBtn.addEventListener('mouseenter', () => {
+    dashboardBtn.style.backgroundColor = 'rgba(255, 255, 255, 0.1)';
+  });
+  
+  dashboardBtn.addEventListener('mouseleave', () => {
+    dashboardBtn.style.backgroundColor = 'transparent';
+  });
+  
+  // Insert at the end of the actions container
+  actionsContainer.appendChild(dashboardBtn);
+}
+
 // Check if server is ready before initializing
 async function waitForServer() {
   const maxAttempts = 10;
@@ -560,7 +739,6 @@ async function waitForServer() {
         signal: AbortSignal.timeout(2000)
       });
       if (response.ok) {
-        console.log('Server is ready');
         return true;
       }
     } catch (error) {
@@ -579,6 +757,7 @@ async function waitForServer() {
 setTimeout(async () => {
   initializePopup();
   injectBookmarkButton();
+  injectDashboardButton();
   
   // Wait for server to be ready before fetching bookmarks
   const serverReady = await waitForServer();
@@ -601,15 +780,35 @@ let lastUrl = location.href;
 setInterval(async () => {
   if (location.href !== lastUrl) {
     lastUrl = location.href;
+    
+    // Remove existing elements
+    const existingPopup = document.getElementById('yt-notes-popup');
+    if (existingPopup) {
+      existingPopup.remove();
+    }
+    
+    const existingBookmarkBtn = document.getElementById('yt-bookmark-btn');
+    if (existingBookmarkBtn) {
+      existingBookmarkBtn.remove();
+    }
+    
+    const existingDashboardBtn = document.getElementById('yt-dashboard-btn');
+    if (existingDashboardBtn) {
+      existingDashboardBtn.remove();
+    }
+    
+    // Re-initialize after a short delay
     setTimeout(async () => {
+      initializePopup();
       injectBookmarkButton();
-      // Wait for server and add markers for new video
+      injectDashboardButton();
+      
       const serverReady = await waitForServer();
       if (serverReady) {
         setTimeout(() => {
           addBookmarkMarkers();
         }, 1000);
       }
-    }, 2000);
+    }, 1000);
   }
 }, 1000); 

@@ -2,62 +2,162 @@
 <html>
 <head>
   <style>
-    body {
-      width: 300px;
-      padding: 20px;
-      font-family: Arial, sans-serif;
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
     }
+    
+    body {
+      width: 320px;
+      padding: 20px;
+      font-family: 'Roboto', Arial, sans-serif;
+      background: #fff;
+      color: #222;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    }
+    
+    h3 {
+      margin: 0 0 14px 0;
+      font-size: 18px;
+      color: #222;
+      font-weight: 500;
+      letter-spacing: 0.01em;
+    }
+    
+    .checkbox-container {
+      margin: 0 0 12px 0;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 14px;
+      color: #555;
+    }
+    
+    .checkbox-container input[type="checkbox"] {
+      margin: 0;
+      accent-color: #fc466b;
+      transform: scale(1.1);
+    }
+    
     textarea {
       width: 100%;
-      height: 100px;
-      margin: 10px 0;
-      padding: 8px;
+      height: 80px;
+      padding: 10px;
       border: 1px solid #ccc;
-      border-radius: 4px;
+      border-radius: 6px;
       resize: vertical;
+      font-family: inherit;
+      font-size: 15px;
+      background: #fafafa;
+      color: #222;
+      margin-bottom: 14px;
+      transition: border 0.2s;
+      box-sizing: border-box;
     }
+    
+    textarea:focus {
+      outline: none;
+      border-color: #fc466b;
+      background: #fff;
+    }
+    
     button {
       width: 100%;
-      padding: 10px;
-      background: #007bff;
-      color: white;
+      padding: 10px 0;
+      background: #fc466b;
+      color: #fff;
       border: none;
-      border-radius: 4px;
+      border-radius: 6px;
       cursor: pointer;
+      font-size: 15px;
+      font-weight: 500;
+      letter-spacing: 0.01em;
+      transition: background 0.2s;
+      font-family: inherit;
     }
+    
+    button:hover {
+      background: #e6395c;
+    }
+    
     button:disabled {
       background: #ccc;
       cursor: not-allowed;
     }
-    .checkbox-container {
-      margin: 10px 0;
+    
+    .button-group {
       display: flex;
-      align-items: center;
-      gap: 8px;
+      gap: 10px;
+      margin-bottom: 10px;
     }
-    .checkbox-container input[type="checkbox"] {
-      margin: 0;
+    
+    .button-group button {
+      flex: 1;
     }
+    
+    .dashboard-btn {
+      background: #383838 !important;
+      color: #fff;
+    }
+    
+    .dashboard-btn:hover {
+      background: #555 !important;
+    }
+    
     .status {
       margin-top: 10px;
       padding: 8px;
       border-radius: 4px;
-      font-size: 14px;
+      font-size: 13px;
+      display: none;
     }
+    
     .status.success {
       background: #d4edda;
       color: #155724;
       border: 1px solid #c3e6cb;
     }
+    
     .status.error {
       background: #f8d7da;
       color: #721c24;
       border: 1px solid #f5c6cb;
     }
+    
     .status.info {
       background: #d1ecf1;
       color: #0c5460;
       border: 1px solid #bee5eb;
+    }
+    
+    /* Dark mode support */
+    @media (prefers-color-scheme: dark) {
+      body {
+        background: #212121;
+        color: #fff;
+        box-shadow: 0 4px 24px rgba(0,0,0,0.7);
+      }
+      
+      h3 {
+        color: #fff;
+      }
+      
+      .checkbox-container {
+        color: #aaa;
+      }
+      
+      textarea {
+        background: #181818;
+        color: #fff;
+        border-color: #303030;
+      }
+      
+      textarea:focus {
+        border-color: #fc466b;
+        background: #2a2a2a;
+      }
     }
   </style>
 </head>
@@ -68,7 +168,10 @@
     <label for="captureScreenshot">Capture screenshot</label>
   </div>
   <textarea id="note" placeholder="Add your note here..."></textarea>
-  <button id="saveBtn">Save Note</button>
+  <div class="button-group">
+    <button id="saveBtn">Save Note</button>
+    <button id="dashboardBtn" class="dashboard-btn">Dashboard</button>
+  </div>
   <div id="status" class="status"></div>
   <script src="popup.js"></script>
 </body>

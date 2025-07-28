@@ -6,15 +6,23 @@
   "permissions": [
     "activeTab",
     "scripting",
-    "storage"
+    "storage",
+    "tabs"
   ],
   "host_permissions": [
-    "http://localhost:5000/*"
+    "http://localhost:5000/*",
+    "*://*.youtube.com/*"
   ],
   "content_scripts": [
     {
       "matches": ["*://*.youtube.com/*"],
       "js": ["contentScript.js"]
+    }
+  ],
+  "web_accessible_resources": [
+    {
+      "resources": ["icon48.png", "icon128.png", "icon32.png"],
+      "matches": ["*://*.youtube.com/*"]
     }
   ],
   "background": {
