@@ -80,13 +80,13 @@ export default function NoteCard({
 
   return (
     <>
-      <div className={`bg-white rounded-xl shadow-md border border-gray-200 hover:shadow-lg transition-shadow duration-300 p-6 ${className}`}>
+      <div className={`youtube-card p-6 ${className}`}>
         {showMeta && (
-          <div className="flex items-center gap-2 mb-2">
+          <div className="flex items-center gap-2 mb-4">
             {showTimestamp && (
               <div className="flex items-center gap-2">
                 <span 
-                  className="inline-block bg-red-300 text-white font-mono px-3 py-1 rounded-lg text-sm cursor-pointer hover:bg-red-400 transition-colors"
+                  className="inline-block bg-youtube-red text-white font-mono px-3 py-1 rounded-lg text-sm cursor-pointer hover:bg-red-600 transition-colors"
                   onClick={handleTimestampClick}
                   title="Click to play video at this timestamp"
                 >
@@ -95,7 +95,7 @@ export default function NoteCard({
                 {onYouTubeClick && (
                   <button
                     onClick={handleYouTubeClick}
-                    className="p-1 text-gray-500 hover:text-red-500 transition-colors"
+                    className="p-1 text-youtube-text-secondary hover:text-youtube-red transition-colors"
                     title="Open in YouTube at this timestamp"
                   >
                     <ArrowTopRightOnSquareIcon 
@@ -106,14 +106,14 @@ export default function NoteCard({
             )}
             {showTitle && videoTitle && (
               <>
-                <span className="text-sm text-gray-500">•</span>
-                <span className="text-sm text-primary font-medium">{videoTitle}</span>
+                <span className="text-sm text-youtube-text-secondary">•</span>
+                <span className="text-sm text-youtube-red font-medium">{videoTitle}</span>
               </>
             )}
             {showDate && createdAt && (
               <>
-                <span className="text-sm text-gray-500">•</span>
-                <span className="text-sm text-gray-500">
+                <span className="text-sm text-youtube-text-secondary">•</span>
+                <span className="text-sm text-youtube-text-secondary">
                   {new Date(createdAt).toLocaleDateString()}
                 </span>
               </>
@@ -123,10 +123,10 @@ export default function NoteCard({
 
         <div className="mb-4">
           {expanded ? (
-            <p className="text-gray-800 text-sm leading-relaxed break-words whitespace-pre-line min-w-0">{note}</p>
+            <p className="text-youtube-text text-sm leading-relaxed break-words whitespace-pre-line min-w-0">{note}</p>
           ) : (
             <div className={`${collapsedHeight} overflow-hidden`}>
-              <p className="text-gray-800 text-sm leading-relaxed break-words whitespace-pre-line min-w-0">{note}</p>
+              <p className="text-youtube-text text-sm leading-relaxed break-words whitespace-pre-line min-w-0">{note}</p>
             </div>
           )}
           {children}
@@ -179,7 +179,7 @@ export default function NoteCard({
                   </button>
                   <button
                     onClick={handleScreenshotYouTubeClick}
-                    className="inline-flex items-center gap-1 bg-red-600 text-white px-3 py-1 rounded-lg text-sm hover:bg-red-700 transition-colors"
+                    className="inline-flex items-center gap-1 bg-youtube-red text-white px-3 py-1 rounded-lg text-sm hover:bg-red-700 transition-colors"
                     title="Open in YouTube"
                   >
                     <ArrowTopRightOnSquareIcon className="w-3 h-3" />
@@ -215,7 +215,7 @@ export default function NoteCard({
         {shouldTruncate && (
           <button
             onClick={onToggleExpand}
-            className="text-primary hover:text-primary-dark text-sm font-medium mt-2"
+            className="text-youtube-red hover:text-red-600 text-sm font-medium mt-2 transition-colors"
           >
             {expanded ? 'Show less' : 'Show more'}
           </button>

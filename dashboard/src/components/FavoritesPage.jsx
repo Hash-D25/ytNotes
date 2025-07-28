@@ -1,7 +1,6 @@
 import React, { useState } from "react";
 import { HeartIcon, ArrowTopRightOnSquareIcon } from "@heroicons/react/24/outline";
-import { Pencil, Trash2, Check, X
-} from "lucide-react";
+import { Pencil, Trash2, Check, X } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import NoteCard from "./NoteCard";
 import axios from "axios";
@@ -137,20 +136,27 @@ export default function FavoritesPage({
     });
 
   return (
-    <div className="min-h-screen bg-gray-50 pt-24">
-      <div className="max-w-7xl mx-auto px-4 md:px-8">
+    <div className="min-h-screen bg-gray-900">
+      <div className="pt-20 pb-8 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-4">Favorites</h1>
+          <div className="text-center mb-8">
+            <h1 className="text-4xl sm:text-5xl font-bold mb-4 gradient-text">
+              Favorites
+            </h1>
+            <p className="text-gray-400 text-lg">
+              Your most loved videos and notes
+            </p>
+          </div>
 
           {/* Tab Buttons */}
-          <div className="flex space-x-4 mb-6">
+          <div className="flex justify-center space-x-4 mb-8">
             <button
               onClick={() => setActiveTab("videos")}
-              className={`px-6 py-3 rounded-lg font-medium transition-colors duration-200 ${
+              className={`px-6 py-3 rounded-lg font-medium transition-all duration-200 ${
                 activeTab === "videos"
-                  ? "bg-red-400 text-white shadow-md" // active style with visible background and white text
-                  : "bg-white text-gray-700 hover:bg-gray-100 border border-gray-300"
+                  ? "bg-gradient-to-r from-purple-500 to-blue-600 text-white shadow-lg"
+                  : "youtube-button hover:bg-gray-600"
               }`}
             >
               Favorite Videos ({favoriteVideos?.length || 0})
@@ -158,10 +164,10 @@ export default function FavoritesPage({
 
             <button
               onClick={() => setActiveTab("notes")}
-              className={`px-6 py-3 rounded-lg font-medium transition-colors duration-200 ${
+              className={`px-6 py-3 rounded-lg font-medium transition-all duration-200 ${
                 activeTab === "notes"
-                  ? "bg-red-400 text-white shadow-md" // Active tab: visible blue background and white text
-                  : "bg-white text-gray-700 hover:bg-gray-100 border border-gray-300" // Inactive tab
+                  ? "bg-gradient-to-r from-purple-500 to-blue-600 text-white shadow-lg"
+                  : "youtube-button hover:bg-gray-600"
               }`}
             >
               Favorite Notes ({allFavoriteNotes?.length || 0})
@@ -174,59 +180,59 @@ export default function FavoritesPage({
           // Favorite Videos Tab
           <div className="pb-8">
             {search && (
-              <div className="mb-4 text-gray-600 text-sm">
+              <div className="mb-6 text-gray-400 text-sm text-center">
                 Showing {favoriteVideos.length} favorite videos matching "{search}"
               </div>
             )}
             {favoriteVideos.length === 0 ? (
-              <div className="text-center py-12 bg-white rounded-xl shadow-md border border-gray-200">
-                <HeartIcon className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                <p className="text-gray-500 text-lg">No favorite videos yet.</p>
+              <div className="text-center py-20">
+                <div className="text-gray-400 text-6xl mb-6">❤️</div>
+                <h3 className="text-2xl font-semibold text-white mb-2">No favorite videos yet</h3>
+                <p className="text-gray-400">
+                  Start favoriting videos to see them here
+                </p>
               </div>
             ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                {favoriteVideos.map((video) => (
-                  <div
-                    key={video.videoId}
-                    className="group bg-white rounded-2xl shadow-lg border border-gray-200 hover:shadow-2xl hover:scale-[1.02] transition-all duration-300 ease-out relative overflow-hidden"
-                  >
-                    {/* Heart Icon */}
-                    <button className="absolute top-4 right-4 z-10 p-2 rounded-full bg-white/90 backdrop-blur-sm shadow-lg hover:bg-white hover:scale-110 transition-all duration-200">
-                      <HeartIcon className="w-5 h-5 text-red-500" />
-                    </button>
-
-                    {/* Thumbnail */}
-                    <div className="relative overflow-hidden">
-                      <img
-                        src={`https://img.youtube.com/vi/${video.videoId}/maxresdefault.jpg`}
-                        alt={video.videoTitle}
-                        className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-300"
-                        onError={(e) => {
-                          e.target.src = `https://img.youtube.com/vi/${video.videoId}/hqdefault.jpg`;
-                        }}
-                      />
-                    </div>
-
-                    {/* Content */}
-                    <div className="p-6">
-                      <h3 className="font-semibold text-gray-900 mb-2 line-clamp-2 group-hover:text-primary transition-colors">
-                        {video.videoTitle}
-                      </h3>
-
-                      <div className="flex items-center justify-between text-sm text-gray-500 mb-4">
-                        <span>{video.notes.length} notes</span>
-                        <span>
-                          {new Date(video.createdAt).toLocaleDateString()}
-                        </span>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 animate-fade-in">
+                {favoriteVideos.map((video, index) => (
+                  <div key={video.videoId} className="animate-slide-up" style={{ animationDelay: `${index * 50}ms` }}>
+                    <div className="youtube-card group overflow-hidden transition-all duration-300 hover:scale-[1.02]">
+                      {/* Thumbnail */}
+                      <div className="relative aspect-video overflow-hidden">
+                        <img
+                          src={video.thumbnail || `https://img.youtube.com/vi/${video.videoId}/hqdefault.jpg`}
+                          alt={video.videoTitle}
+                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                        />
+                        
+                        {/* Favorite Button */}
+                        <button
+                          className="absolute top-3 right-3 z-10 p-2 rounded-full bg-black/50 backdrop-blur-sm hover:bg-black/70 transition-all duration-200"
+                          onClick={() => onFavoriteToggle(video.videoId, !video.favorite)}
+                          aria-label="Unfavorite"
+                        >
+                          <HeartIcon className="w-5 h-5 text-red-500" />
+                        </button>
                       </div>
 
-                      {/* Show Notes Button */}
-                      <Link
-                        to={`/notes/${video.videoId}`}
-                        className="inline-block text-sm text-primary hover:underline transition duration-200"
-                      >
-                        Show Notes
-                      </Link>
+                      {/* Content */}
+                      <div className="p-4">
+                        <h3 className="text-white font-medium text-sm line-clamp-2 mb-3 group-hover:text-purple-400 transition-colors duration-200">
+                          {video.videoTitle}
+                        </h3>
+                        
+                        <div className="flex items-center justify-between text-xs text-gray-400 mb-4">
+                          <span>{video.notes?.length || 0} notes</span>
+                          <span>{new Date(video.createdAt).toLocaleDateString()}</span>
+                        </div>
+
+                        <Link
+                          to={`/notes/${video.videoId}`}
+                          className="youtube-button w-full text-center text-sm py-2 hover:bg-purple-500 hover:text-white transition-all duration-200"
+                        >
+                          View Notes
+                        </Link>
+                      </div>
                     </div>
                   </div>
                 ))}
@@ -235,98 +241,87 @@ export default function FavoritesPage({
           </div>
         ) : (
           // Favorite Notes Tab
-          <div className="pb-8 pr-16">
+          <div className="pb-8">
             {search && (
-              <div className="mb-4 text-gray-600 text-sm">
+              <div className="mb-6 text-gray-400 text-sm text-center">
                 Showing {allFavoriteNotes.length} favorite notes matching "{search}"
               </div>
             )}
             {allFavoriteNotes.length === 0 ? (
-              <div className="text-center py-12 bg-white rounded-xl shadow-md border border-gray-200">
-                <HeartIcon className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                <p className="text-gray-500 text-lg">No favorite notes yet.</p>
+              <div className="text-center py-20">
+                <div className="text-gray-400 text-6xl mb-6">📝</div>
+                <h3 className="text-2xl font-semibold text-white mb-2">No favorite notes yet</h3>
+                <p className="text-gray-400">
+                  Start liking notes to see them here
+                </p>
               </div>
             ) : (
-              <div className="space-y-4">
-                {allFavoriteNotes.map((note, idx) => (
-                  <div key={`${note.videoId}-${idx}`}>
-                    {editingIdx === idx ? (
-                      // Edit Mode
-                      <div className="bg-white rounded-xl shadow-md border border-gray-200 p-6">
-                        <div className="flex items-center gap-2 mb-2">
-                          <span className="inline-block bg-blue-600 text-white font-mono px-3 py-1 rounded-lg text-sm">
-                            {`${Math.floor(note.timestamp / 60)
-                              .toString()
-                              .padStart(2, "0")}:${(note.timestamp % 60)
-                              .toString()
-                              .padStart(2, "0")}`}
-                          </span>
-                          <span className="text-sm text-gray-500">•</span>
-                          <span className="text-sm text-primary font-medium">
-                            {note.videoTitle}
-                          </span>
+              <div className="space-y-4 animate-fade-in">
+                {allFavoriteNotes.map((note, index) => (
+                  <div key={`${note.videoId}-${note.noteIndex}`} className="animate-slide-up" style={{ animationDelay: `${index * 50}ms` }}>
+                    <div className="youtube-card p-6">
+                      {/* Note Header */}
+                      <div className="flex items-start justify-between mb-4">
+                        <div className="flex-1">
+                          <h3 className="text-white font-medium mb-2">{note.videoTitle}</h3>
+                          <div className="flex items-center space-x-4 text-sm text-gray-400">
+                            <span>Note {note.noteIndex + 1}</span>
+                            <span>{new Date(note.createdAt).toLocaleDateString()}</span>
+                          </div>
                         </div>
-                        <textarea
-                          value={editNote}
-                          onChange={(e) => setEditNote(e.target.value)}
-                          className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent resize-none"
-                          rows="4"
-                        />
-                        <div className="flex items-center gap-2 mt-4">
+                        
+                        {/* Action Buttons */}
+                        <div className="flex items-center space-x-2">
                           <button
-                            onClick={() => handleEditNote(idx, editNote)}
-                            className="p-2 text-green-500 bg-green-50 rounded-lg hover:bg-green-100 transition-colors"
+                            onClick={() => handleLikeToggle(index, note.liked)}
+                            className="p-2 rounded-lg bg-red-500/20 hover:bg-red-500/30 transition-colors duration-200"
+                            title="Unlike"
                           >
-                            <Check className="w-5 h-5" />
+                            <HeartIcon className="w-4 h-4 text-red-500" />
                           </button>
+                          
                           <button
-                            onClick={() => setEditingIdx(null)}
-                            className="p-2 text-gray-500 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
+                            onClick={() => handleTimestampClick(note)}
+                            className="p-2 rounded-lg bg-purple-500/20 hover:bg-purple-500/30 transition-colors duration-200"
+                            title="Go to timestamp"
                           >
-                            <X className="w-5 h-5" />
+                            <ArrowTopRightOnSquareIcon className="w-4 h-4 text-purple-400" />
+                          </button>
+                          
+                          <button
+                            onClick={() => handleYouTubeClick(note)}
+                            className="p-2 rounded-lg bg-gray-700/50 hover:bg-gray-600/50 transition-colors duration-200"
+                            title="Open on YouTube"
+                          >
+                            <svg className="w-4 h-4 text-gray-400" fill="currentColor" viewBox="0 0 24 24">
+                              <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
+                            </svg>
                           </button>
                         </div>
                       </div>
-                    ) : (
-                      // View Mode
-                      <NoteCard
-                        note={note.note}
-                        timestamp={`${Math.floor(note.timestamp / 60)
-                          .toString()
-                          .padStart(2, "0")}:${(note.timestamp % 60)
-                          .toString()
-                          .padStart(2, "0")}`}
-                        videoTitle={note.videoTitle}
-                        expanded={expandedNotes.has(idx)}
-                        onToggleExpand={() => toggleNoteExpansion(idx)}
-                        onTimestampClick={() => handleTimestampClick(note)}
-                        onYouTubeClick={() => handleYouTubeClick(note)}
-                      >
-                        <div className="flex items-center gap-2 flex-shrink-0 mt-4 justify-end">
-                          <button
-                            onClick={() => handleLikeToggle(idx, note.liked)}
-                            className="p-2 text-red-500 bg-red-50 rounded-lg hover:bg-red-100 transition-colors"
-                          >
-                            <HeartIcon className="w-5 h-5" />
-                          </button>
-                          <button
-                            onClick={() => {
-                              setEditingIdx(idx);
-                              setEditNote(note.note);
-                            }}
-                            className="p-2 text-blue-500 bg-blue-50 rounded-lg hover:bg-blue-100 transition-colors"
-                          >
-                            <Pencil className="w-5 h-5" />
-                          </button>
-                          <button
-                            onClick={() => handleDeleteNote(idx)}
-                            className="p-2 text-red-500 bg-red-50 rounded-lg hover:bg-red-100 transition-colors"
-                          >
-                            <Trash2 className="w-5 h-5" />
-                          </button>
-                        </div>
-                      </NoteCard>
-                    )}
+
+                      {/* Note Content */}
+                      <div className="mb-4">
+                        <p className="text-gray-300 leading-relaxed">{note.note}</p>
+                      </div>
+
+                      {/* Timestamp */}
+                      <div className="flex items-center justify-between">
+                        <button
+                          onClick={() => handleTimestampClick(note)}
+                          className="px-3 py-1 bg-purple-500 text-white text-xs rounded-full hover:bg-purple-600 transition-colors duration-200"
+                        >
+                          {note.timestamp}
+                        </button>
+                        
+                        <Link
+                          to={`/notes/${note.videoId}`}
+                          className="text-purple-400 hover:text-purple-300 text-sm transition-colors duration-200"
+                        >
+                          View Video →
+                        </Link>
+                      </div>
+                    </div>
                   </div>
                 ))}
               </div>

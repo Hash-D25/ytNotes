@@ -9,8 +9,7 @@ import {
   HeartIcon as HeartSolid,
   Camera,
 } from "lucide-react";
-import { ArrowTopRightOnSquareIcon 
-} from "@heroicons/react/24/outline";
+import { ArrowTopRightOnSquareIcon } from "@heroicons/react/24/outline";
 import axios from "axios";
 import NoteCard from './NoteCard';
 import ScreenshotsList from './ScreenshotsList';
@@ -168,20 +167,20 @@ export default function NotesList({
       {/* Header with Tabs */}
       <div className="mb-8">
         <div className="flex items-center justify-between mb-6">
-          <h3 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
-            <Sparkles className="w-6 h-6 text-primary" />
+          <h3 className="text-2xl font-bold text-youtube-text flex items-center gap-2">
+            <Sparkles className="w-6 h-6 text-youtube-red" />
             {activeTab === 'notes' ? `Notes (${video.notes.length})` : 'Screenshots'}
           </h3>
         </div>
 
         {/* Tab Navigation */}
-        <div className="flex border-b border-gray-200 mb-6">
+        <div className="flex border-b border-youtube-border mb-6">
           <button
             onClick={() => setActiveTab('notes')}
             className={`flex items-center gap-2 px-6 py-3 font-medium text-sm border-b-2 transition-colors ${
               activeTab === 'notes'
-                ? 'border-primary text-primary'
-                : 'border-transparent text-gray-500 hover:text-gray-700'
+                ? 'border-youtube-red text-youtube-red'
+                : 'border-transparent text-youtube-text-secondary hover:text-youtube-text'
             }`}
           >
             <Sparkles className="w-4 h-4" />
@@ -191,8 +190,8 @@ export default function NotesList({
             onClick={() => setActiveTab('screenshots')}
             className={`flex items-center gap-2 px-6 py-3 font-medium text-sm border-b-2 transition-colors ${
               activeTab === 'screenshots'
-                ? 'border-primary text-primary'
-                : 'border-transparent text-gray-500 hover:text-gray-700'
+                ? 'border-youtube-red text-youtube-red'
+                : 'border-transparent text-youtube-text-secondary hover:text-youtube-text'
             }`}
           >
             <Camera className="w-4 h-4" />
@@ -205,8 +204,8 @@ export default function NotesList({
       {activeTab === 'notes' ? (
         <>
           {/* Add Note Form */}
-          <div className="bg-white rounded-xl shadow-md border border-gray-200 p-6 mb-8">
-            <h4 className="text-lg font-semibold text-gray-900 mb-4">
+          <div className="youtube-card p-6 mb-8">
+            <h4 className="text-lg font-semibold text-youtube-text mb-4">
               Add New Note
             </h4>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -216,21 +215,21 @@ export default function NotesList({
                   placeholder="Timestamp (mm:ss or h:mm:ss)"
                   value={newTimestamp}
                   onChange={(e) => setNewTimestamp(e.target.value)}
-                  className="px-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent bg-gray-50 w-full"
+                  className="youtube-input w-full"
                 />
-                <p className="text-xs text-gray-500 mt-1">Format: mm:ss or h:mm:ss</p>
+                <p className="text-xs text-youtube-text-secondary mt-1">Format: mm:ss or h:mm:ss</p>
               </div>
               <input
                 type="text"
                 placeholder="Add a new note..."
                 value={newNote}
                 onChange={(e) => setNewNote(e.target.value)}
-                className="px-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent bg-gray-50 md:col-span-2"
+                className="youtube-input md:col-span-2"
               />
             </div>
             <div className="mt-4 flex justify-end">
               <button
-                className="px-6 py-3 bg-red-400 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium shadow-md hover:shadow-lg"
+                className="youtube-button px-6 py-3 hover:bg-youtube-red hover:text-white transition-all duration-200"
                 onClick={handleAddNote}
               >
                 Add Note
@@ -241,9 +240,9 @@ export default function NotesList({
           {/* Notes List */}
           <div className="space-y-4">
             {video.notes.length === 0 ? (
-              <div className="text-center py-12 bg-white rounded-xl shadow-md border border-gray-200">
-                <Sparkles className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                <p className="text-gray-500 text-lg">
+              <div className="text-center py-12 youtube-card">
+                <Sparkles className="w-12 h-12 text-youtube-text-secondary mx-auto mb-4" />
+                <p className="text-youtube-text-secondary text-lg">
                   No notes yet. Add your first note above!
                 </p>
               </div>
@@ -264,34 +263,34 @@ export default function NotesList({
                   }
                 })
                 .map((note, idx) => (
-                <div key={idx}>
+                <div key={idx} className="animate-slide-up" style={{ animationDelay: `${idx * 30}ms` }}>
                   {editingIdx === idx ? (
                     // Edit Mode
-                    <div className="bg-white rounded-xl shadow-md border border-gray-200 p-6">
-                      <div className="flex items-center gap-2 mb-2">
-                        <span className="inline-block bg-blue-600 text-white font-mono px-3 py-1 rounded-lg text-sm">
+                    <div className="youtube-card p-6">
+                      <div className="flex items-center gap-2 mb-4">
+                        <span className="inline-block bg-youtube-red text-white font-mono px-3 py-1 rounded-lg text-sm">
                           {formatTimestamp(note.timestamp) || "00:00"}
                         </span>
-                        <span className="text-sm text-gray-500">•</span>
-                        <span className="text-sm text-primary font-medium">{video.videoTitle}</span>
-                        <span className="text-xs text-gray-500 ml-2">{new Date(note.createdAt).toLocaleDateString()}</span>
+                        <span className="text-sm text-youtube-text-secondary">•</span>
+                        <span className="text-sm text-youtube-red font-medium">{video.videoTitle}</span>
+                        <span className="text-xs text-youtube-text-secondary ml-2">{new Date(note.createdAt).toLocaleDateString()}</span>
                       </div>
                       <textarea
                         value={editNote}
                         onChange={(e) => setEditNote(e.target.value)}
-                        className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent resize-none"
+                        className="youtube-input w-full resize-none"
                         rows="4"
                       />
                       <div className="flex items-center gap-2 mt-4">
                         <button
                           onClick={() => handleEditNote(idx, editNote)}
-                          className="p-2 text-green-500 bg-green-50 rounded-lg hover:bg-green-100 transition-colors"
+                          className="p-2 text-green-500 bg-green-500/20 rounded-lg hover:bg-green-500/30 transition-colors"
                         >
                           <Check className="w-5 h-5" />
                         </button>
                         <button
                           onClick={() => setEditingIdx(null)}
-                          className="p-2 text-gray-500 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
+                          className="p-2 text-youtube-text-secondary bg-youtube-gray rounded-lg hover:bg-youtube-hover transition-colors"
                         >
                           <X className="w-5 h-5" />
                         </button>
@@ -323,8 +322,8 @@ export default function NotesList({
                           onClick={() => handleLikeToggle(idx, note.liked)}
                           className={`p-2 rounded-lg transition-colors ${
                             note.liked
-                              ? "text-red-500 bg-red-50 hover:bg-red-100"
-                              : "text-gray-400 bg-gray-50 hover:bg-gray-100"
+                              ? "text-youtube-red bg-youtube-red/20 hover:bg-youtube-red/30"
+                              : "text-youtube-text-secondary bg-youtube-gray hover:bg-youtube-hover"
                           }`}
                         >
                           {note.liked ? (
@@ -338,13 +337,13 @@ export default function NotesList({
                             setEditingIdx(idx);
                             setEditNote(note.note);
                           }}
-                          className="p-2 text-blue-500 bg-blue-50 rounded-lg hover:bg-blue-100 transition-colors"
+                          className="p-2 text-blue-500 bg-blue-500/20 rounded-lg hover:bg-blue-500/30 transition-colors"
                         >
                           <Pencil className="w-5 h-5" />
                         </button>
                         <button
                           onClick={() => handleDeleteNote(idx)}
-                          className="p-2 text-red-500 bg-red-50 rounded-lg hover:bg-red-100 transition-colors"
+                          className="p-2 text-red-500 bg-red-500/20 rounded-lg hover:bg-red-500/30 transition-colors"
                         >
                           <Trash2 className="w-5 h-5" />
                         </button>
@@ -371,9 +370,9 @@ export default function NotesList({
             } catch (error) {
               console.error('Error rendering ScreenshotsList:', error);
               return (
-                <div className="text-center py-12 bg-white rounded-xl shadow-md border border-gray-200">
-                  <Camera className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                  <p className="text-gray-500 text-lg">
+                <div className="text-center py-12 youtube-card">
+                  <Camera className="w-12 h-12 text-youtube-text-secondary mx-auto mb-4" />
+                  <p className="text-youtube-text-secondary text-lg">
                     Error loading screenshots. Please try refreshing the page.
                   </p>
                 </div>

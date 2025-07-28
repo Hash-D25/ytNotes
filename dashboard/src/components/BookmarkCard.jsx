@@ -2,61 +2,80 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { HeartIcon as HeartOutline } from '@heroicons/react/24/outline';
 import { HeartIcon as HeartSolid } from '@heroicons/react/24/solid';
+import { ClockIcon, DocumentTextIcon } from '@heroicons/react/24/outline';
 
 export default function BookmarkCard({ video, onFavoriteToggle }) {
   const thumbnail =
     video.thumbnail || `https://img.youtube.com/vi/${video.videoId}/hqdefault.jpg`;
 
+  const formatDate = (dateString) => {
+    const date = new Date(dateString);
+    const now = new Date();
+    const diffTime = Math.abs(now - date);
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    
+    if (diffDays === 1) return 'Today';
+    if (diffDays === 2) return 'Yesterday';
+    if (diffDays <= 7) return `${diffDays - 1} days ago`;
+    return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+  };
+
   return (
-    <div className="group bg-white rounded-2xl shadow-lg border border-gray-200 hover:shadow-2xl hover:scale-[1.02] transition-all duration-300 ease-in-out relative overflow-hidden">
-      {/* Heart Button */}
+    <div className="youtube-card group overflow-hidden transition-all duration-300 hover:scale-[1.02]">
+      {/* Thumbnail Container */}
+      <div className="relative aspect-video overflow-hidden">
+        <img
+          src={thumbnail}
+          alt={video.videoTitle}
+          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+        />
+        
+        {/* Overlay with gradient */}
+        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+        
+        {/* Favorite Button */}
       <button
-        className="absolute top-4 right-4 z-10 p-2 rounded-full bg-white/90 backdrop-blur-sm shadow-lg hover:bg-white hover:scale-110 transition-all duration-200"
+          className="absolute top-3 right-3 z-10 p-2 rounded-full bg-black/50 backdrop-blur-sm hover:bg-black/70 transition-all duration-200 group-hover:scale-110"
         onClick={() => onFavoriteToggle(video.videoId, !video.favorite)}
         aria-label={video.favorite ? 'Unfavorite' : 'Favorite'}
       >
         {video.favorite ? (
           <HeartSolid className="w-5 h-5 text-red-500" />
         ) : (
-          <HeartOutline className="w-5 h-5 text-gray-400 group-hover:text-red-400" />
+            <HeartOutline className="w-5 h-5 text-white group-hover:text-red-400" />
         )}
       </button>
 
-      {/* Thumbnail */}
-      <div className="relative overflow-hidden">
-        <img
-          src={thumbnail}
-          alt={video.videoTitle}
-          className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-300"
-        />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+        {/* Video Duration Badge */}
+        <div className="absolute bottom-2 right-2 bg-black/80 text-white text-xs px-2 py-1 rounded">
+          <ClockIcon className="w-3 h-3 inline mr-1" />
+          {video.notes?.length || 0} notes
+        </div>
       </div>
 
       {/* Content */}
-      <div className="p-6">
+      <div className="p-4">
         {/* Title */}
-        <h3 className="text-lg font-semibold text-gray-900 mb-3 line-clamp-2 leading-tight group-hover:text-primary transition-colors duration-200">
+        <h3 className="text-white font-medium text-sm line-clamp-2 mb-3 group-hover:text-red-400 transition-colors duration-200">
           {video.videoTitle}
         </h3>
 
-        {/* Notes Count */}
-        <div className="flex items-center justify-between mb-4">
-          <span className="text-sm text-gray-500">
-            {video.notes?.length || 0} note{video.notes?.length !== 1 ? 's' : ''}
-          </span>
-          <span className="text-xs text-gray-400">
-            {new Date(video.createdAt).toLocaleDateString()}
-          </span>
+        {/* Stats */}
+        <div className="flex items-center justify-between text-xs text-gray-400 mb-4">
+          <div className="flex items-center space-x-1">
+            <DocumentTextIcon className="w-3 h-3" />
+            <span>{video.notes?.length || 0} notes</span>
+          </div>
+          <span>{formatDate(video.createdAt)}</span>
         </div>
 
-        {/* Show Notes Button */}
+        {/* Action Button */}
         <Link
   to={`/notes/${video.videoId}`}
-  className="inline-block text-sm text-primary hover:underline transition duration-200"
+          className="youtube-button w-full text-center text-sm py-2 hover:bg-red-500 hover:text-white transition-all duration-200"
 >
-  Show Notes
+          View Notes
 </Link>
-
       </div>
     </div>
   );
