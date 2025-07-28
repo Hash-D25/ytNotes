@@ -193,6 +193,94 @@ function hidePopup() {
   }
 }
 
+// Add silent screenshot
+async function addSilentScreenshot() {
+  const video = document.querySelector('video');
+  const title = document.title.replace(' - YouTube', '');
+  const url = new URL(window.location.href);
+  const videoId = url.searchParams.get('v');
+  
+  if (!video || !videoId) {
+    console.warn('Could not get video info for silent screenshot');
+    return;
+  }
+
+  try {
+    // Capture screenshot
+    let screenshot = null;
+    if (video) {
+      const canvas = document.createElement('canvas');
+      const ctx = canvas.getContext('2d');
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
+      
+      try {
+        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+        screenshot = canvas.toDataURL('image/png');
+      } catch (error) {
+        console.error('Failed to capture screenshot:', error);
+        return;
+      }
+    }
+
+    const requestBody = {
+      videoId,
+      videoTitle: title,
+      timestamp: Math.floor(video.currentTime),
+      note: "I'm just a screenshot",
+      screenshot: screenshot
+    };
+
+    // Retry logic for network requests
+    let retries = 3;
+    let lastError;
+    
+    while (retries > 0) {
+      try {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
+        
+        const res = await fetch('http://localhost:5000/bookmark', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(requestBody),
+          signal: controller.signal
+        });
+        
+        clearTimeout(timeoutId);
+        
+        if (res.ok) {
+          console.log('Silent screenshot captured successfully');
+          
+          // Refresh timeline markers after saving
+          setTimeout(() => {
+            addBookmarkMarkers();
+          }, 500);
+          
+          return; // Success, exit the function
+        } else {
+          throw new Error(`Server error: ${res.status} ${res.statusText}`);
+        }
+      } catch (error) {
+        lastError = error;
+        retries--;
+        
+        if (error.name === 'AbortError') {
+          console.warn('Request timeout, retrying...');
+        } else if (retries > 0) {
+          console.warn(`Request failed, retrying... (${retries} attempts left)`);
+          await new Promise(resolve => setTimeout(resolve, 1000)); // Wait 1 second before retry
+        }
+      }
+    }
+    
+    // All retries failed
+    console.warn('Failed to capture silent screenshot:', lastError.message);
+  } catch (error) {
+    console.warn('Error capturing silent screenshot:', error.message);
+  }
+}
+
 // Add silent highlight marker
 async function addSilentHighlight() {
   const video = document.querySelector('video');
@@ -414,6 +502,11 @@ function initializePopup() {
     if (!isInput && e.key === 'h' && !e.ctrlKey && !e.altKey && !e.metaKey) {
       e.preventDefault();
       addSilentHighlight();
+    }
+    // 's' key for silent screenshot
+    if (!isInput && e.key === 's' && !e.ctrlKey && !e.altKey && !e.metaKey) {
+      e.preventDefault();
+      addSilentScreenshot();
     }
     // Escape key to close popup
     if (e.key === 'Escape') {
