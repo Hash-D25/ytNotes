@@ -298,7 +298,7 @@ async function addSilentHighlight() {
       videoId,
       videoTitle: title,
       timestamp: Math.floor(video.currentTime),
-      note: "I'm highlighter"
+      note: "I'm just a highlighter"
     };
 
     // Retry logic for network requests
