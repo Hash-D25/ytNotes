@@ -4,6 +4,20 @@ const Video = require('../models/Video');
 const fs = require('fs');
 const path = require('path');
 
+// GET /bookmark/:videoId - Get all bookmarks for a video
+router.get('/:videoId', async (req, res) => {
+  try {
+    const video = await Video.findOne({ videoId: req.params.videoId });
+    if (!video) {
+      return res.json([]); // Return empty array if no bookmarks found
+    }
+    
+    res.json(video.notes || []);
+  } catch (err) {
+    res.status(500).json({ error: 'Server error', details: err.message });
+  }
+});
+
 // POST /bookmark
 router.post('/', async (req, res) => {
   try {
