@@ -181,12 +181,6 @@ function showPopup(x, y) {
   }
   
   document.getElementById('yt-notes-textarea').focus();
-  
-  // Pause the video
-  const video = document.querySelector('video');
-  if (video && !video.paused) {
-    video.pause();
-  }
 }
 
 // Hide popup
@@ -196,12 +190,6 @@ function hidePopup() {
     popup.style.display = 'none';
     document.getElementById('yt-notes-textarea').value = '';
     document.getElementById('yt-notes-status').style.display = 'none';
-    
-    // Resume the video
-    const video = document.querySelector('video');
-    if (video && video.paused) {
-      video.play();
-    }
   }
 }
 
