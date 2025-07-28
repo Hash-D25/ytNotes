@@ -38,25 +38,28 @@ export default function ScreenshotsList({ video, onScreenshotDelete, onTimestamp
   useEffect(() => {
     if (isSlideshowOpen) {
       const handleKeyDown = (e) => {
+        // Prevent any arrow key events from reaching the YouTube player when slideshow is open
+        if (['ArrowRight', 'ArrowLeft', 'ArrowUp', 'ArrowDown', ' '].includes(e.key)) {
+          e.preventDefault();
+          e.stopPropagation();
+        }
+        
         switch (e.key) {
           case 'ArrowRight':
           case ' ':
-            e.preventDefault();
             handleNext();
             break;
           case 'ArrowLeft':
-            e.preventDefault();
             handlePrev();
             break;
           case 'Escape':
-            e.preventDefault();
             closeSlideshow();
             break;
         }
       };
 
-      document.addEventListener('keydown', handleKeyDown);
-      return () => document.removeEventListener('keydown', handleKeyDown);
+      document.addEventListener('keydown', handleKeyDown, true); // Use capture phase
+      return () => document.removeEventListener('keydown', handleKeyDown, true);
     }
   }, [isSlideshowOpen, slideshowIndex, sortedScreenshots.length]);
 
@@ -229,32 +232,32 @@ export default function ScreenshotsList({ video, onScreenshotDelete, onTimestamp
           )}
           
           {/* Sort Controls */}
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1 bg-white rounded-lg border border-gray-200 p-1">
             <button
               onClick={() => handleSort('timestamp')}
-              className={`flex items-center gap-1 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
-                sortBy === 'timestamp'
-                  ? 'bg-primary text-black'
-                  : 'bg-gray-100 text-black hover:bg-gray-200'
+              className={`flex items-center gap-1 px-3 py-1 rounded text-sm transition-colors ${
+                sortBy === 'timestamp' 
+                  ? 'bg-primary text-white' 
+                  : 'text-gray-600 hover:text-gray-800'
               }`}
             >
               <Clock className="w-4 h-4" />
               Time
               {sortBy === 'timestamp' && (
-                sortOrder === 'asc' ? <SortAsc className="w-4 h-4" /> : <SortDesc className="w-4 h-4" />
+                sortOrder === 'asc' ? <SortAsc className="w-3 h-3" /> : <SortDesc className="w-3 h-3" />
               )}
             </button>
             <button
               onClick={() => handleSort('createdAt')}
-              className={`flex items-center gap-1 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
-                sortBy === 'createdAt'
-                  ? 'bg-primary text-black'
-                  : 'bg-gray-100 text-black hover:bg-gray-200'
+              className={`flex items-center gap-1 px-3 py-1 rounded text-sm transition-colors ${
+                sortBy === 'createdAt' 
+                  ? 'bg-primary text-white' 
+                  : 'text-gray-600 hover:text-gray-800'
               }`}
             >
               Date
               {sortBy === 'createdAt' && (
-                sortOrder === 'asc' ? <SortAsc className="w-4 h-4" /> : <SortDesc className="w-4 h-4" />
+                sortOrder === 'asc' ? <SortAsc className="w-3 h-3" /> : <SortDesc className="w-3 h-3" />
               )}
             </button>
           </div>
@@ -266,7 +269,10 @@ export default function ScreenshotsList({ video, onScreenshotDelete, onTimestamp
         <div className="text-center py-12 bg-white rounded-xl shadow-md border border-gray-200">
           <Camera className="w-12 h-12 text-gray-400 mx-auto mb-4" />
           <p className="text-gray-500 text-lg">
-            No screenshots yet. Take screenshots while adding notes!
+            No screenshots found for this video.
+          </p>
+          <p className="text-sm text-gray-400 mt-2">
+            Take screenshots while adding notes to see them here.
           </p>
         </div>
       ) : (
@@ -330,10 +336,11 @@ export default function ScreenshotsList({ video, onScreenshotDelete, onTimestamp
         </div>
       )}
 
-      {/* Fullscreen Modal */}
+      {/* Fullscreen Modal - Now shows as in-app popup instead of new tab */}
       {fullscreenImage && (
         <div className="fixed inset-0 bg-black bg-opacity-90 z-50 flex items-center justify-center p-4">
           <div className="relative max-w-4xl max-h-full">
+            {/* Close Button - Top Right */}
             <button
               onClick={closeFullscreen}
               className="absolute top-4 right-4 p-2 bg-black bg-opacity-50 text-white rounded-full hover:bg-opacity-70 transition-colors z-10"
@@ -341,11 +348,15 @@ export default function ScreenshotsList({ video, onScreenshotDelete, onTimestamp
             >
               <X className="w-6 h-6" />
             </button>
+            
+            {/* Screenshot Image */}
             <img
               src={`http://localhost:5000${fullscreenImage.path}`}
               alt={`Screenshot at ${formatTimestamp(fullscreenImage.timestamp)}`}
               className="max-w-full max-h-full object-contain"
             />
+            
+            {/* Info at Bottom Left */}
             <div className="absolute bottom-4 left-4 text-white bg-black bg-opacity-50 px-3 py-1 rounded-lg">
               <div className="text-sm font-medium">
                 {formatTimestamp(fullscreenImage.timestamp)}
@@ -354,6 +365,8 @@ export default function ScreenshotsList({ video, onScreenshotDelete, onTimestamp
                 {new Date(fullscreenImage.createdAt).toLocaleDateString()}
               </div>
             </div>
+            
+            {/* Action Buttons at Bottom Right */}
             <div className="absolute bottom-4 right-4 flex gap-2">
               <button
                 onClick={() => handleTimestampClick(fullscreenImage.timestamp)}
