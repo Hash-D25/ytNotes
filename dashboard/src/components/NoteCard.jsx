@@ -109,7 +109,7 @@ export default function NoteCard({
     <>
       <div className={`youtube-card rounded-xl shadow-md border border-gray-700 hover:shadow-lg transition-shadow duration-300 p-6 ${className}`}>
         {showMeta && (
-          <div className="flex items-center gap-2 mb-2">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 mb-2">
             {showTimestamp && (
               <div className="flex items-center gap-2">
                 <span 
@@ -133,13 +133,13 @@ export default function NoteCard({
             )}
             {showTitle && videoTitle && (
               <>
-                <span className="text-sm text-gray-400">•</span>
-                <span className="text-sm text-purple-400 font-medium">{videoTitle}</span>
+                <span className="hidden sm:inline text-sm text-gray-400">•</span>
+                <span className="text-sm text-purple-400 font-medium break-words">{videoTitle}</span>
               </>
             )}
             {showDate && createdAt && (
               <>
-                <span className="text-sm text-gray-400">•</span>
+                <span className="hidden sm:inline text-sm text-gray-400">•</span>
                 <span className="text-sm text-gray-400">
                   {new Date(createdAt).toLocaleDateString()}
                 </span>
@@ -150,8 +150,8 @@ export default function NoteCard({
 
         {isVideoNotesPage ? (
           // Special layout for video notes page
-          <div className="flex gap-6">
-            {/* Left side - Note content with fixed width */}
+          <div className="flex flex-col lg:flex-row gap-4 lg:gap-6">
+            {/* Left side - Note content with responsive width */}
             <div className="flex-1 min-w-0">
               <div className="mb-4">
                 {expanded ? (
@@ -174,21 +174,21 @@ export default function NoteCard({
               </div>
             </div>
 
-            {/* Right side - Screenshot and buttons with fixed width */}
-            <div className="flex flex-col gap-4 w-40 flex-shrink-0">
+            {/* Right side - Screenshot and buttons with responsive width */}
+            <div className="flex flex-col gap-4 w-full lg:w-40 flex-shrink-0">
               {/* Screenshot Thumbnail */}
               {screenshot && (
-                <div className="relative inline-block">
+                <div className="relative inline-block w-full lg:w-auto">
                   <img
                     src={`http://localhost:5000${screenshot.path}`}
                     alt={`Screenshot at ${formatTimestamp(screenshot.timestamp)}`}
-                    className="w-32 h-20 object-cover rounded-lg cursor-pointer hover:opacity-80 transition-opacity"
+                    className="w-full lg:w-32 h-20 object-cover rounded-lg cursor-pointer hover:opacity-80 transition-opacity"
                     onClick={openScreenshotModal}
                     onError={(e) => {
                       e.target.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjZjNmNGY2Ii8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIGZvbnQtZmFtaWx5PSJBcmlhbCwgc2Fucy1zZXJpZiIgZm9udC1zaXplPSIxNCIgZmlsbD0iIzY2NzM4MyIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZHk9Ii4zZW0iPkltYWdlIG5vdCBmb3VuZDwvdGV4dD48L3N2Zz4=';
                     }}
                   />
-                  <div className="absolute top-1 right-10 bg-black bg-opacity-50 text-white text-xs px-1 py-0.5 rounded">
+                  <div className="absolute top-1 right-1 bg-black bg-opacity-50 text-white text-xs px-1 py-0.5 rounded mr-8">
                     <PhotoIcon className="w-3 h-3" />
                   </div>
                 </div>
@@ -196,7 +196,7 @@ export default function NoteCard({
 
               {/* Action buttons */}
               {children && (
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 justify-center lg:justify-start">
                   {actionButtons}
                   {linkButtons}
                 </div>
@@ -228,7 +228,7 @@ export default function NoteCard({
 
             {/* Action buttons container - positioned at bottom */}
             {children && (
-              <div className="flex items-center justify-between mt-4">
+              <div className="flex flex-col sm:flex-row items-center justify-between mt-4 gap-2 sm:gap-0">
                 <div className="flex items-center gap-2">
                   {/* Left side - Action buttons (like, edit, delete, etc.) */}
                   {actionButtons}
@@ -244,11 +244,11 @@ export default function NoteCard({
             {/* Screenshot Thumbnail */}
             {screenshot && (
               <div className="mt-2">
-                <div className="relative inline-block">
+                <div className="relative inline-block w-full sm:w-auto">
                   <img
                     src={`http://localhost:5000${screenshot.path}`}
                     alt={`Screenshot at ${formatTimestamp(screenshot.timestamp)}`}
-                    className="w-32 h-20 object-cover rounded-lg cursor-pointer hover:opacity-80 transition-opacity"
+                    className="w-full sm:w-32 h-20 object-cover rounded-lg cursor-pointer hover:opacity-80 transition-opacity"
                     onClick={openScreenshotModal}
                     onError={(e) => {
                       e.target.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjZjNmNGY2Ii8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIGZvbnQtZmFtaWx5PSJBcmlhbCwgc2Fucy1zZXJpZiIgZm9udC1zaXplPSIxNCIgZmlsbD0iIzY2NzM4MyIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZHk9Ii4zZW0iPkltYWdlIG5vdCBmb3VuZDwvdGV4dD48L3N2Zz4=';
