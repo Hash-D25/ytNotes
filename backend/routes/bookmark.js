@@ -132,13 +132,37 @@ router.delete('/:videoId/:noteIdx', async (req, res) => {
 router.patch('/:videoId/:noteIdx/like', async (req, res) => {
   try {
     const { liked } = req.body;
+    console.log('Like toggle request:', {
+      videoId: req.params.videoId,
+      noteIdx: req.params.noteIdx,
+      liked: liked
+    });
+    
     const video = await Video.findOne({ videoId: req.params.videoId });
-    if (!video) return res.status(404).json({ error: 'Video not found' });
-    if (!video.notes[req.params.noteIdx]) return res.status(404).json({ error: 'Note not found' });
-    video.notes[req.params.noteIdx].liked = liked;
+    if (!video) {
+      console.log('Video not found:', req.params.videoId);
+      return res.status(404).json({ error: 'Video not found' });
+    }
+    
+    const noteIdx = parseInt(req.params.noteIdx);
+    if (!video.notes[noteIdx]) {
+      console.log('Note not found at index:', noteIdx, 'Total notes:', video.notes.length);
+      return res.status(404).json({ error: 'Note not found' });
+    }
+    
+    console.log('Updating note like status:', {
+      noteIdx: noteIdx,
+      oldLiked: video.notes[noteIdx].liked,
+      newLiked: liked
+    });
+    
+    video.notes[noteIdx].liked = liked;
     await video.save();
+    
+    console.log('Like toggle successful');
     res.json({ success: true, video });
   } catch (err) {
+    console.error('Like toggle error:', err);
     res.status(500).json({ error: 'Server error', details: err.message });
   }
 });

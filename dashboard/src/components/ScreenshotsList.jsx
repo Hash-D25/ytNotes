@@ -19,6 +19,15 @@ export default function ScreenshotsList({ video, onScreenshotDelete, onTimestamp
   const [slideshowIndex, setSlideshowIndex] = useState(0);
   const [isSlideshowOpen, setIsSlideshowOpen] = useState(false);
 
+  // Early return if video is not available
+  if (!video || !video.videoId) {
+    return (
+      <div className="text-center py-12 youtube-card rounded-xl shadow-md border border-gray-700">
+        <div className="text-gray-400">No video selected</div>
+      </div>
+    );
+  }
+
   // Define sortedScreenshots before using it in useEffect
   const sortedScreenshots = [...screenshots].sort((a, b) => {
     const sortMultiplier = sortOrder === 'asc' ? 1 : -1;
@@ -32,8 +41,10 @@ export default function ScreenshotsList({ video, onScreenshotDelete, onTimestamp
   });
 
   useEffect(() => {
-    fetchScreenshots();
-  }, [video.videoId]);
+    if (video && video.videoId) {
+      fetchScreenshots();
+    }
+  }, [video?.videoId]);
 
   useEffect(() => {
     if (isSlideshowOpen) {
@@ -80,7 +91,7 @@ export default function ScreenshotsList({ video, onScreenshotDelete, onTimestamp
   const fetchScreenshots = async () => {
     try {
       setLoading(true);
-      console.log('Fetching screenshots for video:', video.videoId);
+      console.log('Fetching screenshots for video:', video?.videoId);
       const response = await axios.get(`http://localhost:5000/bookmark/${video.videoId}/screenshots`);
       console.log('Screenshots response:', response.data);
       if (response.data.success) {
@@ -172,21 +183,7 @@ export default function ScreenshotsList({ video, onScreenshotDelete, onTimestamp
     return (
       <div className="w-full pb-16">
         <div className="flex items-center justify-center py-12">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-youtube-red"></div>
-        </div>
-      </div>
-    );
-  }
-
-  // Check if video exists
-  if (!video || !video.videoId) {
-    return (
-      <div className="w-full pb-16">
-        <div className="text-center py-12 youtube-card">
-          <Camera className="w-12 h-12 text-youtube-text-secondary mx-auto mb-4" />
-          <p className="text-youtube-text-secondary text-lg">
-            No video selected or video not found.
-          </p>
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
         </div>
       </div>
     );
@@ -195,16 +192,9 @@ export default function ScreenshotsList({ video, onScreenshotDelete, onTimestamp
   // Check if backend is available
   if (screenshots.length === 0 && !loading) {
     return (
-      <div className="w-full pb-16">
-        <div className="text-center py-12 youtube-card">
-          <Camera className="w-12 h-12 text-youtube-text-secondary mx-auto mb-4" />
-          <p className="text-youtube-text-secondary text-lg">
-            No screenshots found for this video.
-          </p>
-          <p className="text-sm text-youtube-text-secondary mt-2">
-            Take screenshots while adding notes to see them here.
-          </p>
-        </div>
+      <div className="text-center py-12 youtube-card rounded-xl shadow-md border border-gray-700">
+        <div className="text-gray-400">No screenshots found for this video.</div>
+        <div className="text-gray-500 mt-2">Take screenshots while adding notes to see them here.</div>
       </div>
     );
   }
@@ -213,8 +203,8 @@ export default function ScreenshotsList({ video, onScreenshotDelete, onTimestamp
     <div className="w-full pb-16">
       {/* Header */}
       <div className="flex items-center justify-between mb-8">
-        <h3 className="text-2xl font-bold text-youtube-text flex items-center gap-2">
-          <Camera className="w-6 h-6 text-youtube-red" />
+        <h3 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
+          <Camera className="w-6 h-6 text-primary" />
           Screenshots ({screenshots.length})
         </h3>
         
@@ -224,7 +214,7 @@ export default function ScreenshotsList({ video, onScreenshotDelete, onTimestamp
           {sortedScreenshots.length > 0 && (
             <button
               onClick={openSlideshow}
-              className="youtube-button flex items-center gap-1 px-4 py-2 hover:bg-youtube-red hover:text-white transition-all duration-200 text-sm font-medium"
+              className="px-4 py-2 bg-primary text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium flex items-center gap-1"
             >
               <Play className="w-4 h-4" />
               Slideshow
@@ -232,13 +222,13 @@ export default function ScreenshotsList({ video, onScreenshotDelete, onTimestamp
           )}
           
           {/* Sort Controls */}
-          <div className="flex items-center gap-1 youtube-card p-1">
+          <div className="flex items-center gap-1 bg-white rounded-lg p-1 border border-gray-200">
             <button
               onClick={() => handleSort('timestamp')}
               className={`flex items-center gap-1 px-3 py-1 rounded text-sm transition-colors ${
                 sortBy === 'timestamp' 
-                  ? 'bg-youtube-red text-white' 
-                  : 'text-youtube-text-secondary hover:text-youtube-text'
+                  ? 'bg-primary text-white' 
+                  : 'text-gray-500 hover:text-gray-700'
               }`}
             >
               <Clock className="w-4 h-4" />
@@ -251,8 +241,8 @@ export default function ScreenshotsList({ video, onScreenshotDelete, onTimestamp
               onClick={() => handleSort('createdAt')}
               className={`flex items-center gap-1 px-3 py-1 rounded text-sm transition-colors ${
                 sortBy === 'createdAt' 
-                  ? 'bg-youtube-red text-white' 
-                  : 'text-youtube-text-secondary hover:text-youtube-text'
+                  ? 'bg-primary text-white' 
+                  : 'text-gray-500 hover:text-gray-700'
               }`}
             >
               Date
@@ -266,19 +256,14 @@ export default function ScreenshotsList({ video, onScreenshotDelete, onTimestamp
 
       {/* Screenshots Grid */}
       {screenshots.length === 0 ? (
-        <div className="text-center py-12 youtube-card">
-          <Camera className="w-12 h-12 text-youtube-text-secondary mx-auto mb-4" />
-          <p className="text-youtube-text-secondary text-lg">
-            No screenshots found for this video.
-          </p>
-          <p className="text-sm text-youtube-text-secondary mt-2">
-            Take screenshots while adding notes to see them here.
-          </p>
+        <div className="text-center py-12 youtube-card rounded-xl shadow-md border border-gray-700">
+          <div className="text-gray-400">No screenshots found for this video.</div>
+          <div className="text-gray-500 mt-2">Take screenshots while adding notes to see them here.</div>
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {sortedScreenshots.map((screenshot, idx) => (
-            <div key={idx} className="youtube-card overflow-hidden animate-slide-up" style={{ animationDelay: `${idx * 50}ms` }}>
+            <div key={idx} className="youtube-card rounded-xl shadow-md border border-gray-700 overflow-hidden">
               <div className="relative">
                 <img
                   src={`http://localhost:5000${screenshot.path}`}
@@ -292,14 +277,14 @@ export default function ScreenshotsList({ video, onScreenshotDelete, onTimestamp
                 <div className="absolute top-2 right-2 flex gap-1">
                   <button
                     onClick={() => openFullscreen(screenshot)}
-                    className="p-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors shadow-md"
+                    className="p-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors shadow-md"
                     title="View fullscreen"
                   >
                     <Maximize2 className="w-4 h-4" />
                   </button>
                   <button
                     onClick={() => handleDeleteScreenshot(idx)}
-                    className="p-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors shadow-md"
+                    className="p-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors shadow-md"
                     title="Delete screenshot"
                   >
                     <Trash2 className="w-4 h-4" />
@@ -311,7 +296,7 @@ export default function ScreenshotsList({ video, onScreenshotDelete, onTimestamp
                   <div className="flex items-center gap-2">
                     <button
                       onClick={() => handleTimestampClick(screenshot.timestamp)}
-                      className="inline-flex items-center gap-1 bg-youtube-red text-white font-mono px-3 py-1 rounded-lg text-sm hover:bg-red-600 transition-colors cursor-pointer shadow-sm"
+                      className="inline-flex items-center gap-1 bg-purple-600 text-white font-mono px-3 py-1 rounded-lg text-sm hover:bg-purple-700 transition-colors cursor-pointer shadow-sm"
                       title="Play video at this timestamp"
                     >
                       <Play className="w-3 h-3" />
@@ -319,28 +304,28 @@ export default function ScreenshotsList({ video, onScreenshotDelete, onTimestamp
                     </button>
                     <button
                       onClick={() => handleYouTubeClick(screenshot.timestamp)}
-                      className="inline-flex items-center gap-1 p-1 text-youtube-red hover:text-red-600 transition-colors hover:bg-youtube-red/20 rounded"
+                      className="inline-flex items-center gap-1 p-1 text-purple-400 hover:text-purple-300 transition-colors hover:bg-purple-500/20 rounded"
                       title="Open in YouTube at this timestamp"
                     >
                       <ExternalLink className="w-4 h-4" />
                     </button>
                   </div>
-                  <span className="text-xs text-youtube-text-secondary">
+                  <span className="text-xs text-gray-400">
                     {new Date(screenshot.createdAt).toLocaleDateString()}
                   </span>
                 </div>
-                <p className="text-sm text-youtube-text truncate">{video.videoTitle}</p>
+                <p className="text-sm text-gray-300 truncate">{video.videoTitle}</p>
               </div>
             </div>
           ))}
         </div>
       )}
 
-      {/* Fullscreen Modal - Now shows as in-app popup instead of new tab */}
+      {/* Fullscreen Modal */}
       {fullscreenImage && (
         <div className="fixed inset-0 bg-black bg-opacity-90 z-50 flex items-center justify-center p-4">
           <div className="relative max-w-4xl max-h-full">
-            {/* Close Button - Top Right */}
+            {/* Close Button */}
             <button
               onClick={closeFullscreen}
               className="absolute top-4 right-4 p-2 bg-black bg-opacity-50 text-white rounded-full hover:bg-opacity-70 transition-colors z-10"
@@ -378,7 +363,7 @@ export default function ScreenshotsList({ video, onScreenshotDelete, onTimestamp
               </button>
               <button
                 onClick={() => handleYouTubeClick(fullscreenImage.timestamp)}
-                className="inline-flex items-center gap-1 bg-youtube-red text-white px-3 py-1 rounded-lg text-sm hover:bg-red-700 transition-colors"
+                className="inline-flex items-center gap-1 bg-red-600 text-white px-3 py-1 rounded-lg text-sm hover:bg-red-700 transition-colors"
                 title="Open in YouTube"
               >
                 <ExternalLink className="w-3 h-3" />
@@ -447,7 +432,7 @@ export default function ScreenshotsList({ video, onScreenshotDelete, onTimestamp
             {/* Progress Bar */}
             <div className="absolute bottom-0 left-0 right-0 h-1 bg-black bg-opacity-30">
               <div 
-                className="h-full bg-youtube-red transition-all duration-300"
+                className="h-full bg-primary transition-all duration-300"
                 style={{ width: `${((slideshowIndex + 1) / sortedScreenshots.length) * 100}%` }}
               />
             </div>
@@ -456,4 +441,4 @@ export default function ScreenshotsList({ video, onScreenshotDelete, onTimestamp
       )}
     </div>
   );
-} 
+}

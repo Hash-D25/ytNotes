@@ -9,17 +9,20 @@ import {
   HeartIcon as HeartSolid,
   Camera,
 } from "lucide-react";
-import { ArrowTopRightOnSquareIcon } from "@heroicons/react/24/outline";
 import axios from "axios";
 import NoteCard from './NoteCard';
 import ScreenshotsList from './ScreenshotsList';
 
 function formatTimestamp(seconds) {
-  const m = Math.floor(seconds / 60)
-    .toString()
-    .padStart(2, "0");
-  const s = (seconds % 60).toString().padStart(2, "0");
-  return `${m}:${s}`;
+  const hours = Math.floor(seconds / 3600);
+  const minutes = Math.floor((seconds % 3600) / 60);
+  const secs = seconds % 60;
+  
+  if (hours > 0) {
+    return `${hours}:${minutes.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+  } else {
+    return `${minutes}:${secs.toString().padStart(2, '0')}`;
+  }
 }
 
 // Convert h:mm:ss format to seconds
@@ -119,17 +122,33 @@ export default function NotesList({
 
   const handleLikeToggle = async (idx, liked) => {
     try {
+      console.log('=== LIKE TOGGLE DEBUG ===');
+      console.log('Video object:', video);
+      console.log('Video ID:', video?.videoId);
+      console.log('Note index:', idx);
+      console.log('Current liked state:', liked);
+      console.log('Note object:', video?.notes?.[idx]);
+      console.log('========================');
+      
       const response = await axios.patch(
         `http://localhost:5000/bookmark/${video.videoId}/${idx}/like`,
         {
           liked: !liked,
         }
       );
+      console.log('Like toggle response:', response.data);
       if (response.data.success) {
         onLikeToggle(idx, !liked);
+      } else {
+        console.error('Like toggle failed - no success in response');
+        alert("Failed to toggle like - server returned no success");
       }
     } catch (err) {
-      alert("Failed to toggle like");
+      console.error('Like toggle error:', err);
+      console.error('Error response:', err.response?.data);
+      console.error('Error status:', err.response?.status);
+      console.error('Error message:', err.message);
+      alert(`Failed to toggle like: ${err.response?.data?.error || err.message}`);
     }
   };
 
@@ -167,20 +186,20 @@ export default function NotesList({
       {/* Header with Tabs */}
       <div className="mb-8">
         <div className="flex items-center justify-between mb-6">
-          <h3 className="text-2xl font-bold text-youtube-text flex items-center gap-2">
-            <Sparkles className="w-6 h-6 text-youtube-red" />
+          <h3 className="text-2xl font-bold text-white flex items-center gap-2">
+            <Sparkles className="w-6 h-6 text-purple-400" />
             {activeTab === 'notes' ? `Notes (${video.notes.length})` : 'Screenshots'}
           </h3>
         </div>
 
         {/* Tab Navigation */}
-        <div className="flex border-b border-youtube-border mb-6">
+        <div className="flex border-b border-gray-700 mb-6">
           <button
             onClick={() => setActiveTab('notes')}
             className={`flex items-center gap-2 px-6 py-3 font-medium text-sm border-b-2 transition-colors ${
               activeTab === 'notes'
-                ? 'border-youtube-red text-youtube-red'
-                : 'border-transparent text-youtube-text-secondary hover:text-youtube-text'
+                ? 'border-purple-500 text-purple-400'
+                : 'border-transparent text-gray-400 hover:text-gray-300'
             }`}
           >
             <Sparkles className="w-4 h-4" />
@@ -190,8 +209,8 @@ export default function NotesList({
             onClick={() => setActiveTab('screenshots')}
             className={`flex items-center gap-2 px-6 py-3 font-medium text-sm border-b-2 transition-colors ${
               activeTab === 'screenshots'
-                ? 'border-youtube-red text-youtube-red'
-                : 'border-transparent text-youtube-text-secondary hover:text-youtube-text'
+                ? 'border-purple-500 text-purple-400'
+                : 'border-transparent text-gray-400 hover:text-gray-300'
             }`}
           >
             <Camera className="w-4 h-4" />
@@ -205,7 +224,7 @@ export default function NotesList({
         <>
           {/* Add Note Form */}
           <div className="youtube-card p-6 mb-8">
-            <h4 className="text-lg font-semibold text-youtube-text mb-4">
+            <h4 className="text-lg font-semibold text-white mb-4">
               Add New Note
             </h4>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -215,21 +234,21 @@ export default function NotesList({
                   placeholder="Timestamp (mm:ss or h:mm:ss)"
                   value={newTimestamp}
                   onChange={(e) => setNewTimestamp(e.target.value)}
-                  className="youtube-input w-full"
+                  className="px-4 py-3 rounded-lg border border-gray-600 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-gray-800 text-white placeholder-gray-400 w-full"
                 />
-                <p className="text-xs text-youtube-text-secondary mt-1">Format: mm:ss or h:mm:ss</p>
+                <p className="text-xs text-gray-400 mt-1">Format: mm:ss or h:mm:ss</p>
               </div>
               <input
                 type="text"
                 placeholder="Add a new note..."
                 value={newNote}
                 onChange={(e) => setNewNote(e.target.value)}
-                className="youtube-input md:col-span-2"
+                className="px-4 py-3 rounded-lg border border-gray-600 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-gray-800 text-white placeholder-gray-400 md:col-span-2"
               />
             </div>
             <div className="mt-4 flex justify-end">
               <button
-                className="youtube-button px-6 py-3 hover:bg-youtube-red hover:text-white transition-all duration-200"
+                className="px-6 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors font-medium shadow-md hover:shadow-lg"
                 onClick={handleAddNote}
               >
                 Add Note
@@ -241,8 +260,8 @@ export default function NotesList({
           <div className="space-y-4">
             {video.notes.length === 0 ? (
               <div className="text-center py-12 youtube-card">
-                <Sparkles className="w-12 h-12 text-youtube-text-secondary mx-auto mb-4" />
-                <p className="text-youtube-text-secondary text-lg">
+                <Sparkles className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+                <p className="text-gray-400 text-lg">
                   No notes yet. Add your first note above!
                 </p>
               </div>
@@ -263,34 +282,34 @@ export default function NotesList({
                   }
                 })
                 .map((note, idx) => (
-                <div key={idx} className="animate-slide-up" style={{ animationDelay: `${idx * 30}ms` }}>
+                <div key={idx}>
                   {editingIdx === idx ? (
                     // Edit Mode
                     <div className="youtube-card p-6">
-                      <div className="flex items-center gap-2 mb-4">
-                        <span className="inline-block bg-youtube-red text-white font-mono px-3 py-1 rounded-lg text-sm">
+                      <div className="flex items-center gap-2 mb-2">
+                        <span className="inline-block bg-purple-600 text-white font-mono px-3 py-1 rounded-lg text-sm">
                           {formatTimestamp(note.timestamp) || "00:00"}
                         </span>
-                        <span className="text-sm text-youtube-text-secondary">•</span>
-                        <span className="text-sm text-youtube-red font-medium">{video.videoTitle}</span>
-                        <span className="text-xs text-youtube-text-secondary ml-2">{new Date(note.createdAt).toLocaleDateString()}</span>
+                        <span className="text-sm text-gray-400">•</span>
+                        <span className="text-sm text-purple-400 font-medium">{video.videoTitle}</span>
+                        <span className="text-xs text-gray-400 ml-2">{new Date(note.createdAt).toLocaleDateString()}</span>
                       </div>
                       <textarea
                         value={editNote}
                         onChange={(e) => setEditNote(e.target.value)}
-                        className="youtube-input w-full resize-none"
+                        className="w-full p-3 border border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent resize-none bg-gray-800 text-white"
                         rows="4"
                       />
                       <div className="flex items-center gap-2 mt-4">
                         <button
                           onClick={() => handleEditNote(idx, editNote)}
-                          className="p-2 text-green-500 bg-green-500/20 rounded-lg hover:bg-green-500/30 transition-colors"
+                          className="p-2 text-green-400 bg-green-500/20 rounded-lg hover:bg-green-500/30 transition-colors"
                         >
                           <Check className="w-5 h-5" />
                         </button>
                         <button
                           onClick={() => setEditingIdx(null)}
-                          className="p-2 text-youtube-text-secondary bg-youtube-gray rounded-lg hover:bg-youtube-hover transition-colors"
+                          className="p-2 text-gray-400 bg-gray-500/20 rounded-lg hover:bg-gray-500/30 transition-colors"
                         >
                           <X className="w-5 h-5" />
                         </button>
@@ -322,8 +341,8 @@ export default function NotesList({
                           onClick={() => handleLikeToggle(idx, note.liked)}
                           className={`p-2 rounded-lg transition-colors ${
                             note.liked
-                              ? "text-youtube-red bg-youtube-red/20 hover:bg-youtube-red/30"
-                              : "text-youtube-text-secondary bg-youtube-gray hover:bg-youtube-hover"
+                              ? "text-red-500 bg-red-500/20 hover:bg-red-500/30"
+                              : "text-gray-400 bg-gray-500/20 hover:bg-gray-500/30"
                           }`}
                         >
                           {note.liked ? (
@@ -337,13 +356,13 @@ export default function NotesList({
                             setEditingIdx(idx);
                             setEditNote(note.note);
                           }}
-                          className="p-2 text-blue-500 bg-blue-500/20 rounded-lg hover:bg-blue-500/30 transition-colors"
+                          className="p-2 text-blue-400 bg-blue-500/20 rounded-lg hover:bg-blue-500/30 transition-colors"
                         >
                           <Pencil className="w-5 h-5" />
                         </button>
                         <button
                           onClick={() => handleDeleteNote(idx)}
-                          className="p-2 text-red-500 bg-red-500/20 rounded-lg hover:bg-red-500/30 transition-colors"
+                          className="p-2 text-red-400 bg-red-500/20 rounded-lg hover:bg-red-500/30 transition-colors"
                         >
                           <Trash2 className="w-5 h-5" />
                         </button>
@@ -371,8 +390,8 @@ export default function NotesList({
               console.error('Error rendering ScreenshotsList:', error);
               return (
                 <div className="text-center py-12 youtube-card">
-                  <Camera className="w-12 h-12 text-youtube-text-secondary mx-auto mb-4" />
-                  <p className="text-youtube-text-secondary text-lg">
+                  <Camera className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+                  <p className="text-gray-400 text-lg">
                     Error loading screenshots. Please try refreshing the page.
                   </p>
                 </div>

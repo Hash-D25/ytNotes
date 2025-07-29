@@ -1,34 +1,75 @@
-import React from "react";
-import { Link } from "react-router-dom";
-import { ClockIcon, DocumentTextIcon } from "@heroicons/react/24/outline";
+import React, { useState, useMemo } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import { MagnifyingGlassIcon, ArrowsUpDownIcon, ClockIcon } from '@heroicons/react/24/outline';
+import NoteCard from './NoteCard';
+
+function formatTimestamp(seconds) {
+  const hours = Math.floor(seconds / 3600);
+  const minutes = Math.floor((seconds % 3600) / 60);
+  const secs = seconds % 60;
+  
+  if (hours > 0) {
+    return `${hours}:${minutes.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+  } else {
+    return `${minutes}:${secs.toString().padStart(2, '0')}`;
+  }
+}
 
 export default function AllNotesPage({ videos, search, setSearch, sortBy, setSortBy, sortOrder, setSortOrder }) {
-  // Get all notes from all videos with their indices, search filter and sorting
-  const allNotes = videos
-    .flatMap((video) =>
+  const [expandedNotes, setExpandedNotes] = useState(new Set());
+  const navigate = useNavigate();
+
+  const toggleNoteExpansion = (idx) => {
+    setExpandedNotes(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(idx)) newSet.delete(idx); else newSet.add(idx);
+      return newSet;
+    });
+  };
+
+  const handleTimestampClick = (note) => {
+    // Navigate to NotesList page with timestamp parameter
+    navigate(`/notes/${note.videoId}?t=${note.timestamp}`);
+  };
+
+  const handleYouTubeClick = (note) => {
+    const url = `https://www.youtube.com/watch?v=${note.videoId}&t=${note.timestamp}`;
+    window.open(url, '_blank');
+  };
+
+  // Flatten all notes with video info
+  const allNotes = useMemo(() => {
+    return videos.flatMap(video => 
       video.notes.map((note, noteIndex) => ({
         ...note,
         videoId: video.videoId,
         videoTitle: video.videoTitle,
-        noteIndex,
+        videoCreatedAt: video.createdAt,
+        noteIndex
       }))
-    )
-    .filter((note) => 
+    );
+  }, [videos]);
+
+  // Filter and sort notes
+  const filteredNotes = useMemo(() => {
+    let filtered = allNotes.filter(note => 
       note.note.toLowerCase().includes(search.toLowerCase()) ||
       note.videoTitle.toLowerCase().includes(search.toLowerCase())
-    )
-    .sort((a, b) => {
-      const sortMultiplier = sortOrder === 'asc' ? 1 : -1;
-      switch (sortBy) {
-        case 'title':
-          return a.videoTitle.localeCompare(b.videoTitle) * sortMultiplier;
-        case 'timestamp':
-          return (a.timestamp - b.timestamp) * sortMultiplier;
-        case 'createdAt':
-        default:
-          return (new Date(b.createdAt) - new Date(a.createdAt)) * sortMultiplier;
-      }
-    });
+    );
+
+    const sortMultiplier = sortOrder === 'asc' ? 1 : -1;
+
+    switch (sortBy) {
+      case 'timestamp':
+        return filtered.sort((a, b) => (a.timestamp - b.timestamp) * sortMultiplier);
+      case 'title':
+        return filtered.sort((a, b) => a.videoTitle.localeCompare(b.videoTitle) * sortMultiplier);
+      case 'createdAt':
+        return filtered.sort((a, b) => (new Date(b.videoCreatedAt) - new Date(a.videoCreatedAt)) * sortMultiplier);
+      default:
+        return filtered.sort((a, b) => (new Date(b.videoCreatedAt) - new Date(a.videoCreatedAt)) * sortMultiplier);
+    }
+  }, [allNotes, search, sortBy, sortOrder]);
 
   const totalVideos = videos.length;
   const totalNotes = videos.reduce((total, v) => total + (v.notes?.length || 0), 0);
@@ -66,10 +107,10 @@ export default function AllNotesPage({ videos, search, setSearch, sortBy, setSor
         <div className="pb-8">
           {search && (
             <div className="mb-6 text-gray-400 text-sm text-center">
-              Showing {allNotes.length} notes matching "{search}"
+              Showing {filteredNotes.length} notes matching "{search}"
             </div>
           )}
-          {allNotes.length === 0 ? (
+          {filteredNotes.length === 0 ? (
             <div className="text-center py-20">
               <div className="text-gray-400 text-6xl mb-6">📝</div>
               <h3 className="text-2xl font-semibold text-white mb-2">No notes found</h3>
@@ -79,40 +120,25 @@ export default function AllNotesPage({ videos, search, setSearch, sortBy, setSor
             </div>
           ) : (
             <div className="space-y-4 animate-fade-in">
-              {allNotes.map((note, index) => (
+              {filteredNotes.map((note, index) => (
                 <div key={`${note.videoId}-${note.noteIndex}`} className="animate-slide-up" style={{ animationDelay: `${index * 50}ms` }}>
-                  <div className="youtube-card p-6">
-                    {/* Note Header */}
-                    <div className="flex items-start justify-between mb-4">
-                      <div className="flex-1">
-                        <h3 className="text-white font-medium mb-2">{note.videoTitle}</h3>
-                        <div className="flex items-center space-x-4 text-sm text-gray-400">
-                          <span>Note {note.noteIndex + 1}</span>
-                          <span>{new Date(note.createdAt).toLocaleDateString()}</span>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Note Content */}
-                    <div className="mb-4">
-                      <p className="text-gray-300 leading-relaxed">{note.note}</p>
-                    </div>
-
-                    {/* Timestamp and Actions */}
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center space-x-2">
-                        <ClockIcon className="w-4 h-4 text-gray-400" />
-                        <span className="text-sm text-gray-400">{note.timestamp}</span>
-                      </div>
-                      
-                      <Link
-                        to={`/notes/${note.videoId}`}
-                        className="youtube-button px-4 py-2 text-sm hover:bg-purple-500 hover:text-white transition-all duration-200"
-                      >
-                        Go to Video
-                      </Link>
-                    </div>
-                  </div>
+                  <NoteCard
+                    note={note.note}
+                    timestamp={formatTimestamp(note.timestamp)}
+                    videoTitle={note.videoTitle}
+                    createdAt={new Date(note.createdAt).toLocaleDateString()}
+                    expanded={expandedNotes.has(index)}
+                    onToggleExpand={() => toggleNoteExpansion(index)}
+                    onTimestampClick={() => handleTimestampClick(note)}
+                    onYouTubeClick={() => handleYouTubeClick(note)}
+                  >
+                    <Link
+                      to={`/notes/${note.videoId}`}
+                      className=" flex justify-end youtube-button px-4 py-2 text-sm hover:bg-purple-500 hover:text-white transition-all duration-200"
+                    >
+                      Go to Video
+                    </Link>
+                  </NoteCard>
                 </div>
               ))}
             </div>

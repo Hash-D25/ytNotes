@@ -2,11 +2,15 @@ import React, { useState, useEffect } from 'react';
 import { ArrowTopRightOnSquareIcon, PhotoIcon, XMarkIcon, PlayIcon, ArrowsPointingOutIcon } from '@heroicons/react/24/outline';
 
 function formatTimestamp(seconds) {
-  const m = Math.floor(seconds / 60)
-    .toString()
-    .padStart(2, "0");
-  const s = (seconds % 60).toString().padStart(2, "0");
-  return `${m}:${s}`;
+  const hours = Math.floor(seconds / 3600);
+  const minutes = Math.floor((seconds % 3600) / 60);
+  const secs = seconds % 60;
+  
+  if (hours > 0) {
+    return `${hours}:${minutes.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+  } else {
+    return `${minutes}:${secs.toString().padStart(2, '0')}`;
+  }
 }
 
 export default function NoteCard({
@@ -27,8 +31,10 @@ export default function NoteCard({
   screenshot = null,
 }) {
   const [showScreenshotModal, setShowScreenshotModal] = useState(false);
-  const shouldTruncate = note.length > 200;
-  const collapsedHeight = 'h-10'; // Fixed height for collapsed cards (128px)
+  
+  // Improved truncation logic - only show for very long notes
+  const shouldTruncate = note && note.length > 200; // Higher threshold for very long notes
+  const collapsedHeight = 'max-h-20'; // 80px height for collapsed cards
 
   // Add keyboard support for the modal
   useEffect(() => {
@@ -78,15 +84,35 @@ export default function NoteCard({
     }
   };
 
+  const handleToggleExpand = () => {
+    if (onToggleExpand) {
+      onToggleExpand();
+    }
+  };
+
+  // Separate children into action buttons and link buttons
+  const actionButtons = [];
+  const linkButtons = [];
+  
+  React.Children.forEach(children, (child) => {
+    if (React.isValidElement(child)) {
+      if (child.type === 'a' || child.props?.className?.includes('youtube-button')) {
+        linkButtons.push(child);
+      } else {
+        actionButtons.push(child);
+      }
+    }
+  });
+
   return (
     <>
-      <div className={`youtube-card p-6 ${className}`}>
+      <div className={`youtube-card rounded-xl shadow-md border border-gray-700 hover:shadow-lg transition-shadow duration-300 p-6 ${className}`}>
         {showMeta && (
-          <div className="flex items-center gap-2 mb-4">
+          <div className="flex items-center gap-2 mb-2">
             {showTimestamp && (
               <div className="flex items-center gap-2">
                 <span 
-                  className="inline-block bg-youtube-red text-white font-mono px-3 py-1 rounded-lg text-sm cursor-pointer hover:bg-red-600 transition-colors"
+                  className="inline-block bg-purple-600 text-white font-mono px-3 py-1 rounded-lg text-sm cursor-pointer hover:bg-purple-700 transition-colors"
                   onClick={handleTimestampClick}
                   title="Click to play video at this timestamp"
                 >
@@ -95,7 +121,7 @@ export default function NoteCard({
                 {onYouTubeClick && (
                   <button
                     onClick={handleYouTubeClick}
-                    className="p-1 text-youtube-text-secondary hover:text-youtube-red transition-colors"
+                    className="p-1 text-gray-400 hover:text-purple-400 transition-colors"
                     title="Open in YouTube at this timestamp"
                   >
                     <ArrowTopRightOnSquareIcon 
@@ -106,14 +132,14 @@ export default function NoteCard({
             )}
             {showTitle && videoTitle && (
               <>
-                <span className="text-sm text-youtube-text-secondary">•</span>
-                <span className="text-sm text-youtube-red font-medium">{videoTitle}</span>
+                <span className="text-sm text-gray-400">•</span>
+                <span className="text-sm text-purple-400 font-medium">{videoTitle}</span>
               </>
             )}
             {showDate && createdAt && (
               <>
-                <span className="text-sm text-youtube-text-secondary">•</span>
-                <span className="text-sm text-youtube-text-secondary">
+                <span className="text-sm text-gray-400">•</span>
+                <span className="text-sm text-gray-400">
                   {new Date(createdAt).toLocaleDateString()}
                 </span>
               </>
@@ -123,14 +149,38 @@ export default function NoteCard({
 
         <div className="mb-4">
           {expanded ? (
-            <p className="text-youtube-text text-sm leading-relaxed break-words whitespace-pre-line min-w-0">{note}</p>
+            <p className="text-gray-300 text-sm leading-relaxed break-words whitespace-pre-line min-w-0">{note}</p>
           ) : (
             <div className={`${collapsedHeight} overflow-hidden`}>
-              <p className="text-youtube-text text-sm leading-relaxed break-words whitespace-pre-line min-w-0">{note}</p>
+              <p className="text-gray-300 text-sm leading-relaxed break-words whitespace-pre-line min-w-0">{note}</p>
             </div>
           )}
-          {children}
+          
+          {/* Expand/Collapse Button - Positioned right after note content */}
+          {shouldTruncate && (
+            <button
+              onClick={handleToggleExpand}
+              className="text-purple-400 hover:text-purple-300 text-sm font-medium mt-2"
+            >
+              {expanded ? 'Show less' : 'Show more'}
+            </button>
+          )}
         </div>
+
+        {/* Action buttons container - positioned at bottom */}
+        {children && (
+          <div className="flex items-center justify-between mt-4">
+            <div className="flex items-center gap-2">
+              {/* Left side - Go to Video button */}
+              {linkButtons}
+            </div>
+            
+            {/* Right side buttons (like, edit, delete, etc.) */}
+            <div className="flex items-center gap-2">
+              {actionButtons}
+            </div>
+          </div>
+        )}
 
         {/* Screenshot Modal - Now shows as in-app popup */}
         {showScreenshotModal && screenshot && (
@@ -171,7 +221,7 @@ export default function NoteCard({
                 <div className="flex gap-2">
                   <button
                     onClick={handleScreenshotTimestampClick}
-                    className="inline-flex items-center gap-1 bg-blue-600 text-white px-3 py-1 rounded-lg text-sm hover:bg-blue-700 transition-colors"
+                    className="inline-flex items-center gap-1 bg-purple-600 text-white px-3 py-1 rounded-lg text-sm hover:bg-purple-700 transition-colors"
                     title="Play video at this timestamp"
                   >
                     <PlayIcon className="w-3 h-3" />
@@ -179,7 +229,7 @@ export default function NoteCard({
                   </button>
                   <button
                     onClick={handleScreenshotYouTubeClick}
-                    className="inline-flex items-center gap-1 bg-youtube-red text-white px-3 py-1 rounded-lg text-sm hover:bg-red-700 transition-colors"
+                    className="inline-flex items-center gap-1 bg-red-600 text-white px-3 py-1 rounded-lg text-sm hover:bg-red-700 transition-colors"
                     title="Open in YouTube"
                   >
                     <ArrowTopRightOnSquareIcon className="w-3 h-3" />
@@ -209,16 +259,6 @@ export default function NoteCard({
               </div>
             </div>
           </div>
-        )}
-
-        {/* Expand/Collapse Button */}
-        {shouldTruncate && (
-          <button
-            onClick={onToggleExpand}
-            className="text-youtube-red hover:text-red-600 text-sm font-medium mt-2 transition-colors"
-          >
-            {expanded ? 'Show less' : 'Show more'}
-          </button>
         )}
       </div>
     </>
