@@ -38,4 +38,32 @@ router.patch('/:videoId/favorite', async (req, res) => {
   }
 });
 
+// DELETE /videos/:videoId
+router.delete('/:videoId', async (req, res) => {
+  try {
+    const video = await Video.findOne({ videoId: req.params.videoId });
+    if (!video) return res.status(404).json({ error: 'Video not found' });
+    
+    // Delete associated screenshots from filesystem
+    if (video.screenshots && video.screenshots.length > 0) {
+      const fs = require('fs');
+      const path = require('path');
+      
+      video.screenshots.forEach(screenshot => {
+        const filepath = path.join(__dirname, '..', screenshot.path);
+        if (fs.existsSync(filepath)) {
+          fs.unlinkSync(filepath);
+        }
+      });
+    }
+    
+    // Delete the video from database
+    await Video.deleteOne({ videoId: req.params.videoId });
+    
+    res.json({ success: true, message: 'Video deleted successfully' });
+  } catch (err) {
+    res.status(500).json({ error: 'Server error', details: err.message });
+  }
+});
+
 module.exports = router; 

@@ -335,6 +335,7 @@ export default function NotesList({
                         console.log(`Note ${idx} screenshot data:`, screenshotData);
                         return screenshotData;
                       })()}
+                      isVideoNotesPage={true}
                     >
                       <div className="flex items-center gap-2 flex-shrink-0 mt-4 justify-end">
                         <button

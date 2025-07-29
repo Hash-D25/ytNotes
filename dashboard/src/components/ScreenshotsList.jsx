@@ -214,7 +214,7 @@ export default function ScreenshotsList({ video, onScreenshotDelete, onTimestamp
           {sortedScreenshots.length > 0 && (
             <button
               onClick={openSlideshow}
-              className="px-4 py-2 bg-primary text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium flex items-center gap-1"
+              className="px-4 py-2 bg-primary text-white rounded-lg hover:bg-purple-700 transition-colors text-sm font-medium flex items-center gap-1"
             >
               <Play className="w-4 h-4" />
               Slideshow
@@ -222,7 +222,7 @@ export default function ScreenshotsList({ video, onScreenshotDelete, onTimestamp
           )}
           
           {/* Sort Controls */}
-          <div className="flex items-center gap-1 bg-white rounded-lg p-1 border border-gray-200">
+          <div className="flex items-center gap-1  rounded-lg p-1 border border-gray-200">
             <button
               onClick={() => handleSort('timestamp')}
               className={`flex items-center gap-1 px-3 py-1 rounded text-sm transition-colors ${

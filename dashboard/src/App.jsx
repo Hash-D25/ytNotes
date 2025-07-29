@@ -8,7 +8,7 @@ import NotesPage from "./components/NotesPage";
 import FavoritesPage from "./components/FavoritesPage";
 import AllNotesPage from "./components/AllNotesPage";
 
-function Dashboard({ videos, search, setSearch, loading, error, sortBy, setSortBy, sortOrder, setSortOrder, onFavoriteToggle }) {
+function Dashboard({ videos, search, setSearch, loading, error, sortBy, setSortBy, sortOrder, setSortOrder, onFavoriteToggle, onVideoDelete }) {
   let filteredVideos = videos.filter((v) => v.videoTitle.toLowerCase().includes(search.toLowerCase()));
   
   const sortMultiplier = sortOrder === 'asc' ? 1 : -1;
@@ -84,7 +84,7 @@ function Dashboard({ videos, search, setSearch, loading, error, sortBy, setSortB
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 animate-fade-in">
             {filteredVideos.map((video, index) => (
               <div key={video._id} className="animate-slide-up" style={{ animationDelay: `${index * 50}ms` }}>
-                <BookmarkCard video={video} onFavoriteToggle={onFavoriteToggle} />
+                <BookmarkCard video={video} onFavoriteToggle={onFavoriteToggle} onVideoDelete={onVideoDelete} />
               </div>
             ))}
           </div>
@@ -143,6 +143,14 @@ function AppContent() {
     }
   };
 
+  const handleVideoDelete = async (videoId) => {
+    try {
+      setVideos((prev) => prev.filter(v => v.videoId !== videoId));
+    } catch (err) {
+      console.error("Error updating videos after delete:", err);
+    }
+  };
+
   return (
     <div className="flex h-screen bg-gray-900 overflow-hidden">
       <Sidebar />
@@ -172,10 +180,11 @@ function AppContent() {
                   sortOrder={sortOrder}
                   setSortOrder={setSortOrder}
                   onFavoriteToggle={handleFavoriteToggle}
+                  onVideoDelete={handleVideoDelete}
                 />
               }
             />
-            <Route path="/favorites" element={<FavoritesPage videos={videos} fetchVideos={fetchVideos} onFavoriteToggle={handleFavoriteToggle} search={search} setSearch={setSearch} sortBy={sortBy} setSortBy={setSortBy} sortOrder={sortOrder} setSortOrder={setSortOrder} />} />
+            <Route path="/favorites" element={<FavoritesPage videos={videos} fetchVideos={fetchVideos} onFavoriteToggle={handleFavoriteToggle} onVideoDelete={handleVideoDelete} search={search} setSearch={setSearch} sortBy={sortBy} setSortBy={setSortBy} sortOrder={sortOrder} setSortOrder={setSortOrder} />} />
             <Route path="/notes" element={<AllNotesPage videos={videos} search={search} setSearch={setSearch} sortBy={sortBy} setSortBy={setSortBy} sortOrder={sortOrder} setSortOrder={setSortOrder} />} />
             <Route path="/notes/:videoId" element={<NotesPage videos={videos} fetchVideos={fetchVideos} search={search} setSearch={setSearch} sortBy={sortBy} setSortBy={setSortBy} sortOrder={sortOrder} setSortOrder={setSortOrder} />} />
           </Routes>

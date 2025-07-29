@@ -29,12 +29,13 @@ export default function NoteCard({
   showTimestamp = true,
   className = '',
   screenshot = null,
+  isVideoNotesPage = false,
 }) {
   const [showScreenshotModal, setShowScreenshotModal] = useState(false);
   
   // Improved truncation logic - only show for very long notes
-  const shouldTruncate = note && note.length > 200; // Higher threshold for very long notes
-  const collapsedHeight = 'max-h-20'; // 80px height for collapsed cards
+  const shouldTruncate = note && note.length > 100; // Lower threshold for testing
+  const collapsedHeight = 'max-h-16 overflow-hidden'; // 64px height for collapsed cards
 
   // Add keyboard support for the modal
   useEffect(() => {
@@ -147,39 +148,119 @@ export default function NoteCard({
           </div>
         )}
 
-        <div className="mb-4">
-          {expanded ? (
-            <p className="text-gray-300 text-sm leading-relaxed break-words whitespace-pre-line min-w-0">{note}</p>
-          ) : (
-            <div className={`${collapsedHeight} overflow-hidden`}>
-              <p className="text-gray-300 text-sm leading-relaxed break-words whitespace-pre-line min-w-0">{note}</p>
+        {isVideoNotesPage ? (
+          // Special layout for video notes page
+          <div className="flex gap-6">
+            {/* Left side - Note content with fixed width */}
+            <div className="flex-1 min-w-0">
+              <div className="mb-4">
+                {expanded ? (
+                  <p className="text-gray-300 text-sm leading-relaxed break-words whitespace-pre-line min-w-0">{note}</p>
+                ) : (
+                  <div className={`${collapsedHeight}`}>
+                    <p className="text-gray-300 text-sm leading-relaxed break-words whitespace-pre-line min-w-0">{note}</p>
+                  </div>
+                )}
+                
+                {/* Expand/Collapse Button - Positioned right after note content */}
+                {shouldTruncate && (
+                  <button
+                    onClick={handleToggleExpand}
+                    className="text-purple-400 hover:text-purple-300 text-sm font-medium mt-2"
+                  >
+                    {expanded ? 'Show less' : 'Show more'}
+                  </button>
+                )}
+              </div>
             </div>
-          )}
-          
-          {/* Expand/Collapse Button - Positioned right after note content */}
-          {shouldTruncate && (
-            <button
-              onClick={handleToggleExpand}
-              className="text-purple-400 hover:text-purple-300 text-sm font-medium mt-2"
-            >
-              {expanded ? 'Show less' : 'Show more'}
-            </button>
-          )}
-        </div>
 
-        {/* Action buttons container - positioned at bottom */}
-        {children && (
-          <div className="flex items-center justify-between mt-4">
-            <div className="flex items-center gap-2">
-              {/* Left side - Go to Video button */}
-              {linkButtons}
-            </div>
-            
-            {/* Right side buttons (like, edit, delete, etc.) */}
-            <div className="flex items-center gap-2">
-              {actionButtons}
+            {/* Right side - Screenshot and buttons with fixed width */}
+            <div className="flex flex-col gap-4 w-40 flex-shrink-0">
+              {/* Screenshot Thumbnail */}
+              {screenshot && (
+                <div className="relative inline-block">
+                  <img
+                    src={`http://localhost:5000${screenshot.path}`}
+                    alt={`Screenshot at ${formatTimestamp(screenshot.timestamp)}`}
+                    className="w-32 h-20 object-cover rounded-lg cursor-pointer hover:opacity-80 transition-opacity"
+                    onClick={openScreenshotModal}
+                    onError={(e) => {
+                      e.target.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjZjNmNGY2Ii8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIGZvbnQtZmFtaWx5PSJBcmlhbCwgc2Fucy1zZXJpZiIgZm9udC1zaXplPSIxNCIgZmlsbD0iIzY2NzM4MyIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZHk9Ii4zZW0iPkltYWdlIG5vdCBmb3VuZDwvdGV4dD48L3N2Zz4=';
+                    }}
+                  />
+                  <div className="absolute top-1 right-10 bg-black bg-opacity-50 text-white text-xs px-1 py-0.5 rounded">
+                    <PhotoIcon className="w-3 h-3" />
+                  </div>
+                </div>
+              )}
+
+              {/* Action buttons */}
+              {children && (
+                <div className="flex items-center gap-2">
+                  {actionButtons}
+                  {linkButtons}
+                </div>
+              )}
             </div>
           </div>
+        ) : (
+          // Original layout for other pages
+          <>
+            <div className="mb-4">
+              {expanded ? (
+                <p className="text-gray-300 text-sm leading-relaxed break-words whitespace-pre-line min-w-0">{note}</p>
+              ) : (
+                <div className={`${collapsedHeight}`}>
+                  <p className="text-gray-300 text-sm leading-relaxed break-words whitespace-pre-line min-w-0">{note}</p>
+                </div>
+              )}
+              
+              {/* Expand/Collapse Button - Positioned right after note content */}
+              {shouldTruncate && (
+                <button
+                  onClick={handleToggleExpand}
+                  className="text-purple-400 hover:text-purple-300 text-sm font-medium mt-2"
+                >
+                  {expanded ? 'Show less' : 'Show more'}
+                </button>
+              )}
+            </div>
+
+            {/* Action buttons container - positioned at bottom */}
+            {children && (
+              <div className="flex items-center justify-between mt-4">
+                <div className="flex items-center gap-2">
+                  {/* Left side - Action buttons (like, edit, delete, etc.) */}
+                  {actionButtons}
+                </div>
+                
+                {/* Right side - Go to Video button */}
+                <div className="flex items-center gap-2">
+                  {linkButtons}
+                </div>
+              </div>
+            )}
+
+            {/* Screenshot Thumbnail */}
+            {screenshot && (
+              <div className="mt-2">
+                <div className="relative inline-block">
+                  <img
+                    src={`http://localhost:5000${screenshot.path}`}
+                    alt={`Screenshot at ${formatTimestamp(screenshot.timestamp)}`}
+                    className="w-32 h-20 object-cover rounded-lg cursor-pointer hover:opacity-80 transition-opacity"
+                    onClick={openScreenshotModal}
+                    onError={(e) => {
+                      e.target.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjZjNmNGY2Ii8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIGZvbnQtZmFtaWx5PSJBcmlhbCwgc2Fucy1zZXJpZiIgZm9udC1zaXplPSIxNCIgZmlsbD0iIzY2NzM4MyIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZHk9Ii4zZW0iPkltYWdlIG5vdCBmb3VuZDwvdGV4dD48L3N2Zz4=';
+                    }}
+                  />
+                  <div className="absolute top-1 right-1 bg-black bg-opacity-50 text-white text-xs px-1 py-0.5 rounded">
+                    <PhotoIcon className="w-3 h-3" />
+                  </div>
+                </div>
+              </div>
+            )}
+          </>
         )}
 
         {/* Screenshot Modal - Now shows as in-app popup */}
@@ -240,27 +321,7 @@ export default function NoteCard({
             </div>
           </div>
         )}
-
-        {/* Screenshot Thumbnail */}
-        {screenshot && (
-          <div className="mt-4">
-            <div className="relative inline-block">
-              <img
-                src={`http://localhost:5000${screenshot.path}`}
-                alt={`Screenshot at ${formatTimestamp(screenshot.timestamp)}`}
-                className="w-32 h-20 object-cover rounded-lg cursor-pointer hover:opacity-80 transition-opacity"
-                onClick={openScreenshotModal}
-                onError={(e) => {
-                  e.target.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjZjNmNGY2Ii8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIGZvbnQtZmFtaWx5PSJBcmlhbCwgc2Fucy1zZXJpZiIgZm9udC1zaXplPSIxNCIgZmlsbD0iIzY2NzM4MyIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZHk9Ii4zZW0iPkltYWdlIG5vdCBmb3VuZDwvdGV4dD48L3N2Zz4=';
-                }}
-              />
-              <div className="absolute top-1 right-1 bg-black bg-opacity-50 text-white text-xs px-1 py-0.5 rounded">
-                <PhotoIcon className="w-3 h-3" />
-              </div>
-            </div>
-          </div>
-        )}
       </div>
     </>
   );
-} 
+}

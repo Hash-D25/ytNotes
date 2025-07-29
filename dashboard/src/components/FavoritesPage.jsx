@@ -1,8 +1,9 @@
 import React, { useState, useMemo } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { MagnifyingGlassIcon, ArrowsUpDownIcon, HeartIcon, ArrowTopRightOnSquareIcon } from '@heroicons/react/24/outline';
-import NoteCard from './NoteCard';
+import { HeartIcon } from '@heroicons/react/24/solid';
 import axios from 'axios';
+import NoteCard from './NoteCard';
+import BookmarkCard from './BookmarkCard';
 
 function formatTimestamp(seconds) {
   const hours = Math.floor(seconds / 3600);
@@ -20,6 +21,7 @@ export default function FavoritesPage({
   videos,
   fetchVideos,
   onFavoriteToggle,
+  onVideoDelete,
   search,
   setSearch,
   sortBy,
@@ -42,7 +44,7 @@ export default function FavoritesPage({
   const handleEditNote = async (idx, newNote) => {
     try {
       const response = await axios.patch(
-        `http://localhost:5000/bookmark/${video.videoId}/${idx}`,
+        `http://localhost:5000/bookmark/${videos[idx].videoId}/${idx}`,
         {
           note: newNote,
         }
@@ -58,7 +60,7 @@ export default function FavoritesPage({
   const handleDeleteNote = async (idx) => {
     try {
       const response = await axios.delete(
-        `http://localhost:5000/bookmark/${video.videoId}/${idx}`
+        `http://localhost:5000/bookmark/${videos[idx].videoId}/${idx}`
       );
       if (response.data.success) {
         fetchVideos();
@@ -218,57 +220,11 @@ export default function FavoritesPage({
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 animate-fade-in">
                 {favoriteVideos.map((video, index) => (
                   <div key={video.videoId} className="animate-slide-up" style={{ animationDelay: `${index * 50}ms` }}>
-                    <div className="youtube-card p-6">
-                      {/* Video Thumbnail */}
-                      <div className="relative mb-4">
-                        <img
-                          src={video.thumbnail || `https://img.youtube.com/vi/${video.videoId}/hqdefault.jpg`}
-                          alt={video.videoTitle}
-                          className="w-full h-32 object-cover rounded-lg"
-                        />
-                        <div className="absolute top-2 right-2">
-                          <button
-                            onClick={() => onFavoriteToggle(video.videoId, false)}
-                            className="p-2 rounded-full bg-red-500/20 hover:bg-red-500/30 transition-colors duration-200"
-                            title="Remove from favorites"
-                          >
-                            <HeartIcon className="w-4 h-4 text-red-500" />
-                          </button>
-                        </div>
-                      </div>
-
-                      {/* Video Info */}
-                      <div className="mb-4">
-                        <h3 className="text-white font-medium mb-2 line-clamp-2">{video.videoTitle}</h3>
-                        <div className="flex items-center justify-between text-sm text-gray-400">
-                          <span>{video.notes?.length || 0} notes</span>
-                          <span>{new Date(video.createdAt).toLocaleDateString()}</span>
-                        </div>
-                      </div>
-
-                      {/* Action Buttons */}
-                      <div className="flex items-center justify-between">
-                        <Link
-                          to={`/notes/${video.videoId}`}
-                          className="youtube-button px-4 py-2 text-sm hover:bg-purple-500 hover:text-white transition-all duration-200"
-                        >
-                          View Notes
-                        </Link>
-                        
-                        <button
-                          onClick={() => {
-                            const url = `https://www.youtube.com/watch?v=${video.videoId}`;
-                            window.open(url, '_blank');
-                          }}
-                          className="p-2 rounded-lg bg-gray-700/50 hover:bg-gray-600/50 transition-colors duration-200"
-                          title="Open on YouTube"
-                        >
-                          <svg className="w-4 h-4 text-gray-400" fill="currentColor" viewBox="0 0 24 24">
-                            <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
-                          </svg>
-                        </button>
-                      </div>
-                    </div>
+                    <BookmarkCard
+                      video={video}
+                      onFavoriteToggle={onFavoriteToggle}
+                      onVideoDelete={onVideoDelete}
+                    />
                   </div>
                 ))}
               </div>
@@ -293,7 +249,16 @@ export default function FavoritesPage({
             ) : (
               <div className="space-y-4 animate-fade-in">
                 {filteredFavoriteNotes.map((note, index) => (
-                  <div key={`${note.videoId}-${note.noteIndex}`} className="animate-slide-up" style={{ animationDelay: `${index * 50}ms` }}>
+                  <div key={`${note.videoId}-${note.noteIndex}`} className="animate-slide-up relative" style={{ animationDelay: `${index * 50}ms` }}>
+                    {/* Like button positioned at top right */}
+                    <button
+                      onClick={() => handleLikeToggle(note, note.liked)}
+                      className="absolute top-4 right-4 p-2 rounded-lg bg-red-500/20 hover:bg-red-500/30 transition-colors duration-200 z-10"
+                      title="Unlike"
+                    >
+                      <HeartIcon className="w-4 h-4 text-red-500" />
+                    </button>
+                    
                     <NoteCard
                       note={note.note}
                       timestamp={formatTimestamp(note.timestamp)}
@@ -304,22 +269,12 @@ export default function FavoritesPage({
                       onTimestampClick={() => handleTimestampClick(note)}
                       onYouTubeClick={() => handleYouTubeClick(note)}
                     >
-                      <div className="flex items-center justify-between mt-4">
-                        <button
-                          onClick={() => handleLikeToggle(note, note.liked)}
-                          className="p-2 rounded-lg bg-red-500/20 hover:bg-red-500/30 transition-colors duration-200"
-                          title="Unlike"
-                        >
-                          <HeartIcon className="w-4 h-4 text-red-500" />
-                        </button>
-                        
-                        <Link
-                          to={`/notes/${note.videoId}`}
-                          className="text-purple-400 hover:text-purple-300 text-sm transition-colors duration-200"
-                        >
-                          View Video →
-                        </Link>
-                      </div>
+                      <Link
+                        to={`/notes/${note.videoId}`}
+                        className="flex justify-end text-purple-400 hover:text-purple-300 text-sm transition-colors duration-200"
+                      >
+                        View Video →
+                      </Link>
                     </NoteCard>
                   </div>
                 ))}
