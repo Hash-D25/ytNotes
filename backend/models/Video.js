@@ -15,12 +15,16 @@ const screenshotSchema = new mongoose.Schema({
 });
 
 const videoSchema = new mongoose.Schema({
-  videoId: { type: String, required: true, unique: true },
+  userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+  videoId: { type: String, required: true },
   videoTitle: { type: String, required: true },
   createdAt: { type: Date, default: Date.now },
   notes: [noteSchema],
   screenshots: [screenshotSchema],
   favorite: { type: Boolean, default: false },
 });
+
+// Compound index to ensure unique videoId per user
+videoSchema.index({ userId: 1, videoId: 1 }, { unique: true });
 
 module.exports = mongoose.model('Video', videoSchema); 

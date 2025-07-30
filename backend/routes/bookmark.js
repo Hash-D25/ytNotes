@@ -4,11 +4,12 @@ const Video = require('../models/Video');
 const fs = require('fs');
 const path = require('path');
 const { google } = require('googleapis');
+const { getCurrentUser, requireAuth } = require('../middleware/auth');
 
 // GET /bookmark/:videoId - Get all bookmarks for a video
-router.get('/:videoId', async (req, res) => {
+router.get('/:videoId', getCurrentUser, requireAuth, async (req, res) => {
   try {
-    const video = await Video.findOne({ videoId: req.params.videoId });
+    const video = await Video.findOne({ userId: req.currentUser._id, videoId: req.params.videoId });
     if (!video) {
       return res.json([]); // Return empty array if no bookmarks found
     }
@@ -20,10 +21,12 @@ router.get('/:videoId', async (req, res) => {
 });
 
 // POST /bookmark
-router.post('/', async (req, res) => {
+router.post('/', getCurrentUser, requireAuth, async (req, res) => {
      console.log('🔍 Bookmark POST request from:', req.headers.origin);
    console.log('🔍 Session ID in bookmark route:', req.sessionID);
    console.log('🔍 Session in bookmark route:', req.session);
+   console.log('🔍 Current user:', req.currentUser ? req.currentUser.email : 'Not found');
+   console.log('🔍 Current user ID:', req.currentUser ? req.currentUser._id : 'Not found');
    
    try {
     const { videoId, videoTitle, timestamp, note, screenshot } = req.body;
@@ -34,7 +37,7 @@ router.post('/', async (req, res) => {
       return res.status(400).json({ error: 'Missing required fields' });
     }
 
-    let video = await Video.findOne({ videoId });
+    let video = await Video.findOne({ userId: req.currentUser._id, videoId });
     const noteObj = { timestamp, note };
 
          // Handle screenshot if provided
@@ -107,6 +110,7 @@ router.post('/', async (req, res) => {
 
           if (!video) {
             video = new Video({
+              userId: req.currentUser._id,
               videoId,
               videoTitle,
               notes: [noteObj],
@@ -123,6 +127,7 @@ router.post('/', async (req, res) => {
          // Continue without screenshot if there's an error
         if (!video) {
           video = new Video({
+            userId: req.currentUser._id,
             videoId,
             videoTitle,
             notes: [noteObj],
@@ -134,6 +139,7 @@ router.post('/', async (req, res) => {
     } else {
       if (!video) {
         video = new Video({
+          userId: req.currentUser._id,
           videoId,
           videoTitle,
           notes: [noteObj],
@@ -152,10 +158,10 @@ router.post('/', async (req, res) => {
 });
 
 // PATCH /bookmark/:videoId/:noteIdx
-router.patch('/:videoId/:noteIdx', async (req, res) => {
+router.patch('/:videoId/:noteIdx', getCurrentUser, requireAuth, async (req, res) => {
   try {
     const { note } = req.body;
-    const video = await Video.findOne({ videoId: req.params.videoId });
+    const video = await Video.findOne({ userId: req.currentUser._id, videoId: req.params.videoId });
     if (!video) return res.status(404).json({ error: 'Video not found' });
     if (!video.notes[req.params.noteIdx]) return res.status(404).json({ error: 'Note not found' });
     video.notes[req.params.noteIdx].note = note;
@@ -167,9 +173,9 @@ router.patch('/:videoId/:noteIdx', async (req, res) => {
 });
 
 // DELETE /bookmark/:videoId/:noteIdx
-router.delete('/:videoId/:noteIdx', async (req, res) => {
+router.delete('/:videoId/:noteIdx', getCurrentUser, requireAuth, async (req, res) => {
   try {
-    const video = await Video.findOne({ videoId: req.params.videoId });
+    const video = await Video.findOne({ userId: req.currentUser._id, videoId: req.params.videoId });
     if (!video) return res.status(404).json({ error: 'Video not found' });
     
     const noteIdx = parseInt(req.params.noteIdx);
@@ -262,7 +268,7 @@ router.delete('/:videoId/:noteIdx', async (req, res) => {
 });
 
 // PATCH /bookmark/:videoId/:noteIdx/like
-router.patch('/:videoId/:noteIdx/like', async (req, res) => {
+router.patch('/:videoId/:noteIdx/like', getCurrentUser, requireAuth, async (req, res) => {
   try {
     const { liked } = req.body;
     console.log('Like toggle request:', {
@@ -271,7 +277,7 @@ router.patch('/:videoId/:noteIdx/like', async (req, res) => {
       liked: liked
     });
     
-    const video = await Video.findOne({ videoId: req.params.videoId });
+    const video = await Video.findOne({ userId: req.currentUser._id, videoId: req.params.videoId });
     if (!video) {
       console.log('Video not found:', req.params.videoId);
       return res.status(404).json({ error: 'Video not found' });
@@ -301,9 +307,9 @@ router.patch('/:videoId/:noteIdx/like', async (req, res) => {
 });
 
 // GET /bookmark/:videoId/screenshots
-router.get('/:videoId/screenshots', async (req, res) => {
+router.get('/:videoId/screenshots', getCurrentUser, requireAuth, async (req, res) => {
   try {
-    const video = await Video.findOne({ videoId: req.params.videoId });
+    const video = await Video.findOne({ userId: req.currentUser._id, videoId: req.params.videoId });
     if (!video) {
       return res.status(404).json({ error: 'Video not found' });
     }
@@ -318,9 +324,9 @@ router.get('/:videoId/screenshots', async (req, res) => {
 });
 
 // DELETE /bookmark/:videoId/screenshots/:screenshotIdx
-router.delete('/:videoId/screenshots/:screenshotIdx', async (req, res) => {
+router.delete('/:videoId/screenshots/:screenshotIdx', getCurrentUser, requireAuth, async (req, res) => {
   try {
-    const video = await Video.findOne({ videoId: req.params.videoId });
+    const video = await Video.findOne({ userId: req.currentUser._id, videoId: req.params.videoId });
     if (!video) return res.status(404).json({ error: 'Video not found' });
     
     const screenshotIdx = parseInt(req.params.screenshotIdx);
@@ -391,7 +397,7 @@ router.delete('/:videoId/screenshots/:screenshotIdx', async (req, res) => {
     // Check if video has no notes left
     if (video.notes.length === 0 && video.screenshots.length === 0) {
       console.log('🗑️ Video has no notes or screenshots left - deleting entire video');
-      await Video.deleteOne({ videoId: req.params.videoId });
+      await Video.deleteOne({ userId: req.currentUser._id, videoId: req.params.videoId });
       console.log('✅ Video deleted from database');
       res.json({ success: true, videoDeleted: true, message: 'Video deleted (no content left)' });
     } else {

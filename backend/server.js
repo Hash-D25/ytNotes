@@ -11,8 +11,10 @@ dotenv.config({path: './.env'});
 
 const app = express();
 
-// Import token store
+// Import token store and auth middleware
 const { setTokens, getTokens, clearTokens } = require('./utils/tokenStore');
+const { getCurrentUser, requireAuth } = require('./middleware/auth');
+const User = require('./models/User');
 
 // More permissive CORS for development
 app.use(cors({
@@ -141,6 +143,38 @@ app.get('/auth/google/callback', async (req, res) => {
     req.session.tokens = tokens;
     setTokens(tokens); // Store tokens globally for cross-origin access
     
+    // Get user info from Google
+    oauth2Client.setCredentials(tokens);
+    const oauth2 = google.oauth2({ version: 'v2', auth: oauth2Client });
+    const userInfo = await oauth2.userinfo.get();
+    
+    // Find or create user
+    let user = await User.findOne({ googleId: userInfo.data.id });
+    
+    if (!user) {
+      // Create new user
+      user = new User({
+        googleId: userInfo.data.id,
+        email: userInfo.data.email,
+        name: userInfo.data.name,
+        picture: userInfo.data.picture,
+        accessToken: tokens.access_token,
+        refreshToken: tokens.refresh_token
+      });
+      await user.save();
+      console.log('✅ New user created:', user.email);
+    } else {
+      // Update existing user's tokens and last login
+      user.accessToken = tokens.access_token;
+      user.refreshToken = tokens.refresh_token;
+      user.lastLogin = new Date();
+      await user.save();
+      console.log('✅ Existing user logged in:', user.email);
+    }
+    
+    // Store user ID in session
+    req.session.userId = user._id;
+    
     // Save session explicitly
     req.session.save((err) => {
       if (err) {
@@ -151,6 +185,7 @@ app.get('/auth/google/callback', async (req, res) => {
       console.log('🔐 Session saved successfully');
       console.log('🔐 Session ID after:', req.sessionID);
       console.log('🔐 Session tokens:', req.session.tokens ? 'Present' : 'Missing');
+      console.log('🔐 Session userId:', req.session.userId);
       console.log('🔐 Global tokens stored:', getTokens() ? 'Yes' : 'No');
       
       res.redirect('http://localhost:5173'); // Redirect to your frontend
@@ -162,7 +197,7 @@ app.get('/auth/google/callback', async (req, res) => {
 });
 
 // Check authentication status
-app.get('/auth/status', (req, res) => {
+app.get('/auth/status', async (req, res) => {
   console.log('🔍 Auth Status Check:');
   console.log('🔍 Session ID:', req.sessionID);
   console.log('🔍 Session tokens:', req.session.tokens ? 'Present' : 'Missing');
@@ -173,8 +208,25 @@ app.get('/auth/status', (req, res) => {
   const hasGlobalTokens = getTokens();
   
   if (hasSessionTokens || hasGlobalTokens) {
-    console.log('✅ User is authenticated');
-    res.json({ authenticated: true, message: '✅ User is authenticated' });
+    try {
+      // Get current user info
+      await getCurrentUser(req, res, () => {
+        console.log('✅ User is authenticated:', req.currentUser.email);
+        res.json({ 
+          authenticated: true, 
+          message: '✅ User is authenticated',
+          user: {
+            id: req.currentUser._id,
+            email: req.currentUser.email,
+            name: req.currentUser.name,
+            picture: req.currentUser.picture
+          }
+        });
+      });
+    } catch (error) {
+      console.error('❌ Error getting user info:', error);
+      res.json({ authenticated: false, message: '❌ Authentication failed' });
+    }
   } else {
     console.log('❌ User is not authenticated');
     res.json({ authenticated: false, message: '❌ User is not authenticated' });
@@ -514,23 +566,12 @@ app.patch('/screenshots/:videoId/:timestamp', async (req, res) => {
 });
 
 // Delete screenshot from Google Drive and database
-app.delete('/screenshots/:videoId/:timestamp', async (req, res) => {
+app.delete('/screenshots/:videoId/:timestamp', getCurrentUser, requireAuth, async (req, res) => {
   try {
-    // Check authentication - try session tokens first, then global tokens
-    let tokens = req.session.tokens;
-    if (!tokens) {
-      const { getTokens } = require('./utils/tokenStore');
-      tokens = getTokens();
-    }
-    
-    if (!tokens) {
-      return res.status(401).json({ error: '❌ Not authenticated' });
-    }
-
     const { videoId, timestamp } = req.params;
 
     // Find the video
-    const video = await Video.findOne({ videoId });
+    const video = await Video.findOne({ userId: req.currentUser._id, videoId });
     if (!video) {
       return res.status(404).json({ error: '❌ Video not found' });
     }

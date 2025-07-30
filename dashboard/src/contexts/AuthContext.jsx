@@ -24,11 +24,8 @@ export const AuthProvider = ({ children }) => {
       
       setIsAuthenticated(response.data.authenticated);
       
-      if (response.data.authenticated) {
-        const profileResponse = await axios.get('http://localhost:5000/auth/profile', {
-          withCredentials: true
-        });
-        setUserProfile(profileResponse.data);
+      if (response.data.authenticated && response.data.user) {
+        setUserProfile(response.data.user);
       } else {
         setUserProfile(null);
       }

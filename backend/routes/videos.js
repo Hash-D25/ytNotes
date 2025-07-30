@@ -1,11 +1,12 @@
 const express = require('express');
 const router = express.Router();
 const Video = require('../models/Video');
+const { getCurrentUser, requireAuth } = require('../middleware/auth');
 
 // GET /videos
-router.get('/', async (req, res) => {
+router.get('/', getCurrentUser, requireAuth, async (req, res) => {
   try {
-    const videos = await Video.find().sort({ createdAt: -1 });
+    const videos = await Video.find({ userId: req.currentUser._id }).sort({ createdAt: -1 });
     res.json(videos);
   } catch (err) {
     res.status(500).json({ error: 'Server error', details: err.message });
@@ -13,9 +14,9 @@ router.get('/', async (req, res) => {
 });
 
 // GET /videos/favorites
-router.get('/favorites', async (req, res) => {
+router.get('/favorites', getCurrentUser, requireAuth, async (req, res) => {
   try {
-    const favorites = await Video.find({ favorite: true }).sort({ createdAt: -1 });
+    const favorites = await Video.find({ userId: req.currentUser._id, favorite: true }).sort({ createdAt: -1 });
     res.json(favorites);
   } catch (err) {
     res.status(500).json({ error: 'Server error', details: err.message });
@@ -23,11 +24,11 @@ router.get('/favorites', async (req, res) => {
 });
 
 // PATCH /videos/:videoId/favorite
-router.patch('/:videoId/favorite', async (req, res) => {
+router.patch('/:videoId/favorite', getCurrentUser, requireAuth, async (req, res) => {
   try {
     const { favorite } = req.body;
     const video = await Video.findOneAndUpdate(
-      { videoId: req.params.videoId },
+      { userId: req.currentUser._id, videoId: req.params.videoId },
       { $set: { favorite } },
       { new: true }
     );
@@ -39,9 +40,9 @@ router.patch('/:videoId/favorite', async (req, res) => {
 });
 
 // DELETE /videos/:videoId
-router.delete('/:videoId', async (req, res) => {
+router.delete('/:videoId', getCurrentUser, requireAuth, async (req, res) => {
   try {
-    const video = await Video.findOne({ videoId: req.params.videoId });
+    const video = await Video.findOne({ userId: req.currentUser._id, videoId: req.params.videoId });
     if (!video) return res.status(404).json({ error: 'Video not found' });
     
     // Delete associated screenshots from filesystem and Google Drive
@@ -99,7 +100,7 @@ router.delete('/:videoId', async (req, res) => {
     }
     
     // Delete the video from database
-    await Video.deleteOne({ videoId: req.params.videoId });
+    await Video.deleteOne({ userId: req.currentUser._id, videoId: req.params.videoId });
     console.log(`✅ Deleted video from database: ${req.params.videoId}`);
     
     res.json({ success: true, message: 'Video and all associated screenshots deleted successfully' });
