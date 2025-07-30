@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
-import { Camera, Trash2, Clock, SortAsc, SortDesc, Play, ExternalLink, Maximize2, X, ChevronLeft, ChevronRight } from "lucide-react";
+import { Camera, Trash2, Clock, SortAsc, SortDesc, Play, ExternalLink, Maximize2, X, ChevronRight } from "lucide-react";
 import axios from "axios";
+import { getImageUrl } from "../utils/imageUtils";
 
 function formatTimestamp(seconds) {
   const m = Math.floor(seconds / 60)
@@ -91,11 +92,15 @@ export default function ScreenshotsList({ video, onScreenshotDelete, onTimestamp
   const fetchScreenshots = async () => {
     try {
       setLoading(true);
-      console.log('Fetching screenshots for video:', video?.videoId);
-      const response = await axios.get(`http://localhost:5000/bookmark/${video.videoId}/screenshots`);
-      console.log('Screenshots response:', response.data);
+      console.log('🔍 Frontend: Fetching screenshots for video:', video?.videoId);
+      
+      const response = await axios.get(`http://localhost:5000/bookmark/${video.videoId}/screenshots`, {
+        withCredentials: true
+      });
+      console.log('🔍 Frontend: Screenshots response:', response.data);
       if (response.data.success) {
         setScreenshots(response.data.screenshots || []);
+        console.log('🔍 Frontend: Set screenshots:', response.data.screenshots);
       }
     } catch (error) {
       console.error('Error fetching screenshots:', error);
@@ -105,13 +110,16 @@ export default function ScreenshotsList({ video, onScreenshotDelete, onTimestamp
     }
   };
 
-  const handleDeleteScreenshot = async (idx) => {
+  const handleDeleteScreenshot = async (screenshot) => {
     try {
-      const response = await axios.delete(`http://localhost:5000/bookmark/${video.videoId}/screenshots/${idx}`);
-      if (response.data.success) {
-        setScreenshots(response.data.video.screenshots || []);
+      const response = await axios.delete(`http://localhost:5000/screenshots/${video.videoId}/${screenshot.timestamp}`, {
+        withCredentials: true
+      });
+      if (response.data.message) {
+        // Refresh screenshots after deletion
+        await fetchScreenshots();
         if (onScreenshotDelete) {
-          onScreenshotDelete(idx);
+          onScreenshotDelete(screenshot.timestamp);
         }
       }
     } catch (error) {
@@ -266,11 +274,14 @@ export default function ScreenshotsList({ video, onScreenshotDelete, onTimestamp
             <div key={idx} className="youtube-card rounded-xl shadow-md border border-gray-700 overflow-hidden">
               <div className="relative">
                 <img
-                  src={`http://localhost:5000${screenshot.path}`}
+                  src={getImageUrl(screenshot.path)}
                   alt={`Screenshot at ${formatTimestamp(screenshot.timestamp)}`}
                   className="w-full h-48 object-cover cursor-pointer hover:scale-105 transition-transform duration-300"
                   onClick={() => openFullscreen(screenshot)}
+                  onLoad={() => console.log('🔍 Frontend: Image loaded successfully:', screenshot.path)}
                   onError={(e) => {
+                    console.log('🔍 Frontend: Image failed to load:', screenshot.path);
+                    console.log('🔍 Frontend: Failed image src:', e.target.src);
                     e.target.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjZjNmNGY2Ii8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIGZvbnQtZmFtaWx5PSJBcmlhbCwgc2Fucy1zZXJpZiIgZm9udC1zaXplPSIxNCIgZmlsbD0iIzY2NzM4MyIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZHk9Ii4zZW0iPkltYWdlIG5vdCBmb3VuZDwvdGV4dD48L3N2Zz4=';
                   }}
                 />
@@ -283,7 +294,7 @@ export default function ScreenshotsList({ video, onScreenshotDelete, onTimestamp
                     <Maximize2 className="w-4 h-4" />
                   </button>
                   <button
-                    onClick={() => handleDeleteScreenshot(idx)}
+                    onClick={() => handleDeleteScreenshot(screenshot)}
                     className="p-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors shadow-md"
                     title="Delete screenshot"
                   >
@@ -336,7 +347,7 @@ export default function ScreenshotsList({ video, onScreenshotDelete, onTimestamp
             
             {/* Screenshot Image */}
             <img
-              src={`http://localhost:5000${fullscreenImage.path}`}
+              src={getImageUrl(fullscreenImage.path)}
               alt={`Screenshot at ${formatTimestamp(fullscreenImage.timestamp)}`}
               className="max-w-full max-h-full object-contain"
             />
@@ -405,7 +416,7 @@ export default function ScreenshotsList({ video, onScreenshotDelete, onTimestamp
 
             {/* Image */}
             <img
-              src={`http://localhost:5000${sortedScreenshots[slideshowIndex].path}`}
+              src={getImageUrl(sortedScreenshots[slideshowIndex].path)}
               alt={`Screenshot ${slideshowIndex + 1} of ${sortedScreenshots.length}`}
               className="max-w-full max-h-full object-contain"
             />

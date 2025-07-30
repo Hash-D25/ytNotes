@@ -53,7 +53,8 @@ function saveNoteInPage(note, captureScreenshot) {
         timestamp: Math.floor(video.currentTime),
         note,
         screenshot
-      })
+      }),
+      credentials: 'include'
     })
     .then(res => res.ok ? resolve({ success: true }) : 
       resolve({ success: false, error: `Server error: ${res.status}` }))

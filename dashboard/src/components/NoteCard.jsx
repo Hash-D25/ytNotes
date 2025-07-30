@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { ArrowTopRightOnSquareIcon, PhotoIcon, XMarkIcon, PlayIcon, ArrowsPointingOutIcon } from '@heroicons/react/24/outline';
+import { getImageUrl } from '../utils/imageUtils';
 
 function formatTimestamp(seconds) {
   const hours = Math.floor(seconds / 3600);
@@ -180,7 +181,7 @@ export default function NoteCard({
               {screenshot && (
                 <div className="relative inline-block w-full lg:w-auto">
                   <img
-                    src={`http://localhost:5000${screenshot.path}`}
+                    src={getImageUrl(screenshot.path)}
                     alt={`Screenshot at ${formatTimestamp(screenshot.timestamp)}`}
                     className="w-full lg:w-32 h-20 object-cover rounded-lg cursor-pointer hover:opacity-80 transition-opacity"
                     onClick={openScreenshotModal}
@@ -246,7 +247,7 @@ export default function NoteCard({
               <div className="mt-2">
                 <div className="relative inline-block w-full sm:w-auto">
                   <img
-                    src={`http://localhost:5000${screenshot.path}`}
+                    src={getImageUrl(screenshot.path)}
                     alt={`Screenshot at ${formatTimestamp(screenshot.timestamp)}`}
                     className="w-full sm:w-32 h-20 object-cover rounded-lg cursor-pointer hover:opacity-80 transition-opacity"
                     onClick={openScreenshotModal}
@@ -279,7 +280,7 @@ export default function NoteCard({
               {/* Screenshot Image */}
               <div className="flex items-center justify-center h-full">
                 <img
-                  src={`http://localhost:5000${screenshot.path}`}
+                  src={getImageUrl(screenshot.path)}
                   alt={`Screenshot at ${formatTimestamp(screenshot.timestamp)}`}
                   className="max-w-full max-h-full object-contain rounded-lg shadow-lg"
                   onError={(e) => {

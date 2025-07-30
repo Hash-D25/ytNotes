@@ -1,17 +1,20 @@
 import React, { useState } from 'react';
-import { BookOpenIcon, HomeIcon, HeartIcon, Bars3Icon, XMarkIcon, UserIcon, Cog6ToothIcon, BellIcon, MagnifyingGlassIcon } from '@heroicons/react/24/outline';
+import { BookOpenIcon, HomeIcon, HeartIcon, Bars3Icon, XMarkIcon, UserIcon, Cog6ToothIcon, BellIcon, MagnifyingGlassIcon, CloudIcon } from '@heroicons/react/24/outline';
 import { Link, useLocation } from 'react-router-dom';
+import { useAuth } from '../contexts/AuthContext';
 
 const NAV_LINKS = [
   { name: 'Dashboard', icon: <HomeIcon className="w-5 h-5" />, href: '/' },
   { name: 'All Notes', icon: <BookOpenIcon className="w-5 h-5" />, href: '/notes' },
   { name: 'Favorites', icon: <HeartIcon className="w-5 h-5" />, href: '/favorites' },
+  { name: 'Google Drive', icon: <CloudIcon className="w-5 h-5" />, href: '/drive' },
 ];
 
 export default function Sidebar() {
   const location = useLocation();
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [isMobileOpen, setIsMobileOpen] = useState(false);
+  const { isAuthenticated, userProfile, logout } = useAuth();
 
   const toggleSidebar = () => {
     setIsCollapsed(!isCollapsed);
@@ -96,12 +99,24 @@ export default function Sidebar() {
           {/* Mobile Footer */}
           <div className="p-4 border-t border-gray-700">
             <div className="flex items-center space-x-3">
-              <div className="w-10 h-10 rounded-full bg-gradient-to-br from-purple-500 to-blue-600 flex items-center justify-center">
-                <UserIcon className="w-5 h-5 text-white" />
-              </div>
+              {isAuthenticated && userProfile?.picture ? (
+                <img 
+                  src={userProfile.picture} 
+                  alt={userProfile.name || 'User'} 
+                  className="w-10 h-10 rounded-full border-2 border-gray-600"
+                />
+              ) : (
+                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-purple-500 to-blue-600 flex items-center justify-center">
+                  <UserIcon className="w-5 h-5 text-white" />
+                </div>
+              )}
               <div>
-                <p className="text-sm font-medium text-white">User</p>
-                <p className="text-xs text-gray-400">Admin</p>
+                <p className="text-sm font-medium text-white">
+                  {isAuthenticated && userProfile?.name ? userProfile.name : 'User'}
+                </p>
+                <p className="text-xs text-gray-400">
+                  {isAuthenticated && userProfile?.email ? userProfile.email : 'Guest'}
+                </p>
               </div>
             </div>
           </div>
@@ -166,13 +181,22 @@ export default function Sidebar() {
 
           {/* User Profile */}
           <div className="flex flex-col items-center space-y-2">
-            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-purple-500 to-blue-600 flex items-center justify-center shadow-lg">
-              <UserIcon className="w-5 h-5 text-white" />
-            </div>
+            {isAuthenticated && userProfile?.picture ? (
+              <img 
+                src={userProfile.picture} 
+                alt={userProfile.name || 'User'} 
+                className="w-10 h-10 rounded-full border-2 border-gray-600 shadow-lg"
+              />
+            ) : (
+              <div className="w-10 h-10 rounded-full bg-gradient-to-br from-purple-500 to-blue-600 flex items-center justify-center shadow-lg">
+                <UserIcon className="w-5 h-5 text-white" />
+              </div>
+            )}
             {!isCollapsed && (
               <div className="text-center">
-                <p className="text-xs font-medium text-white">User</p>
-                <p className="text-xs text-gray-400">Admin</p>
+                <p className="text-xs font-medium text-white">
+                  {isAuthenticated && userProfile?.name ? userProfile.name : 'User'}
+                </p>
               </div>
             )}
           </div>

@@ -7,6 +7,9 @@ import BookmarkCard from "./components/BookmarkCard";
 import NotesPage from "./components/NotesPage";
 import FavoritesPage from "./components/FavoritesPage";
 import AllNotesPage from "./components/AllNotesPage";
+import GoogleDrivePage from "./components/GoogleDrivePage";
+import LoginPage from "./components/LoginPage";
+import { AuthProvider, useAuth } from "./contexts/AuthContext";
 
 function Dashboard({ videos, search, setSearch, loading, error, sortBy, setSortBy, sortOrder, setSortOrder, onFavoriteToggle, onVideoDelete }) {
   let filteredVideos = videos.filter((v) => v.videoTitle.toLowerCase().includes(search.toLowerCase()));
@@ -96,6 +99,7 @@ function Dashboard({ videos, search, setSearch, loading, error, sortBy, setSortB
 
 function AppContent() {
   const location = useLocation();
+  const { isAuthenticated, loading: authLoading } = useAuth();
   const [videos, setVideos] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -131,8 +135,13 @@ function AppContent() {
   };
 
   useEffect(() => {
-    fetchVideos();
-  }, []);
+    if (isAuthenticated) {
+      fetchVideos();
+    } else {
+      setVideos([]);
+      setLoading(false);
+    }
+  }, [isAuthenticated]);
 
   const handleFavoriteToggle = async (videoId, favorite) => {
     try {
@@ -150,6 +159,23 @@ function AppContent() {
       console.error("Error updating videos after delete:", err);
     }
   };
+
+  // Show loading while checking authentication
+  if (authLoading) {
+    return (
+      <div className="flex justify-center items-center h-screen bg-gray-900">
+        <div className="flex flex-col items-center space-y-4">
+          <div className="w-12 h-12 border-4 border-purple-500 border-t-transparent rounded-full animate-spin"></div>
+          <p className="text-gray-400">Checking authentication...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Show login page if not authenticated
+  if (!isAuthenticated) {
+    return <LoginPage />;
+  }
 
   return (
     <div className="flex h-screen bg-gray-900 overflow-hidden">
@@ -187,6 +213,7 @@ function AppContent() {
             <Route path="/favorites" element={<FavoritesPage videos={videos} fetchVideos={fetchVideos} onFavoriteToggle={handleFavoriteToggle} onVideoDelete={handleVideoDelete} search={search} setSearch={setSearch} sortBy={sortBy} setSortBy={setSortBy} sortOrder={sortOrder} setSortOrder={setSortOrder} />} />
             <Route path="/notes" element={<AllNotesPage videos={videos} search={search} setSearch={setSearch} sortBy={sortBy} setSortBy={setSortBy} sortOrder={sortOrder} setSortOrder={setSortOrder} />} />
             <Route path="/notes/:videoId" element={<NotesPage videos={videos} fetchVideos={fetchVideos} search={search} setSearch={setSearch} sortBy={sortBy} setSortBy={setSortBy} sortOrder={sortOrder} setSortOrder={setSortOrder} />} />
+            <Route path="/drive" element={<GoogleDrivePage />} />
           </Routes>
         </main>
       </div>
@@ -196,9 +223,11 @@ function AppContent() {
 
 function App() {
   return (
-    <Router>
-      <AppContent />
-    </Router>
+    <AuthProvider>
+      <Router>
+        <AppContent />
+      </Router>
+    </AuthProvider>
   );
 }
 

@@ -86,7 +86,8 @@ document.addEventListener('DOMContentLoaded', function() {
           const res = await fetch('http://localhost:5000/bookmark', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(requestBody)
+            body: JSON.stringify(requestBody),
+            credentials: 'include'
           });
 
           if (res.ok) {

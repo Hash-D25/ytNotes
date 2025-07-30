@@ -1,3 +1,85 @@
+// Check authentication status
+async function checkAuthStatus() {
+  try {
+    console.log('🔍 Extension: Checking auth status...');
+    const response = await fetch('http://localhost:5000/auth/status', {
+      method: 'GET',
+      credentials: 'include'
+    });
+    const data = await response.json();
+    console.log('🔍 Extension: Auth response:', data);
+    return data.authenticated || false;
+  } catch (error) {
+    console.error('❌ Extension: Failed to check auth status:', error);
+    return false;
+  }
+}
+
+// Show authentication required popup
+function showAuthRequiredPopup() {
+  // Remove existing popup
+  const existingPopup = document.getElementById('yt-notes-auth-popup');
+  if (existingPopup) {
+    existingPopup.remove();
+  }
+
+  // YouTube dark/light theme detection
+  const isDark = document.documentElement.getAttribute('dark') !== null || document.documentElement.classList.contains('dark') || (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches);
+  const bg = isDark ? '#212121' : '#fff';
+  const border = isDark ? '#303030' : '#ccc';
+  const shadow = isDark ? '0 4px 24px rgba(0,0,0,0.7)' : '0 4px 12px rgba(0,0,0,0.15)';
+  const text = isDark ? '#fff' : '#222';
+  const subtext = isDark ? '#aaa' : '#555';
+  const btnBlue = '#fc466b';
+
+  const popupHTML = `
+    <div id="yt-notes-auth-popup" style="position: absolute; z-index: 10000; background: ${bg}; border: 1px solid ${border}; border-radius: 12px; box-shadow: ${shadow}; padding: 20px; min-width: 320px; max-width: 400px; font-family: Roboto, Arial, sans-serif; color: ${text};">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;">
+        <h3 style="margin: 0; font-size: 18px; color: ${text}; font-weight: 500; letter-spacing: 0.01em;">🔐 Authentication Required</h3>
+        <button id="yt-notes-auth-close" style="background: none; border: none; font-size: 22px; cursor: pointer; color: ${subtext}; line-height: 1;">×</button>
+      </div>
+      <div style="margin-bottom: 16px; color: ${subtext}; font-size: 14px; line-height: 1.4;">
+        To save notes and screenshots, you need to log in to your Google account first.
+      </div>
+      <div style="display: flex; gap: 10px;">
+        <a href="http://localhost:5173" target="_blank" style="flex: 1; padding: 10px 0; background: ${btnBlue}; color: #fff; border: none; border-radius: 6px; cursor: pointer; font-size: 15px; font-weight: 500; letter-spacing: 0.01em; transition: background 0.2s; text-decoration: none; text-align: center; display: inline-block;">Go to Dashboard</a>
+        <button id="yt-notes-auth-cancel" style="flex: 1; padding: 10px 0; background: ${isDark ? '#383838' : '#f2f2f2'}; color: ${isDark ? '#fff' : '#222'}; border: 1px solid ${isDark ? '#555' : '#ccc'}; border-radius: 6px; cursor: pointer; font-size: 15px; font-weight: 500; letter-spacing: 0.01em; transition: background 0.2s;">Cancel</button>
+      </div>
+    </div>
+  `;
+  
+  const div = document.createElement('div');
+  div.innerHTML = popupHTML;
+  document.body.appendChild(div.firstElementChild);
+
+  // Position popup near the extension button
+  const popup = document.getElementById('yt-notes-auth-popup');
+  const button = document.querySelector('[data-yt-notes-button]');
+  if (button) {
+    const rect = button.getBoundingClientRect();
+    popup.style.left = `${rect.left}px`;
+    popup.style.top = `${rect.bottom + 10}px`;
+  } else {
+    popup.style.left = '20px';
+    popup.style.top = '80px';
+  }
+
+  // Add event listeners
+  document.getElementById('yt-notes-auth-close').addEventListener('click', () => {
+    popup.remove();
+  });
+  document.getElementById('yt-notes-auth-cancel').addEventListener('click', () => {
+    popup.remove();
+  });
+
+  // Auto-hide after 5 seconds
+  setTimeout(() => {
+    if (popup.parentNode) {
+      popup.remove();
+    }
+  }, 5000);
+}
+
 // Create and inject the custom popup HTML
 function createPopupHTML() {
   // Always remove existing popup first
@@ -91,6 +173,13 @@ async function addBookmarkMarkers() {
   
   if (!video || !timeline) return;
   
+  // Check authentication status first
+  const isAuthenticated = await checkAuthStatus();
+  if (!isAuthenticated) {
+    console.log('🔐 User not authenticated - not showing timeline markers');
+    return;
+  }
+  
   // Remove existing markers
   const existingMarkers = document.querySelectorAll('.yt-bookmark-marker');
   existingMarkers.forEach(marker => marker.remove());
@@ -108,6 +197,7 @@ async function addBookmarkMarkers() {
     // Check if server is running first
     try {
       const healthCheck = await fetch('http://localhost:5000/', { 
+        credentials: 'include',
         signal: AbortSignal.timeout(3000) 
       });
       if (!healthCheck.ok) {
@@ -124,6 +214,7 @@ async function addBookmarkMarkers() {
     const timeoutId = setTimeout(() => controller.abort(), 5000); // 5 second timeout
     
     const response = await fetch(`http://localhost:5000/bookmark/${videoId}`, {
+      credentials: 'include',
       signal: controller.signal
     });
     
@@ -271,6 +362,7 @@ async function addSilentScreenshot() {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(requestBody),
+          credentials: 'include',
           signal: controller.signal
         });
         
@@ -339,6 +431,7 @@ async function addSilentHighlight() {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(requestBody),
+          credentials: 'include',
           signal: controller.signal
         });
         
@@ -376,6 +469,7 @@ async function addSilentHighlight() {
 
 // Save note functionality
 async function saveNote() {
+  console.log('🔍 Extension: saveNote function called!');
   const note = document.getElementById('yt-notes-textarea').value.trim();
   const captureScreenshot = document.getElementById('yt-notes-screenshot').checked;
   const statusEl = document.getElementById('yt-notes-status');
@@ -404,7 +498,10 @@ async function saveNote() {
     }
 
     let screenshot = null;
+    console.log('🔍 Extension: captureScreenshot =', captureScreenshot);
+    console.log('🔍 Extension: video found =', !!video);
     if (captureScreenshot && video) {
+      console.log('🔍 Extension: Attempting to capture screenshot...');
       const canvas = document.createElement('canvas');
       const ctx = canvas.getContext('2d');
       canvas.width = video.videoWidth;
@@ -413,9 +510,12 @@ async function saveNote() {
       try {
         ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
         screenshot = canvas.toDataURL('image/png');
+        console.log('🔍 Extension: Screenshot captured, length:', screenshot.length);
       } catch (error) {
         console.error('Failed to capture screenshot:', error);
       }
+    } else {
+      console.log('🔍 Extension: Screenshot not captured - captureScreenshot:', captureScreenshot, 'video:', !!video);
     }
 
     const requestBody = {
@@ -427,6 +527,9 @@ async function saveNote() {
 
     if (screenshot) {
       requestBody.screenshot = screenshot;
+      console.log('🔍 Extension: Adding screenshot to request body');
+    } else {
+      console.log('🔍 Extension: No screenshot to add to request body');
     }
 
     // Retry logic for network requests
@@ -442,6 +545,7 @@ async function saveNote() {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(requestBody),
+          credentials: 'include',
           signal: controller.signal
         });
         
@@ -524,10 +628,21 @@ function initializePopup() {
   window.ytNotesHidePopup = hidePopup;
   
   // Keyboard shortcuts
-  document.addEventListener('keydown', (e) => {
+  document.addEventListener('keydown', async (e) => {
     // Only trigger shortcut if not focused in input/textarea/contenteditable
     const active = document.activeElement;
     const isInput = active && (active.tagName === 'INPUT' || active.tagName === 'TEXTAREA' || active.isContentEditable);
+    
+    // Check authentication for note-taking actions
+    if (!isInput && (e.key === 'b' || e.key === 'h' || e.key === 's') && !e.ctrlKey && !e.altKey && !e.metaKey) {
+      const isAuthenticated = await checkAuthStatus();
+      if (!isAuthenticated) {
+        e.preventDefault();
+        showAuthRequiredPopup();
+        return;
+      }
+    }
+    
     if (!isInput && e.key === 'b' && !e.ctrlKey && !e.altKey && !e.metaKey) {
       e.preventDefault();
       const videoPlayer = document.querySelector('.html5-video-player');
@@ -628,9 +743,17 @@ function injectBookmarkButton() {
   btn.style.padding = '6px 10px';
   btn.style.boxShadow = '0 2px 8px rgba(0,0,0,0.15)';
 
-  btn.addEventListener('click', (e) => {
+  btn.addEventListener('click', async (e) => {
     e.preventDefault();
     e.stopPropagation();
+    
+    // Check authentication
+    const isAuthenticated = await checkAuthStatus();
+    if (!isAuthenticated) {
+      showAuthRequiredPopup();
+      return;
+    }
+    
     const videoPlayer = document.querySelector('.html5-video-player');
     if (videoPlayer) {
       const rect = videoPlayer.getBoundingClientRect();
@@ -709,9 +832,20 @@ function injectDashboardButton() {
   
   dashboardBtn.appendChild(img);
   
-  dashboardBtn.addEventListener('click', (e) => {
+  dashboardBtn.addEventListener('click', async (e) => {
     e.preventDefault();
     e.stopPropagation();
+    
+    // Check authentication status and update tooltip
+    const isAuthenticated = await checkAuthStatus();
+    if (isAuthenticated) {
+      dashboardBtn.title = 'ytNotes Dashboard (Logged In)';
+      dashboardBtn.style.opacity = '1';
+    } else {
+      dashboardBtn.title = 'ytNotes Dashboard (Not Logged In)';
+      dashboardBtn.style.opacity = '0.6';
+    }
+    
     // Open dashboard in new tab
     window.open('http://localhost:5173', '_blank');
   });
@@ -736,6 +870,7 @@ async function waitForServer() {
   while (attempts < maxAttempts) {
     try {
       const response = await fetch('http://localhost:5000/', {
+        credentials: 'include',
         signal: AbortSignal.timeout(2000)
       });
       if (response.ok) {
@@ -755,6 +890,7 @@ async function waitForServer() {
 
 // Initialize everything
 setTimeout(async () => {
+  console.log('🔍 Extension: VERSION 3.0 - Authentication-aware!');
   initializePopup();
   injectBookmarkButton();
   injectDashboardButton();
@@ -763,15 +899,56 @@ setTimeout(async () => {
   const serverReady = await waitForServer();
   
   if (serverReady) {
-    // Add bookmark markers after server is confirmed ready
-    setTimeout(() => {
-      addBookmarkMarkers();
-    }, 1000);
+    // Check authentication status and update UI accordingly
+    const isAuthenticated = await checkAuthStatus();
+    console.log('🔐 Authentication status:', isAuthenticated ? 'Logged In' : 'Not Logged In');
     
-    // Also try again after 3 seconds as backup
-    setTimeout(() => {
-      addBookmarkMarkers();
-    }, 3000);
+    if (isAuthenticated) {
+      // Add bookmark markers after server is confirmed ready
+      setTimeout(() => {
+        addBookmarkMarkers();
+      }, 1000);
+      
+      // Also try again after 3 seconds as backup
+      setTimeout(() => {
+        addBookmarkMarkers();
+      }, 3000);
+    } else {
+      console.log('🔐 User not authenticated - timeline markers disabled');
+    }
+    
+    // Set up periodic authentication checks
+    let previousAuthStatus = isAuthenticated;
+    setInterval(async () => {
+      const currentAuthStatus = await checkAuthStatus();
+      
+      if (!currentAuthStatus && previousAuthStatus) {
+        // User logged out - remove timeline markers
+        console.log('🔐 User logged out - removing timeline markers');
+        const existingMarkers = document.querySelectorAll('.yt-bookmark-marker');
+        existingMarkers.forEach(marker => marker.remove());
+        
+        // Update dashboard button appearance
+        const dashboardBtn = document.getElementById('yt-dashboard-btn');
+        if (dashboardBtn) {
+          dashboardBtn.title = 'ytNotes Dashboard (Not Logged In)';
+          dashboardBtn.style.opacity = '0.6';
+        }
+      } else if (currentAuthStatus && !previousAuthStatus) {
+        // User logged in - add timeline markers
+        console.log('🔐 User logged in - adding timeline markers');
+        addBookmarkMarkers();
+        
+        // Update dashboard button appearance
+        const dashboardBtn = document.getElementById('yt-dashboard-btn');
+        if (dashboardBtn) {
+          dashboardBtn.title = 'ytNotes Dashboard (Logged In)';
+          dashboardBtn.style.opacity = '1';
+        }
+      }
+      
+      previousAuthStatus = currentAuthStatus;
+    }, 5000); // Check every 5 seconds
   }
 }, 2000);
 

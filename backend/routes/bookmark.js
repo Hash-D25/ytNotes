@@ -3,6 +3,7 @@ const router = express.Router();
 const Video = require('../models/Video');
 const fs = require('fs');
 const path = require('path');
+const { google } = require('googleapis');
 
 // GET /bookmark/:videoId - Get all bookmarks for a video
 router.get('/:videoId', async (req, res) => {
@@ -20,8 +21,15 @@ router.get('/:videoId', async (req, res) => {
 
 // POST /bookmark
 router.post('/', async (req, res) => {
-  try {
+     console.log('🔍 Bookmark POST request from:', req.headers.origin);
+   console.log('🔍 Session ID in bookmark route:', req.sessionID);
+   console.log('🔍 Session in bookmark route:', req.session);
+   
+   try {
     const { videoId, videoTitle, timestamp, note, screenshot } = req.body;
+    console.log('🔍 Request body:', { videoId, videoTitle, timestamp, note: note ? 'present' : 'missing', screenshot: screenshot ? 'present' : 'missing' });
+    console.log('🔍 Screenshot length:', screenshot ? screenshot.length : 'none');
+    console.log('🔍 Screenshot preview:', screenshot ? screenshot.substring(0, 100) + '...' : 'none');
     if (!videoId || !videoTitle || typeof timestamp !== 'number' || !note) {
       return res.status(400).json({ error: 'Missing required fields' });
     }
@@ -29,47 +37,90 @@ router.post('/', async (req, res) => {
     let video = await Video.findOne({ videoId });
     const noteObj = { timestamp, note };
 
-    // Handle screenshot if provided
-    if (screenshot) {
-      try {
-        // Create screenshots directory if it doesn't exist
-        const screenshotsDir = path.join(__dirname, '../screenshots');
-        if (!fs.existsSync(screenshotsDir)) {
-          fs.mkdirSync(screenshotsDir, { recursive: true });
-        }
+         // Handle screenshot if provided
+     if (screenshot) {
+       try {
+                      // Check if user is authenticated for Google Drive
+             console.log('🔍 Session tokens check:', req.session.tokens ? 'Present' : 'Missing');
+             console.log('🔍 Session keys:', Object.keys(req.session));
 
-        // Generate filename with videoId and timestamp
-        const filename = `${videoId}_${timestamp}_${Date.now()}.png`;
-        const filepath = path.join(screenshotsDir, filename);
-
-        // Remove data URL prefix and save base64 image
-        const base64Data = screenshot.replace(/^data:image\/png;base64,/, '');
-        fs.writeFileSync(filepath, base64Data, 'base64');
-
-        // Add screenshot path to note
-        noteObj.screenshotPath = `/screenshots/${filename}`;
-
-        // Also add to screenshots array
-        const screenshotObj = {
-          timestamp,
-          path: `/screenshots/${filename}`,
-          createdAt: new Date()
-        };
-
-        if (!video) {
-          video = new Video({
-            videoId,
-            videoTitle,
-            notes: [noteObj],
-            screenshots: [screenshotObj]
+             // Try to get tokens from current session or global store
+             let tokens = req.session.tokens;
+             
+             // If no tokens in current session, try global tokens
+             if (!tokens) {
+               console.log('🔍 No tokens in current session, checking global tokens...');
+               const { getTokens } = require('../utils/tokenStore');
+               tokens = getTokens();
+               console.log('🔍 Global tokens available:', tokens ? 'Yes' : 'No');
+             }
+         if (!tokens) {
+          // No local storage fallback - require Google Drive authentication
+          console.log('❌ User not authenticated for Google Drive - cannot save screenshot');
+          return res.status(401).json({ 
+            error: 'Authentication required', 
+            message: 'Please log in to save notes and screenshots to Google Drive' 
           });
-        } else {
-          video.notes.push(noteObj);
-          video.screenshots.push(screenshotObj);
+         } else {
+           // Use Google Drive integration
+           console.log('🔐 Starting Google Drive upload...');
+           const { google } = require('googleapis');
+           const oauth2Client = new google.auth.OAuth2();
+           oauth2Client.setCredentials(tokens);
+           const drive = google.drive({ version: 'v3', auth: oauth2Client });
+
+          // Import helper functions
+          const { getOrCreateYtNotesFolder, getOrCreateScreenshotsFolder, uploadScreenshotToDrive, makeFilePublicAndGetUrl } = require('../utils/googleDriveHelpers');
+
+          // Create organized folder structure
+          console.log('🔐 Creating ytNotes folder...');
+          const ytNotesFolderId = await getOrCreateYtNotesFolder(drive);
+          console.log('🔐 ytNotes folder ID:', ytNotesFolderId);
+          
+          console.log('🔐 Creating screenshots folder...');
+          const screenshotsFolderId = await getOrCreateScreenshotsFolder(drive, ytNotesFolderId);
+          console.log('🔐 Screenshots folder ID:', screenshotsFolderId);
+
+          // Generate proper filename
+          const timestampStr = new Date(timestamp * 1000).toISOString().replace(/[:.]/g, '-');
+          const fileName = `${videoId}_${timestampStr}.png`;
+
+          // Remove data URL prefix
+          const base64Data = screenshot.replace(/^data:image\/png;base64,/, '');
+
+          // Upload to Google Drive
+          console.log('🔐 Uploading screenshot to Google Drive...');
+          const fileId = await uploadScreenshotToDrive(drive, screenshotsFolderId, base64Data, fileName);
+          console.log('🔐 File uploaded, ID:', fileId);
+          
+          console.log('🔐 Making file public...');
+          const shareableLink = await makeFilePublicAndGetUrl(drive, fileId);
+          console.log('🔐 Shareable link:', shareableLink);
+
+          // Add screenshot to note and screenshots array
+          noteObj.screenshotPath = shareableLink;
+          const screenshotObj = {
+            timestamp,
+            path: shareableLink,
+            createdAt: new Date()
+          };
+
+          if (!video) {
+            video = new Video({
+              videoId,
+              videoTitle,
+              notes: [noteObj],
+              screenshots: [screenshotObj]
+            });
+          } else {
+            video.notes.push(noteObj);
+            video.screenshots.push(screenshotObj);
+          }
         }
-      } catch (screenshotError) {
-        console.error('Screenshot save error:', screenshotError);
-        // Continue without screenshot if there's an error
+             } catch (screenshotError) {
+         console.error('❌ Screenshot save error:', screenshotError);
+         console.error('❌ Error stack:', screenshotError.stack);
+         // Continue without screenshot if there's an error
         if (!video) {
           video = new Video({
             videoId,
@@ -95,6 +146,7 @@ router.post('/', async (req, res) => {
     await video.save();
     res.status(201).json({ success: true, video });
   } catch (err) {
+    console.error('Bookmark save error:', err);
     res.status(500).json({ error: 'Server error', details: err.message });
   }
 });
@@ -119,11 +171,84 @@ router.delete('/:videoId/:noteIdx', async (req, res) => {
   try {
     const video = await Video.findOne({ videoId: req.params.videoId });
     if (!video) return res.status(404).json({ error: 'Video not found' });
-    if (!video.notes[req.params.noteIdx]) return res.status(404).json({ error: 'Note not found' });
-    video.notes.splice(req.params.noteIdx, 1);
+    
+    const noteIdx = parseInt(req.params.noteIdx);
+    if (!video.notes[noteIdx]) return res.status(404).json({ error: 'Note not found' });
+    
+    const note = video.notes[noteIdx];
+    
+    // If the note has an associated screenshot, delete it too
+    if (note.screenshotPath) {
+      console.log('🔍 Note has associated screenshot:', note.screenshotPath);
+      
+      // Find the corresponding screenshot in the screenshots array
+      const screenshotIndex = video.screenshots.findIndex(s => s.path === note.screenshotPath);
+      
+      if (screenshotIndex !== -1) {
+        console.log('🔍 Found associated screenshot at index:', screenshotIndex);
+        
+        const screenshot = video.screenshots[screenshotIndex];
+        
+        // If it's a Google Drive URL, delete from Google Drive
+        if (screenshot.path && screenshot.path.includes('drive.google.com')) {
+          let fileId = null;
+          
+          // Extract file ID from different Google Drive URL formats
+          if (screenshot.path.includes('/uc?id=')) {
+            fileId = screenshot.path.split('id=')[1].split('&')[0]; // Remove any query parameters
+          } else if (screenshot.path.includes('/file/d/')) {
+            const match = screenshot.path.match(/\/file\/d\/([^\/]+)/);
+            if (match) {
+              fileId = match[1];
+            }
+          }
+          
+          if (fileId) {
+            // Check if we have authentication tokens
+            let tokens = req.session.tokens;
+            if (!tokens) {
+              const { getTokens } = require('../utils/tokenStore');
+              tokens = getTokens();
+            }
+            
+            if (tokens) {
+              // Set OAuth credentials for Drive
+              const oauth2Client = new google.auth.OAuth2();
+              oauth2Client.setCredentials(tokens);
+              const drive = google.drive({ version: 'v3', auth: oauth2Client });
+
+              try {
+                await drive.files.delete({ fileId });
+                console.log('✅ Deleted associated screenshot from Google Drive:', fileId);
+              } catch (driveError) {
+                console.error('Failed to delete associated screenshot from Google Drive:', driveError);
+                // Continue with database deletion even if Drive deletion fails
+              }
+            }
+          }
+        } else {
+          // Delete local file if it exists
+          const filepath = path.join(__dirname, '..', screenshot.path);
+          if (fs.existsSync(filepath)) {
+            fs.unlinkSync(filepath);
+            console.log('✅ Deleted associated local screenshot:', filepath);
+          }
+        }
+        
+        // Remove screenshot from database
+        video.screenshots.splice(screenshotIndex, 1);
+        console.log('✅ Removed associated screenshot from database');
+      }
+    }
+    
+    // Remove the note from database
+    video.notes.splice(noteIdx, 1);
     await video.save();
+    
+    console.log('✅ Note and associated screenshot deleted successfully');
     res.json({ success: true, video });
   } catch (err) {
+    console.error('❌ Note deletion failed:', err);
     res.status(500).json({ error: 'Server error', details: err.message });
   }
 });
@@ -193,19 +318,73 @@ router.delete('/:videoId/screenshots/:screenshotIdx', async (req, res) => {
     const screenshotIdx = parseInt(req.params.screenshotIdx);
     if (!video.screenshots[screenshotIdx]) return res.status(404).json({ error: 'Screenshot not found' });
     
-    // Delete the file from filesystem
-    const screenshotPath = video.screenshots[screenshotIdx].path;
-    const filepath = path.join(__dirname, '..', screenshotPath);
-    if (fs.existsSync(filepath)) {
-      fs.unlinkSync(filepath);
+    const screenshot = video.screenshots[screenshotIdx];
+    console.log('🔍 Deleting screenshot:', screenshot.path);
+    
+    // If it's a Google Drive URL, delete from Google Drive
+    if (screenshot.path && screenshot.path.includes('drive.google.com')) {
+      let fileId = null;
+      
+      // Extract file ID from different Google Drive URL formats
+      if (screenshot.path.includes('/uc?id=')) {
+        fileId = screenshot.path.split('id=')[1].split('&')[0]; // Remove any query parameters
+      } else if (screenshot.path.includes('/file/d/')) {
+        const match = screenshot.path.match(/\/file\/d\/([^\/]+)/);
+        if (match) {
+          fileId = match[1];
+        }
+      }
+      
+      if (fileId) {
+        // Check if we have authentication tokens
+        let tokens = req.session.tokens;
+        if (!tokens) {
+          const { getTokens } = require('../utils/tokenStore');
+          tokens = getTokens();
+        }
+        
+        if (tokens) {
+          // Set OAuth credentials for Drive
+          const oauth2Client = new google.auth.OAuth2();
+          oauth2Client.setCredentials(tokens);
+          const drive = google.drive({ version: 'v3', auth: oauth2Client });
+
+          try {
+            await drive.files.delete({ fileId });
+            console.log('✅ Deleted screenshot from Google Drive:', fileId);
+          } catch (driveError) {
+            console.error('Failed to delete screenshot from Google Drive:', driveError);
+            // Continue with database deletion even if Drive deletion fails
+          }
+        }
+      }
+    } else {
+      // Delete local file if it exists
+      const filepath = path.join(__dirname, '..', screenshot.path);
+      if (fs.existsSync(filepath)) {
+        fs.unlinkSync(filepath);
+        console.log('✅ Deleted local screenshot:', filepath);
+      }
     }
     
-    // Remove from database
+    // Find and delete associated note
+    const associatedNoteIndex = video.notes.findIndex(note => note.screenshotPath === screenshot.path);
+    if (associatedNoteIndex !== -1) {
+      console.log('🔍 Found associated note at index:', associatedNoteIndex);
+      video.notes.splice(associatedNoteIndex, 1);
+      console.log('✅ Removed associated note from database');
+    } else {
+      console.log('🔍 No associated note found for this screenshot');
+    }
+    
+    // Remove screenshot from database
     video.screenshots.splice(screenshotIdx, 1);
     await video.save();
     
+    console.log('✅ Screenshot and associated note deleted successfully');
     res.json({ success: true, video });
   } catch (err) {
+    console.error('❌ Screenshot deletion failed:', err);
     res.status(500).json({ error: 'Server error', details: err.message });
   }
 });
