@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Camera, Trash2, Clock, SortAsc, SortDesc, Play, ExternalLink, Maximize2, X, ChevronRight } from "lucide-react";
+import { Camera, Trash2, Clock, SortAsc, SortDesc, Play, ExternalLink, Maximize2, X, ChevronRight, ChevronLeft } from "lucide-react";
 import axios from "axios";
 import { getImageUrl } from "../utils/imageUtils";
 

@@ -384,11 +384,19 @@ export default function NotesPage({ videos, fetchVideos, search, setSearch, sort
       const updated = [...localNotes];
       updated.splice(idx, 1);
       setLocalNotes(updated);
-      await fetchVideos(); // Refresh global videos state
+      
+      // Check if this was the last note
+      if (updated.length === 0) {
+        // Video has no notes left - it will be deleted from backend
+        // Navigate back to home page
+        navigate('/');
+      } else {
+        await fetchVideos(); // Refresh global videos state
+      }
     } catch (err) {
-      alert('Failed to toggle like');
+      alert('Failed to delete note');
     }
-  }, [localNotes, fetchVideos]);
+  }, [localNotes, fetchVideos, navigate]);
 
   const handleLikeToggle = useCallback(async (idx, liked) => {
     try {

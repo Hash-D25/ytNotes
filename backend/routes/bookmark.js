@@ -243,10 +243,18 @@ router.delete('/:videoId/:noteIdx', async (req, res) => {
     
     // Remove the note from database
     video.notes.splice(noteIdx, 1);
-    await video.save();
     
-    console.log('✅ Note and associated screenshot deleted successfully');
-    res.json({ success: true, video });
+    // Check if video has no notes left
+    if (video.notes.length === 0 && video.screenshots.length === 0) {
+      console.log('🗑️ Video has no notes or screenshots left - deleting entire video');
+      await Video.deleteOne({ videoId: req.params.videoId });
+      console.log('✅ Video deleted from database');
+      res.json({ success: true, videoDeleted: true, message: 'Video deleted (no content left)' });
+    } else {
+      await video.save();
+      console.log('✅ Note and associated screenshot deleted successfully');
+      res.json({ success: true, video });
+    }
   } catch (err) {
     console.error('❌ Note deletion failed:', err);
     res.status(500).json({ error: 'Server error', details: err.message });
@@ -379,10 +387,18 @@ router.delete('/:videoId/screenshots/:screenshotIdx', async (req, res) => {
     
     // Remove screenshot from database
     video.screenshots.splice(screenshotIdx, 1);
-    await video.save();
     
-    console.log('✅ Screenshot and associated note deleted successfully');
-    res.json({ success: true, video });
+    // Check if video has no notes left
+    if (video.notes.length === 0 && video.screenshots.length === 0) {
+      console.log('🗑️ Video has no notes or screenshots left - deleting entire video');
+      await Video.deleteOne({ videoId: req.params.videoId });
+      console.log('✅ Video deleted from database');
+      res.json({ success: true, videoDeleted: true, message: 'Video deleted (no content left)' });
+    } else {
+      await video.save();
+      console.log('✅ Screenshot and associated note deleted successfully');
+      res.json({ success: true, video });
+    }
   } catch (err) {
     console.error('❌ Screenshot deletion failed:', err);
     res.status(500).json({ error: 'Server error', details: err.message });

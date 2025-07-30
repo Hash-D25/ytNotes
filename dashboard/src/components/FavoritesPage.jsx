@@ -63,6 +63,10 @@ export default function FavoritesPage({
         `http://localhost:5000/bookmark/${videos[idx].videoId}/${idx}`
       );
       if (response.data.success) {
+        // Check if video was deleted (no content left)
+        if (response.data.videoDeleted) {
+          console.log('Video deleted due to no content left');
+        }
         fetchVideos();
       }
     } catch (err) {
