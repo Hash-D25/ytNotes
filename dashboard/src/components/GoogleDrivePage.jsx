@@ -147,47 +147,7 @@ const GoogleDrivePage = () => {
                 <div className="ml-8">• {`{videoId}_{timestamp}.png`}</div>
               </div>
             </div>
-            <div className="bg-gray-800 p-4 rounded-lg border border-gray-700">
-              <h4 className="text-lg font-medium text-white mb-2">🔗 Integration</h4>
-              <div className="text-gray-300 text-sm space-y-1">
-                <div>• Screenshots automatically uploaded to Google Drive</div>
-                <div>• Links saved in your database</div>
-                <div>• Delete function removes from both Drive and DB</div>
-              </div>
-            </div>
           </div>
-        </div>
-
-        {/* Upload Section */}
-        <div className="youtube-card p-6 mb-8">
-          <h3 className="text-xl font-semibold text-white mb-4">Upload File</h3>
-          <div className="flex items-center space-x-4">
-            <input
-              id="file-input"
-              type="file"
-              onChange={handleFileSelect}
-              className="flex-1 bg-gray-700 text-white p-3 rounded-lg border border-gray-600 focus:border-purple-500 focus:outline-none"
-            />
-            <button
-              onClick={handleUpload}
-              disabled={!selectedFile || uploading}
-              className="bg-purple-600 hover:bg-purple-700 disabled:bg-gray-600 text-white px-6 py-3 rounded-lg transition-colors duration-200 flex items-center"
-            >
-              {uploading ? (
-                <>
-                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
-                  Uploading...
-                </>
-              ) : (
-                'Upload'
-              )}
-            </button>
-          </div>
-          {error && (
-            <div className="mt-4 p-3 bg-red-900 border border-red-700 text-red-200 rounded-lg">
-              {error}
-            </div>
-          )}
         </div>
 
         {/* Files List */}
