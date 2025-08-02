@@ -785,8 +785,8 @@ app.get('/auth/fix-refresh-token', async (req, res) => {
   }
 });
 
-const PORT = process.env.PORT || 5000;
-const DB = 'mongodb://localhost:27017/ytNotes';
+const PORT = process.env.PORT;
+const DB = process.env.DATABASE;
 
 mongoose.connect(DB,{
   useNewUrlParser: true,
