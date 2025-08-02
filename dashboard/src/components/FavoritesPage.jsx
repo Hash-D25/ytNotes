@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { HeartIcon } from '@heroicons/react/24/solid';
-import axios from 'axios';
+import { useAuth } from '../contexts/AuthContext';
 import NoteCard from './NoteCard';
 import BookmarkCard from './BookmarkCard';
 
@@ -29,6 +29,7 @@ export default function FavoritesPage({
   sortOrder,
   setSortOrder,
 }) {
+  const { authAxios } = useAuth();
   const [expandedNotes, setExpandedNotes] = useState(new Set());
   const [activeTab, setActiveTab] = useState('videos');
   const navigate = useNavigate();
@@ -43,26 +44,31 @@ export default function FavoritesPage({
 
   const handleEditNote = async (idx, newNote) => {
     try {
-      const response = await axios.patch(
-        `http://localhost:5000/bookmark/${videos[idx].videoId}/${idx}`,
+      console.log('🔧 Edit note - Using authenticated axios');
+      const response = await authAxios.patch(
+        `/bookmark/${videos[idx].videoId}/${idx}`,
         {
           note: newNote,
         }
       );
       if (response.data.success) {
+        console.log('✅ Edit note successful');
         fetchVideos();
       }
     } catch (err) {
-      alert("Failed to edit note");
+      console.error('❌ Edit note failed:', err);
+      alert(`Failed to edit note: ${err.response?.data?.error || err.message}`);
     }
   };
 
   const handleDeleteNote = async (idx) => {
     try {
-      const response = await axios.delete(
-        `http://localhost:5000/bookmark/${videos[idx].videoId}/${idx}`
+      console.log('🔧 Delete note - Using authenticated axios');
+      const response = await authAxios.delete(
+        `/bookmark/${videos[idx].videoId}/${idx}`
       );
       if (response.data.success) {
+        console.log('✅ Delete note successful');
         // Check if video was deleted (no content left)
         if (response.data.videoDeleted) {
           console.log('Video deleted due to no content left');
@@ -70,7 +76,8 @@ export default function FavoritesPage({
         fetchVideos();
       }
     } catch (err) {
-      alert("Failed to delete note");
+      console.error('❌ Delete note failed:', err);
+      alert(`Failed to delete note: ${err.response?.data?.error || err.message}`);
     }
   };
 
@@ -78,19 +85,20 @@ export default function FavoritesPage({
     try {
       console.log('Toggling like for note:', note.videoId, note.noteIndex, 'from', liked, 'to', !liked);
       
-      const response = await axios.patch(
-        `http://localhost:5000/bookmark/${note.videoId}/${note.noteIndex}/like`,
+      console.log('🔧 Like toggle - Using authenticated axios');
+      const response = await authAxios.patch(
+        `/bookmark/${note.videoId}/${note.noteIndex}/like`,
         {
           liked: !liked,
         }
       );
       if (response.data.success) {
-        console.log('Like toggle successful, refreshing videos');
+        console.log('✅ Like toggle successful, refreshing videos');
         fetchVideos();
       }
     } catch (err) {
       console.error('Like toggle error:', err);
-      alert("Failed to toggle like");
+      alert(`Failed to toggle like: ${err.response?.data?.error || err.message}`);
     }
   };
 

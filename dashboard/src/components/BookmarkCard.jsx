@@ -3,9 +3,10 @@ import { Link } from 'react-router-dom';
 import { HeartIcon as HeartOutline } from '@heroicons/react/24/outline';
 import { HeartIcon as HeartSolid } from '@heroicons/react/24/solid';
 import { ClockIcon, DocumentTextIcon, TrashIcon } from '@heroicons/react/24/outline';
-import axios from 'axios';
+import { useAuth } from '../contexts/AuthContext';
 
 export default function BookmarkCard({ video, onFavoriteToggle, onVideoDelete }) {
+  const { authAxios } = useAuth();
   const thumbnail =
     video.thumbnail || `https://img.youtube.com/vi/${video.videoId}/hqdefault.jpg`;
 
@@ -24,14 +25,17 @@ export default function BookmarkCard({ video, onFavoriteToggle, onVideoDelete })
   const handleDelete = async () => {
     if (window.confirm('Are you sure you want to delete this video and all its notes? This action cannot be undone.')) {
       try {
-        const response = await axios.delete(`http://localhost:5000/videos/${video.videoId}`);
+        console.log('🔧 Delete video - Using authenticated axios');
+        const response = await authAxios.delete(`/videos/${video.videoId}`);
         if (response.data.success) {
+          console.log('✅ Delete video successful');
           if (onVideoDelete) {
             onVideoDelete(video.videoId);
           }
         }
       } catch (err) {
-        alert('Failed to delete video');
+        console.error('❌ Delete video failed:', err);
+        alert(`Failed to delete video: ${err.response?.data?.error || err.message}`);
       }
     }
   };

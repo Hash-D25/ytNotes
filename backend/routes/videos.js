@@ -50,16 +50,14 @@ router.delete('/:videoId', getCurrentUser, requireAuth, async (req, res) => {
       const fs = require('fs');
       const path = require('path');
       const { google } = require('googleapis');
-      const { getTokens } = require('../utils/tokenStore');
       
-      // Get Google Drive tokens
-      const tokens = getTokens();
-      if (tokens) {
-        const oauth2Client = new google.auth.OAuth2(
-          process.env.GOOGLE_CLIENT_ID,
-          process.env.GOOGLE_CLIENT_SECRET,
-          process.env.GOOGLE_REDIRECT_URI
-        );
+      // Use user's stored Google tokens for Drive integration
+      const tokens = {
+        access_token: req.currentUser.accessToken,
+        refresh_token: req.currentUser.refreshToken
+      };
+      if (tokens.access_token && tokens.refresh_token) {
+        const oauth2Client = new google.auth.OAuth2();
         oauth2Client.setCredentials(tokens);
         const drive = google.drive({ version: 'v3', auth: oauth2Client });
         

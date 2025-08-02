@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Camera, Trash2, Clock, SortAsc, SortDesc, Play, ExternalLink, Maximize2, X, ChevronRight, ChevronLeft } from "lucide-react";
-import axios from "axios";
+import { useAuth } from "../contexts/AuthContext";
 import { getImageUrl } from "../utils/imageUtils";
 
 function formatTimestamp(seconds) {
@@ -12,6 +12,7 @@ function formatTimestamp(seconds) {
 }
 
 export default function ScreenshotsList({ video, onScreenshotDelete, onTimestampClick, onYouTubeClick }) {
+  const { authAxios } = useAuth();
   const [screenshots, setScreenshots] = useState([]);
   const [sortBy, setSortBy] = useState('timestamp');
   const [sortOrder, setSortOrder] = useState('asc');
@@ -94,9 +95,7 @@ export default function ScreenshotsList({ video, onScreenshotDelete, onTimestamp
       setLoading(true);
       console.log('🔍 Frontend: Fetching screenshots for video:', video?.videoId);
       
-      const response = await axios.get(`http://localhost:5000/bookmark/${video.videoId}/screenshots`, {
-        withCredentials: true
-      });
+      const response = await authAxios.get(`/bookmark/${video.videoId}/screenshots`);
       console.log('🔍 Frontend: Screenshots response:', response.data);
       if (response.data.success) {
         setScreenshots(response.data.screenshots || []);
@@ -112,9 +111,7 @@ export default function ScreenshotsList({ video, onScreenshotDelete, onTimestamp
 
   const handleDeleteScreenshot = async (screenshot) => {
     try {
-      const response = await axios.delete(`http://localhost:5000/screenshots/${video.videoId}/${screenshot.timestamp}`, {
-        withCredentials: true
-      });
+      const response = await authAxios.delete(`/screenshots/${video.videoId}/${screenshot.timestamp}`);
       if (response.data.message) {
         // Refresh screenshots after deletion
         await fetchScreenshots();

@@ -9,7 +9,7 @@ import {
   HeartIcon as HeartSolid,
   Camera,
 } from "lucide-react";
-import axios from "axios";
+import { useAuth } from "../contexts/AuthContext";
 import NoteCard from './NoteCard';
 import ScreenshotsList from './ScreenshotsList';
 
@@ -71,6 +71,7 @@ export default function NotesList({
   onTimestampClick,
   onYouTubeClick,
 }) {
+  const { authAxios } = useAuth();
   const [newNote, setNewNote] = useState("");
   const [newTimestamp, setNewTimestamp] = useState("");
   const [editingIdx, setEditingIdx] = useState(null);
@@ -92,8 +93,9 @@ export default function NotesList({
 
   const handleEditNote = async (idx, newNote) => {
     try {
-      const response = await axios.patch(
-        `http://localhost:5000/bookmark/${video.videoId}/${idx}`,
+      console.log('🔧 Edit note - Using authenticated axios');
+      const response = await authAxios.patch(
+        `/bookmark/${video.videoId}/${idx}`,
         {
           note: newNote,
         }
@@ -101,22 +103,27 @@ export default function NotesList({
       if (response.data.success) {
         onEditNote(idx, newNote);
         setEditingIdx(null);
+        console.log('✅ Edit note successful');
       }
     } catch (err) {
-      alert("Failed to edit note");
+      console.error('❌ Edit note failed:', err);
+      alert(`Failed to edit note: ${err.response?.data?.error || err.message}`);
     }
   };
 
   const handleDeleteNote = async (idx) => {
     try {
-      const response = await axios.delete(
-        `http://localhost:5000/bookmark/${video.videoId}/${idx}`
+      console.log('🔧 Delete note - Using authenticated axios');
+      const response = await authAxios.delete(
+        `/bookmark/${video.videoId}/${idx}`
       );
       if (response.data.success) {
         onDeleteNote(idx);
+        console.log('✅ Delete note successful');
       }
     } catch (err) {
-      alert("Failed to delete note");
+      console.error('❌ Delete note failed:', err);
+      alert(`Failed to delete note: ${err.response?.data?.error || err.message}`);
     }
   };
 
@@ -130,8 +137,9 @@ export default function NotesList({
       console.log('Note object:', video?.notes?.[idx]);
       console.log('========================');
       
-      const response = await axios.patch(
-        `http://localhost:5000/bookmark/${video.videoId}/${idx}/like`,
+      console.log('🔧 Like toggle - Using authenticated axios');
+      const response = await authAxios.patch(
+        `/bookmark/${video.videoId}/${idx}/like`,
         {
           liked: !liked,
         }
@@ -139,6 +147,7 @@ export default function NotesList({
       console.log('Like toggle response:', response.data);
       if (response.data.success) {
         onLikeToggle(idx, !liked);
+        console.log('✅ Like toggle successful');
       } else {
         console.error('Like toggle failed - no success in response');
         alert("Failed to toggle like - server returned no success");

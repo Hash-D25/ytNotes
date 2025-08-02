@@ -1,9 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
 import { useAuth } from '../contexts/AuthContext';
 
 const GoogleDrivePage = () => {
-  const { isAuthenticated, logout } = useAuth();
+  const { isAuthenticated, logout, authAxios } = useAuth();
   const [files, setFiles] = useState([]);
   const [loading, setLoading] = useState(false);
   const [uploading, setUploading] = useState(false);
@@ -14,9 +13,7 @@ const GoogleDrivePage = () => {
   const fetchFiles = async () => {
     try {
       setLoading(true);
-      const response = await axios.get('http://localhost:5000/drive/files', {
-        withCredentials: true
-      });
+      const response = await authAxios.get('/drive/files');
       setFiles(response.data.files);
       setError(null);
     } catch (err) {
@@ -51,7 +48,7 @@ const GoogleDrivePage = () => {
       reader.onload = async (e) => {
         const base64Data = e.target.result.split(',')[1]; // Remove data URL prefix
 
-                 const response = await axios.post('http://localhost:5000/upload-to-drive', {
+                 const response = await authAxios.post('/upload-to-drive', {
            fileName: selectedFile.name,
            fileData: base64Data
          });

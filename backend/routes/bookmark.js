@@ -23,8 +23,6 @@ router.get('/:videoId', getCurrentUser, requireAuth, async (req, res) => {
 // POST /bookmark
 router.post('/', getCurrentUser, requireAuth, async (req, res) => {
      console.log('🔍 Bookmark POST request from:', req.headers.origin);
-   console.log('🔍 Session ID in bookmark route:', req.sessionID);
-   console.log('🔍 Session in bookmark route:', req.session);
    console.log('🔍 Current user:', req.currentUser ? req.currentUser.email : 'Not found');
    console.log('🔍 Current user ID:', req.currentUser ? req.currentUser._id : 'Not found');
    
@@ -44,32 +42,36 @@ router.post('/', getCurrentUser, requireAuth, async (req, res) => {
      if (screenshot) {
        try {
                       // Check if user is authenticated for Google Drive
-             console.log('🔍 Session tokens check:', req.session.tokens ? 'Present' : 'Missing');
-             console.log('🔍 Session keys:', Object.keys(req.session));
+             console.log('🔍 User tokens check:', req.currentUser.accessToken ? 'Present' : 'Missing');
+             console.log('🔍 User refresh token:', req.currentUser.refreshToken ? 'Present' : 'Missing');
 
-             // Try to get tokens from current session or global store
-             let tokens = req.session.tokens;
+             // Use user's stored Google tokens for Drive integration
+             const tokens = {
+               access_token: req.currentUser.accessToken,
+               refresh_token: req.currentUser.refreshToken
+             };
              
-             // If no tokens in current session, try global tokens
-             if (!tokens) {
-               console.log('🔍 No tokens in current session, checking global tokens...');
-               const { getTokens } = require('../utils/tokenStore');
-               tokens = getTokens();
-               console.log('🔍 Global tokens available:', tokens ? 'Yes' : 'No');
-             }
-         if (!tokens) {
-          // No local storage fallback - require Google Drive authentication
-          console.log('❌ User not authenticated for Google Drive - cannot save screenshot');
-          return res.status(401).json({ 
-            error: 'Authentication required', 
-            message: 'Please log in to save notes and screenshots to Google Drive' 
-          });
-         } else {
-           // Use Google Drive integration
-           console.log('🔐 Starting Google Drive upload...');
-           const { google } = require('googleapis');
-           const oauth2Client = new google.auth.OAuth2();
-           oauth2Client.setCredentials(tokens);
+                           if (!tokens.access_token || !tokens.refresh_token) {
+                console.log('❌ User not authenticated for Google Drive - cannot save screenshot');
+                console.log('⚠️ Saving note without screenshot due to missing Google tokens');
+                // Continue without screenshot instead of returning error
+                if (!video) {
+                  video = new Video({
+                    userId: req.currentUser._id,
+                    videoId,
+                    videoTitle,
+                    notes: [noteObj],
+                  });
+                } else {
+                  video.notes.push(noteObj);
+                }
+                return; // Exit the screenshot block
+              } else {
+               // Use Google Drive integration
+               console.log('🔐 Starting Google Drive upload...');
+               const { google } = require('googleapis');
+               const oauth2Client = new google.auth.OAuth2();
+               oauth2Client.setCredentials(tokens);
            const drive = google.drive({ version: 'v3', auth: oauth2Client });
 
           // Import helper functions
@@ -210,14 +212,13 @@ router.delete('/:videoId/:noteIdx', getCurrentUser, requireAuth, async (req, res
           }
           
           if (fileId) {
-            // Check if we have authentication tokens
-            let tokens = req.session.tokens;
-            if (!tokens) {
-              const { getTokens } = require('../utils/tokenStore');
-              tokens = getTokens();
-            }
+            // Use user's stored Google tokens for Drive integration
+            const tokens = {
+              access_token: req.currentUser.accessToken,
+              refresh_token: req.currentUser.refreshToken
+            };
             
-            if (tokens) {
+            if (tokens.access_token && tokens.refresh_token) {
               // Set OAuth credentials for Drive
               const oauth2Client = new google.auth.OAuth2();
               oauth2Client.setCredentials(tokens);
@@ -350,14 +351,13 @@ router.delete('/:videoId/screenshots/:screenshotIdx', getCurrentUser, requireAut
       }
       
       if (fileId) {
-        // Check if we have authentication tokens
-        let tokens = req.session.tokens;
-        if (!tokens) {
-          const { getTokens } = require('../utils/tokenStore');
-          tokens = getTokens();
-        }
+        // Use user's stored Google tokens for Drive integration
+        const tokens = {
+          access_token: req.currentUser.accessToken,
+          refresh_token: req.currentUser.refreshToken
+        };
         
-        if (tokens) {
+        if (tokens.access_token && tokens.refresh_token) {
           // Set OAuth credentials for Drive
           const oauth2Client = new google.auth.OAuth2();
           oauth2Client.setCredentials(tokens);

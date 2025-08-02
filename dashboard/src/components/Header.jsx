@@ -30,39 +30,66 @@ export default function Header({ search, setSearch, sortBy, setSortBy, sortOrder
   }, []);
 
   const getSortOptions = () => {
+    console.log('🔧 Getting sort options for page:', currentPage);
+    
     switch (currentPage) {
       case 'home':
       case 'favorites':
-        return [
+        const homeOptions = [
           { value: 'createdAt', label: 'Newest' },
           { value: 'title', label: 'Title' },
           { value: 'favorite', label: 'Favorites' }
         ];
+        console.log('Home/Favorites options:', homeOptions);
+        return homeOptions;
       case 'notes':
-        return [
+        const notesOptions = [
           { value: 'createdAt', label: 'Newest' },
           { value: 'timestamp', label: 'By Timestamp' },
           { value: 'title', label: 'By Video Title' }
         ];
+        console.log('Notes options:', notesOptions);
+        return notesOptions;
       case 'video':
-        return [
+        const videoOptions = [
           { value: 'createdAt', label: 'Newest' },
           { value: 'timestamp', label: 'By Timestamp' }
         ];
+        console.log('Video options:', videoOptions);
+        return videoOptions;
+      case 'drive':
+        const driveOptions = [
+          { value: 'createdAt', label: 'Newest' },
+          { value: 'title', label: 'Title' }
+        ];
+        console.log('Drive options:', driveOptions);
+        return driveOptions;
       default:
-        return [];
+        const defaultOptions = [
+          { value: 'createdAt', label: 'Newest' },
+          { value: 'title', label: 'Title' }
+        ];
+        console.log('Default options:', defaultOptions);
+        return defaultOptions;
     }
   };
 
   const handleOptionSelect = (value) => {
+    console.log('🔧 Selecting option:', value);
     setSortBy(value);
     setIsDropdownOpen(false);
   };
 
   const currentSortLabel = getSortOptions().find(opt => opt.value === sortBy)?.label || 'Sort By';
+  const sortOptions = getSortOptions();
+
+  console.log('🔧 Current page:', currentPage);
+  console.log('🔧 Current sort by:', sortBy);
+  console.log('🔧 Sort options:', sortOptions);
+  console.log('🔧 Dropdown open:', isDropdownOpen);
 
   return (
-    <header className="youtube-header sticky top-0 z-40 px-4 sm:px-6 lg:px-8 py-4 border-b border-gray-700">
+    <header className="sticky top-0 px-4 sm:px-6 lg:px-8 py-4">
       <div className="flex items-center justify-between">
         {/* Left Section - Page Title */}
         <div className="flex items-center space-x-4">
@@ -93,7 +120,7 @@ export default function Header({ search, setSearch, sortBy, setSortBy, sortOrder
 
         {/* Right Section - Sort Controls */}
         <div className="flex items-center space-x-3">
-          {/* Sort Dropdown */}
+          {/* Sort By Dropdown */}
           <div className="relative" ref={dropdownRef}>
             <button
               onClick={() => setIsDropdownOpen(!isDropdownOpen)}
@@ -111,20 +138,41 @@ export default function Header({ search, setSearch, sortBy, setSortBy, sortOrder
             </button>
             
             {isDropdownOpen && (
-              <div className="absolute right-0 mt-2 w-48 bg-gray-800 border border-gray-700 rounded-lg shadow-xl py-1 z-50">
-                {getSortOptions().map((option) => (
-                  <button
-                    key={option.value}
-                    className={`w-full text-left px-4 py-2 text-sm transition-colors duration-150 ${
-                      sortBy === option.value 
-                        ? 'bg-red-500 text-white' 
-                        : 'text-white hover:bg-gray-700'
-                    }`}
-                    onClick={() => handleOptionSelect(option.value)}
-                  >
-                    {option.label}
-                  </button>
-                ))}
+              <div 
+                className="absolute right-0 mt-2 w-48 bg-gray-800 border border-gray-700 rounded-lg shadow-xl py-1"
+                style={{
+                  zIndex: 9999,
+                  position: 'absolute',
+                  top: '100%',
+                  right: 0,
+                  marginTop: '8px',
+                  backgroundColor: 'rgb(31, 41, 55)',
+                  border: '1px solid rgb(55, 65, 81)',
+                  borderRadius: '8px',
+                  boxShadow: '0 10px 25px rgba(0, 0, 0, 0.5)',
+                  minWidth: '200px'
+                }}
+              >
+                {sortOptions.length > 0 ? (
+                  sortOptions.map((option) => (
+                    <button
+                      key={option.value}
+                      className={`w-full text-left px-4 py-2 text-sm transition-colors duration-150 ${
+                        sortBy === option.value 
+                          ? 'bg-red-500 text-white' 
+                          : 'text-white hover:bg-gray-700'
+                      }`}
+                      onClick={() => handleOptionSelect(option.value)}
+                      style={{ cursor: 'pointer' }}
+                    >
+                      {option.label}
+                    </button>
+                  ))
+                ) : (
+                  <div className="px-4 py-2 text-sm text-gray-400">
+                    No options available
+                  </div>
+                )}
               </div>
             )}
           </div>

@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from "react";
-import axios from "axios";
 import { BrowserRouter as Router, Routes, Route, useLocation } from "react-router-dom";
 import Sidebar from "./components/Sidebar";
 import Header from "./components/Header";
@@ -9,6 +8,7 @@ import FavoritesPage from "./components/FavoritesPage";
 import AllNotesPage from "./components/AllNotesPage";
 import GoogleDrivePage from "./components/GoogleDrivePage";
 import LoginPage from "./components/LoginPage";
+import AuthCallback from "./components/AuthCallback";
 import { AuthProvider, useAuth } from "./contexts/AuthContext";
 
 function Dashboard({ videos, search, setSearch, loading, error, sortBy, setSortBy, sortOrder, setSortOrder, onFavoriteToggle, onVideoDelete }) {
@@ -98,37 +98,72 @@ function Dashboard({ videos, search, setSearch, loading, error, sortBy, setSortB
 }
 
 function AppContent() {
-  const location = useLocation();
-  const { isAuthenticated, loading: authLoading } = useAuth();
+  const { isAuthenticated, authLoading, authAxios } = useAuth();
   const [videos, setVideos] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [search, setSearch] = useState("");
-  const [sortBy, setSortBy] = useState("createdAt");
-  const [sortOrder, setSortOrder] = useState("desc"); // "asc" or "desc"
+  const [sortBy, setSortBy] = useState("date");
+  const [sortOrder, setSortOrder] = useState("desc");
+  const location = useLocation();
 
-  // Determine current page based on location
-  const getCurrentPage = () => {
-    if (location.pathname === '/') return 'home';
-    if (location.pathname === '/favorites') return 'favorites';
-    if (location.pathname === '/notes') return 'notes';
-    if (location.pathname.startsWith('/notes/')) return 'video';
-    return 'home';
-  };
-
+  // Add message listener for Chrome extension
   useEffect(() => {
-    document.documentElement.setAttribute("data-theme", "ytNotesDark");
+    const handleMessage = (event) => {
+      // Only handle messages from our extension
+      if (event.source !== window) return;
+      
+      if (event.data && event.data.action === 'getTokens') {
+        console.log('🔍 Dashboard: Extension requesting tokens');
+        
+        // Get tokens from localStorage
+        const accessToken = localStorage.getItem('accessToken');
+        const refreshToken = localStorage.getItem('refreshToken');
+        
+        if (accessToken && refreshToken) {
+          console.log('✅ Dashboard: Sending tokens to extension');
+          event.source.postMessage({
+            action: 'getTokens',
+            accessToken: accessToken,
+            refreshToken: refreshToken
+          }, event.origin);
+        } else {
+          console.log('❌ Dashboard: No tokens found in localStorage');
+          event.source.postMessage({
+            action: 'getTokens',
+            accessToken: null,
+            refreshToken: null
+          }, event.origin);
+        }
+      }
+    };
+
+    window.addEventListener('message', handleMessage);
+    
+    return () => {
+      window.removeEventListener('message', handleMessage);
+    };
   }, []);
+
+  const getCurrentPage = () => {
+    const path = location.pathname;
+    if (path === "/") return "home";
+    if (path === "/favorites") return "favorites";
+    if (path === "/notes") return "notes";
+    if (path === "/drive") return "drive";
+    if (path.startsWith("/notes/")) return "video";
+    return "home";
+  };
 
   const fetchVideos = async () => {
     try {
       setLoading(true);
-      const response = await axios.get("http://localhost:5000/videos");
-      setVideos(response.data);
       setError(null);
+      const response = await authAxios.get("/videos");
+      setVideos(response.data);
     } catch (err) {
-      setError("Failed to fetch videos");
       console.error("Error fetching videos:", err);
+      setError("Failed to load videos");
     } finally {
       setLoading(false);
     }
@@ -145,7 +180,7 @@ function AppContent() {
 
   const handleFavoriteToggle = async (videoId, favorite) => {
     try {
-      await axios.patch(`http://localhost:5000/videos/${videoId}/favorite`, { favorite });
+      await authAxios.patch(`/videos/${videoId}/favorite`, { favorite });
       setVideos((prev) => prev.map(v => v.videoId === videoId ? { ...v, favorite } : v));
     } catch (err) {
       alert("Failed to update favorite");
@@ -170,6 +205,11 @@ function AppContent() {
         </div>
       </div>
     );
+  }
+
+  // Show auth-callback route regardless of authentication status
+  if (location.pathname === '/auth-callback') {
+    return <AuthCallback />;
   }
 
   // Show login page if not authenticated

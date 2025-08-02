@@ -1,75 +1,38 @@
 const User = require('../models/User');
-const { getTokens } = require('../utils/tokenStore');
-const { google } = require('googleapis');
+const { verifyToken, extractTokenFromHeader } = require('../utils/jwtUtils');
 
-// Middleware to get current user
+// Middleware to get current user from JWT token
 const getCurrentUser = async (req, res, next) => {
   try {
     console.log('🔍 getCurrentUser middleware called');
-    console.log('🔍 Session userId:', req.session.userId);
     
-    // Check if user is in session
-    if (req.session.userId) {
-      const user = await User.findById(req.session.userId);
-      if (user) {
-        req.currentUser = user;
-        console.log('✅ User found in session:', user.email);
-        return next();
-      }
+    // Extract token from Authorization header
+    const authHeader = req.headers.authorization;
+    const token = extractTokenFromHeader(authHeader);
+    
+    if (!token) {
+      console.log('❌ No JWT token found in Authorization header');
+      return res.status(401).json({ error: 'No token provided' });
     }
-
-    // Check if we have tokens and can get user info from Google
-    let tokens = req.session.tokens;
-    if (!tokens) {
-      tokens = getTokens();
+    
+    // Verify the token
+    const decoded = verifyToken(token);
+    if (!decoded) {
+      console.log('❌ Invalid or expired JWT token');
+      return res.status(401).json({ error: 'Invalid or expired token' });
     }
-
-    console.log('🔍 Tokens available:', tokens ? 'Yes' : 'No');
-
-    if (tokens && tokens.access_token) {
-      try {
-        const oauth2Client = new google.auth.OAuth2();
-        oauth2Client.setCredentials(tokens);
-        
-        const oauth2 = google.oauth2({ version: 'v2', auth: oauth2Client });
-        const userInfo = await oauth2.userinfo.get();
-        
-        // Find or create user
-        let user = await User.findOne({ googleId: userInfo.data.id });
-        
-        if (!user) {
-          // Create new user
-          user = new User({
-            googleId: userInfo.data.id,
-            email: userInfo.data.email,
-            name: userInfo.data.name,
-            picture: userInfo.data.picture,
-            accessToken: tokens.access_token,
-            refreshToken: tokens.refresh_token
-          });
-          await user.save();
-          console.log('✅ New user created:', user.email);
-        } else {
-          // Update existing user's tokens and last login
-          user.accessToken = tokens.access_token;
-          user.refreshToken = tokens.refresh_token;
-          user.lastLogin = new Date();
-          await user.save();
-          console.log('✅ Existing user logged in:', user.email);
-        }
-
-        // Store user in session
-        req.session.userId = user._id;
-        req.currentUser = user;
-        return next();
-      } catch (error) {
-        console.error('❌ Error getting user info:', error);
-        return res.status(401).json({ error: 'Authentication failed' });
-      }
+    
+    // Get user from database
+    const user = await User.findById(decoded.userId);
+    if (!user) {
+      console.log('❌ User not found in database');
+      return res.status(401).json({ error: 'User not found' });
     }
-
-    console.log('❌ No tokens found - user not authenticated');
-    return res.status(401).json({ error: 'Not authenticated' });
+    
+    // Set current user in request
+    req.currentUser = user;
+    console.log('✅ User authenticated via JWT:', user.email);
+    next();
   } catch (error) {
     console.error('❌ Auth middleware error:', error);
     return res.status(500).json({ error: 'Server error' });

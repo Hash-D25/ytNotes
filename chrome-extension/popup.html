@@ -1,178 +1,167 @@
 <!DOCTYPE html>
 <html>
 <head>
+  <meta charset="utf-8">
   <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
-    
     body {
-      width: 320px;
+      width: 350px;
       padding: 20px;
-      font-family: 'Roboto', Arial, sans-serif;
-      background: #fff;
-      color: #222;
-      border-radius: 12px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+      font-family: Arial, sans-serif;
+      background: #1a1a1a;
+      color: #fff;
     }
-    
-    h3 {
-      margin: 0 0 14px 0;
-      font-size: 18px;
-      color: #222;
-      font-weight: 500;
-      letter-spacing: 0.01em;
-    }
-    
-    .checkbox-container {
-      margin: 0 0 12px 0;
+    .container {
       display: flex;
-      align-items: center;
-      gap: 8px;
-      font-size: 14px;
-      color: #555;
+      flex-direction: column;
+      gap: 15px;
     }
-    
-    .checkbox-container input[type="checkbox"] {
-      margin: 0;
-      accent-color: #fc466b;
-      transform: scale(1.1);
-    }
-    
     textarea {
       width: 100%;
       height: 80px;
       padding: 10px;
-      border: 1px solid #ccc;
+      border: 1px solid #333;
       border-radius: 6px;
+      background: #2a2a2a;
+      color: #fff;
       resize: vertical;
       font-family: inherit;
-      font-size: 15px;
-      background: #fafafa;
-      color: #222;
-      margin-bottom: 14px;
-      transition: border 0.2s;
-      box-sizing: border-box;
     }
-    
-    textarea:focus {
-      outline: none;
-      border-color: #fc466b;
-      background: #fff;
+    .checkbox-group {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 14px;
+      color: #ccc;
     }
-    
+    .button-group {
+      display: flex;
+      gap: 10px;
+    }
     button {
-      width: 100%;
+      flex: 1;
       padding: 10px 0;
-      background: #fc466b;
-      color: #fff;
       border: none;
       border-radius: 6px;
       cursor: pointer;
       font-size: 15px;
       font-weight: 500;
-      letter-spacing: 0.01em;
       transition: background 0.2s;
-      font-family: inherit;
     }
-    
-    button:hover {
-      background: #e6395c;
-    }
-    
     button:disabled {
-      background: #ccc;
+      opacity: 0.5;
       cursor: not-allowed;
     }
-    
-    .button-group {
-      display: flex;
-      gap: 10px;
-      margin-bottom: 10px;
-    }
-    
-    .button-group button {
-      flex: 1;
-    }
-    
     .dashboard-btn {
-      background: #383838 !important;
+      background: #fc466b;
       color: #fff;
     }
-    
-    .dashboard-btn:hover {
-      background: #555 !important;
+    .dashboard-btn:hover:not(:disabled) {
+      background: #e6395c;
     }
-    
     .status {
-      margin-top: 10px;
       padding: 8px;
       border-radius: 4px;
       font-size: 13px;
-      display: none;
+      margin-top: 10px;
     }
-    
-    .status.success {
-      background: #d4edda;
-      color: #155724;
-      border: 1px solid #c3e6cb;
-    }
-    
-    .status.error {
-      background: #f8d7da;
-      color: #721c24;
-      border: 1px solid #f5c6cb;
-    }
-    
     .status.info {
       background: #d1ecf1;
       color: #0c5460;
       border: 1px solid #bee5eb;
     }
-    
-    /* Dark mode support */
-    @media (prefers-color-scheme: dark) {
-      body {
-        background: #212121;
-        color: #fff;
-        box-shadow: 0 4px 24px rgba(0,0,0,0.7);
-      }
-      
-      h3 {
-        color: #fff;
-      }
-      
-      .checkbox-container {
-        color: #aaa;
-      }
-      
-      textarea {
-        background: #181818;
-        color: #fff;
-        border-color: #303030;
-      }
-      
-      textarea:focus {
-        border-color: #fc466b;
-        background: #2a2a2a;
-      }
+    .status.success {
+      background: #d4edda;
+      color: #155724;
+      border: 1px solid #c3e6cb;
+    }
+    .status.error {
+      background: #f8d7da;
+      color: #721c24;
+      border: 1px solid #f5c6cb;
+    }
+    .test-btn {
+      background: #28a745;
+      color: #fff;
+    }
+    .test-btn:hover:not(:disabled) {
+      background: #218838;
+    }
+    .manual-token-section {
+      border: 1px solid #333;
+      border-radius: 6px;
+      padding: 10px;
+      margin-top: 10px;
+    }
+    .manual-token-section h4 {
+      margin: 0 0 10px 0;
+      font-size: 14px;
+      color: #ccc;
+    }
+    .token-input {
+      width: 100%;
+      padding: 8px;
+      border: 1px solid #333;
+      border-radius: 4px;
+      background: #2a2a2a;
+      color: #fff;
+      font-size: 12px;
+      margin-bottom: 8px;
+    }
+    .manual-btn {
+      background: #6c757d;
+      color: #fff;
+      font-size: 12px;
+      padding: 6px 12px;
+    }
+    .manual-btn:hover:not(:disabled) {
+      background: #5a6268;
+    }
+    .auto-detection-status {
+      border: 1px solid #333;
+      border-radius: 6px;
+      padding: 10px;
+      margin-top: 10px;
+    }
+    .auto-detection-status h4 {
+      margin: 0 0 10px 0;
+      font-size: 14px;
+      color: #ccc;
     }
   </style>
 </head>
 <body>
-  <h3>YouTube Notes</h3>
-  <div class="checkbox-container">
-    <input type="checkbox" id="captureScreenshot" checked>
-    <label for="captureScreenshot">Capture screenshot</label>
+  <div class="container">
+    <div class="checkbox-group">
+      <input type="checkbox" id="captureScreenshot" checked>
+      <label for="captureScreenshot">Capture screenshot</label>
+    </div>
+    <textarea id="note" placeholder="Add your note here..."></textarea>
+    <div class="button-group">
+      <button id="saveBtn">Save Note</button>
+      <button id="dashboardBtn" class="dashboard-btn">Dashboard</button>
+    </div>
+    <div class="button-group">
+      <button id="syncBtn" class="dashboard-btn">Sync Tokens</button>
+      <button id="testBtn" class="test-btn">Test Extension</button>
+    </div>
+    <div class="button-group">
+      <button id="debugBtn" class="test-btn" onclick="debugTokenStorage()">Debug Storage</button>
+    </div>
+    
+    <div class="auto-detection-status">
+      <h4>Auto-Detection Status</h4>
+      <div id="autoStatus" class="status info">Checking...</div>
+    </div>
+    
+    <div class="manual-token-section">
+      <h4>Manual Token Input (if sync fails)</h4>
+      <input type="text" id="manualAccessToken" class="token-input" placeholder="Paste access token here...">
+      <input type="text" id="manualRefreshToken" class="token-input" placeholder="Paste refresh token here...">
+      <button id="manualTokenBtn" class="manual-btn">Set Tokens Manually</button>
+    </div>
+    
+    <div id="status" class="status"></div>
   </div>
-  <textarea id="note" placeholder="Add your note here..."></textarea>
-  <div class="button-group">
-    <button id="saveBtn">Save Note</button>
-    <button id="dashboardBtn" class="dashboard-btn">Dashboard</button>
-  </div>
-  <div id="status" class="status"></div>
   <script src="popup.js"></script>
 </body>
 </html> 

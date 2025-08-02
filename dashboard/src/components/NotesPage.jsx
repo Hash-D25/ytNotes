@@ -1,13 +1,14 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { ArrowTopRightOnSquareIcon, QuestionMarkCircleIcon } from '@heroicons/react/24/outline';
-import axios from 'axios';
+import { useAuth } from '../contexts/AuthContext';
 import NotesList from './NotesList';
 
 export default function NotesPage({ videos, fetchVideos, search, setSearch, sortBy, setSortBy, sortOrder, setSortOrder }) {
   const { videoId } = useParams();
   const navigate = useNavigate();
   const location = useLocation();
+  const { authAxios } = useAuth();
   
   // All hooks must be called at the top level, before any conditional returns
   const [localNotes, setLocalNotes] = useState([]);
@@ -355,7 +356,7 @@ export default function NotesPage({ videos, fetchVideos, search, setSearch, sort
     if (!video) return;
     
     try {
-      const res = await axios.post('http://localhost:5000/bookmark', {
+      const res = await authAxios.post('/bookmark', {
         videoId: video.videoId,
         videoTitle: video.videoTitle,
         timestamp,
