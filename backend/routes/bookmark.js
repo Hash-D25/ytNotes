@@ -31,12 +31,32 @@ router.post('/', getCurrentUser, requireAuth, async (req, res) => {
     console.log('🔍 Request body:', { videoId, videoTitle, timestamp, note: note ? 'present' : 'missing', screenshot: screenshot ? 'present' : 'missing' });
     console.log('🔍 Screenshot length:', screenshot ? screenshot.length : 'none');
     console.log('🔍 Screenshot preview:', screenshot ? screenshot.substring(0, 100) + '...' : 'none');
-    if (!videoId || !videoTitle || typeof timestamp !== 'number' || !note) {
-      return res.status(400).json({ error: 'Missing required fields' });
+    
+    // Enhanced input validation
+    if (!videoId || typeof videoId !== 'string' || videoId.trim().length === 0) {
+      return res.status(400).json({ error: 'Invalid videoId - must be a non-empty string' });
     }
+    
+    if (!videoTitle || typeof videoTitle !== 'string' || videoTitle.trim().length === 0) {
+      return res.status(400).json({ error: 'Invalid videoTitle - must be a non-empty string' });
+    }
+    
+    if (typeof timestamp !== 'number' || timestamp < 0 || !Number.isFinite(timestamp)) {
+      return res.status(400).json({ error: 'Invalid timestamp - must be a positive number' });
+    }
+    
+    if (!note || typeof note !== 'string' || note.trim().length === 0) {
+      return res.status(400).json({ error: 'Invalid note - must be a non-empty string' });
+    }
+    
+    // Sanitize inputs
+    const sanitizedVideoId = videoId.trim();
+    const sanitizedVideoTitle = videoTitle.trim();
+    const sanitizedNote = note.trim();
+    const sanitizedTimestamp = Math.floor(timestamp);
 
-    let video = await Video.findOne({ userId: req.currentUser._id, videoId });
-    const noteObj = { timestamp, note };
+    let video = await Video.findOne({ userId: req.currentUser._id, videoId: sanitizedVideoId });
+    const noteObj = { timestamp: sanitizedTimestamp, note: sanitizedNote };
 
          // Handle screenshot if provided
      if (screenshot) {
@@ -58,8 +78,8 @@ router.post('/', getCurrentUser, requireAuth, async (req, res) => {
                 if (!video) {
                   video = new Video({
                     userId: req.currentUser._id,
-                    videoId,
-                    videoTitle,
+                    videoId: sanitizedVideoId,
+                    videoTitle: sanitizedVideoTitle,
                     notes: [noteObj],
                   });
                 } else {
@@ -87,8 +107,8 @@ router.post('/', getCurrentUser, requireAuth, async (req, res) => {
           console.log('🔐 Screenshots folder ID:', screenshotsFolderId);
 
           // Generate proper filename
-          const timestampStr = new Date(timestamp * 1000).toISOString().replace(/[:.]/g, '-');
-          const fileName = `${videoId}_${timestampStr}.png`;
+          const timestampStr = new Date(sanitizedTimestamp * 1000).toISOString().replace(/[:.]/g, '-');
+          const fileName = `${sanitizedVideoId}_${timestampStr}.png`;
 
           // Remove data URL prefix
           const base64Data = screenshot.replace(/^data:image\/png;base64,/, '');
@@ -105,7 +125,7 @@ router.post('/', getCurrentUser, requireAuth, async (req, res) => {
           // Add screenshot to note and screenshots array
           noteObj.screenshotPath = shareableLink;
           const screenshotObj = {
-            timestamp,
+            timestamp: sanitizedTimestamp,
             path: shareableLink,
             createdAt: new Date()
           };
@@ -113,8 +133,8 @@ router.post('/', getCurrentUser, requireAuth, async (req, res) => {
           if (!video) {
             video = new Video({
               userId: req.currentUser._id,
-              videoId,
-              videoTitle,
+              videoId: sanitizedVideoId,
+              videoTitle: sanitizedVideoTitle,
               notes: [noteObj],
               screenshots: [screenshotObj]
             });
@@ -130,8 +150,8 @@ router.post('/', getCurrentUser, requireAuth, async (req, res) => {
         if (!video) {
           video = new Video({
             userId: req.currentUser._id,
-            videoId,
-            videoTitle,
+            videoId: sanitizedVideoId,
+            videoTitle: sanitizedVideoTitle,
             notes: [noteObj],
           });
         } else {
@@ -142,8 +162,8 @@ router.post('/', getCurrentUser, requireAuth, async (req, res) => {
       if (!video) {
         video = new Video({
           userId: req.currentUser._id,
-          videoId,
-          videoTitle,
+          videoId: sanitizedVideoId,
+          videoTitle: sanitizedVideoTitle,
           notes: [noteObj],
         });
       } else {

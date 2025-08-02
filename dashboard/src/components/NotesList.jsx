@@ -8,6 +8,7 @@ import {
   HeartIcon as HeartOutline,
   HeartIcon as HeartSolid,
   Camera,
+  FileDown,
 } from "lucide-react";
 import { useAuth } from "../contexts/AuthContext";
 import NoteCard from './NoteCard';
@@ -78,6 +79,7 @@ export default function NotesList({
   const [editNote, setEditNote] = useState("");
   const [expandedNotes, setExpandedNotes] = useState(new Set());
   const [activeTab, setActiveTab] = useState('notes');
+  const [isExportingPDF, setIsExportingPDF] = useState(false);
 
   const toggleNoteExpansion = (idx) => {
     setExpandedNotes((prev) => {
@@ -187,18 +189,87 @@ export default function NotesList({
   };
 
   const handleScreenshotDelete = (idx) => {
-    // This will be handled by the ScreenshotsList component
+    // This function will be called when a screenshot is deleted
+    console.log('Screenshot deleted at index:', idx);
   };
+
+  const handleExportPDF = async () => {
+    try {
+      setIsExportingPDF(true);
+      console.log('🔍 Exporting PDF for video:', video.videoId);
+      
+      // Check if there are screenshots
+      if (!video.screenshots || video.screenshots.length === 0) {
+        alert('No screenshots found to export.');
+        return;
+      }
+      
+      // Make the API call to export PDF
+      const response = await authAxios.get(`/export-screenshots-pdf/${video.videoId}`, {
+        responseType: 'blob'
+      });
+      
+      // Create a download link
+      const blob = new Blob([response.data], { type: 'application/pdf' });
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `${video.videoTitle.replace(/[^a-zA-Z0-9]/g, '_')}_screenshots.pdf`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+      
+      console.log('✅ PDF exported successfully');
+    } catch (error) {
+      console.error('❌ PDF export failed:', error);
+      if (error.response?.status === 400) {
+        alert('No screenshots found to export.');
+      } else {
+        alert('Failed to export PDF. Please try again.');
+      }
+    } finally {
+      setIsExportingPDF(false);
+    }
+  };
+
+
 
   return (
     <div className="w-full pb-16">
       {/* Header with Tabs */}
       <div className="mb-8">
-        <div className="flex items-center justify-between mb-6">
-          <h3 className="text-2xl font-bold text-white flex items-center gap-2">
-            <Sparkles className="w-6 h-6 text-purple-400" />
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="text-2xl font-bold text-white">
             {activeTab === 'notes' ? `Notes (${video.notes.length})` : 'Screenshots'}
           </h3>
+          
+          
+          
+          {activeTab === 'screenshots' && video.screenshots && video.screenshots.length > 0 && (
+            <button
+              onClick={handleExportPDF}
+              disabled={isExportingPDF}
+              className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-colors font-medium shadow-md hover:shadow-lg ${
+                isExportingPDF 
+                  ? 'bg-gray-600 text-gray-300 cursor-not-allowed' 
+                  : 'bg-green-600 text-white hover:bg-green-700'
+              }`}
+              title="Export screenshots as PDF"
+            >
+              {isExportingPDF ? (
+                <>
+                  <div className="w-4 h-4 border-2 border-gray-300 border-t-white rounded-full animate-spin"></div>
+                  Exporting...
+                </>
+              ) : (
+                <>
+                  <FileDown className="w-4 h-4" />
+                  Export Screenshots PDF
+                </>
+              )}
+            </button>
+          )}
         </div>
 
         {/* Tab Navigation */}

@@ -17,6 +17,7 @@
     "jsonwebtoken": "^9.0.2",
     "mongoose": "^7.6.3",
     "multer": "^2.0.2",
+    "pdf-lib": "^1.17.1",
     "session": "^0.1.0"
   },
   "devDependencies": {

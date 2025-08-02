@@ -8,6 +8,20 @@ const { google } = require('googleapis');
 
 dotenv.config({path: './.env'});
 
+// Validate required environment variables
+const requiredEnvVars = [
+  'JWT_SECRET',
+  'DATABASE',
+  'GOOGLE_CLIENT_ID',
+  'GOOGLE_CLIENT_SECRET'
+];
+
+const missingEnvVars = requiredEnvVars.filter(varName => !process.env[varName]);
+if (missingEnvVars.length > 0) {
+  console.error('❌ Missing required environment variables:', missingEnvVars);
+  process.exit(1);
+}
+
 const app = express();
 
 // Import JWT utilities and auth middleware
@@ -708,6 +722,288 @@ app.delete('/screenshots/:videoId/:timestamp', getCurrentUser, requireAuth, asyn
   }
 });
 
+// Export screenshots as PDF endpoint
+app.get('/export-screenshots-pdf/:videoId', getCurrentUser, requireAuth, async (req, res) => {
+  try {
+    const { videoId } = req.params;
+    
+    // Find the video for this user
+    const video = await Video.findOne({ userId: req.currentUser._id, videoId });
+    if (!video) {
+      return res.status(404).json({ error: 'Video not found' });
+    }
+
+    // Check if there are screenshots
+    if (!video.screenshots || video.screenshots.length === 0) {
+      return res.status(400).json({ error: 'No screenshots found for this video' });
+    }
+
+    // Import pdf-lib
+    const { PDFDocument, rgb, StandardFonts } = require('pdf-lib');
+    
+    // Create a new PDF document
+    const pdfDoc = await PDFDocument.create();
+    const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
+    const boldFont = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
+    
+    // Sort screenshots by timestamp
+    const sortedScreenshots = [...video.screenshots].sort((a, b) => a.timestamp - b.timestamp);
+    
+    // Process each screenshot - create custom-sized pages for each screenshot
+    for (let i = 0; i < sortedScreenshots.length; i++) {
+      const screenshot = sortedScreenshots[i];
+      
+      try {
+        // Fetch the image from Google Drive
+        const imageResponse = await fetch(screenshot.path);
+        if (!imageResponse.ok) {
+          console.warn(`Failed to fetch image for timestamp ${screenshot.timestamp}:`, imageResponse.status);
+          continue;
+        }
+        
+        const imageBuffer = await imageResponse.arrayBuffer();
+        const image = await pdfDoc.embedPng(imageBuffer);
+        
+        // Create a page sized to match the screenshot dimensions
+        // Add small margins for better presentation
+        const margin = 20;
+        const pageWidth = image.width + (2 * margin);
+        const pageHeight = image.height + (2 * margin);
+        
+        // Create new page with custom dimensions
+        const page = pdfDoc.addPage([pageWidth, pageHeight]);
+        
+        // Draw the image at full size, centered on the page
+        page.drawImage(image, {
+          x: margin,
+          y: margin,
+          width: image.width,
+          height: image.height
+        });
+        
+      } catch (imageError) {
+        console.error(`Error processing screenshot for timestamp ${screenshot.timestamp}:`, imageError);
+        // Skip failed images and continue with next
+      }
+    }
+    
+    // Generate PDF bytes
+    const pdfBytes = await pdfDoc.save();
+    
+    // Set response headers
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Disposition', `attachment; filename="${video.videoTitle.replace(/[^a-zA-Z0-9]/g, '_')}_screenshots.pdf"`);
+    res.setHeader('Content-Length', pdfBytes.length);
+    
+    // Send the PDF
+    res.send(Buffer.from(pdfBytes));
+    
+  } catch (err) {
+    console.error('PDF export failed:', err);
+    res.status(500).json({ error: 'Failed to export PDF', details: err.message });
+  }
+});
+
+// Export notes as PDF endpoint
+app.get('/export-notes-pdf/:videoId', getCurrentUser, requireAuth, async (req, res) => {
+  try {
+    const { videoId } = req.params;
+    
+    // Find the video for this user
+    const video = await Video.findOne({ userId: req.currentUser._id, videoId });
+    if (!video) {
+      return res.status(404).json({ error: 'Video not found' });
+    }
+
+    // Check if there are notes
+    if (!video.notes || video.notes.length === 0) {
+      return res.status(400).json({ error: 'No notes found for this video' });
+    }
+
+    // Import pdf-lib
+    const { PDFDocument, rgb, StandardFonts } = require('pdf-lib');
+    
+    // Create a new PDF document
+    const pdfDoc = await PDFDocument.create();
+    const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
+    const boldFont = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
+    
+    // Sort notes by timestamp
+    const sortedNotes = [...video.notes].sort((a, b) => a.timestamp - b.timestamp);
+    
+    // Add title page
+    const titlePage = pdfDoc.addPage([595.28, 841.89]); // A4 size
+    const titleFontSize = 24;
+    const titleText = `${video.videoTitle} - Notes`;
+    const titleWidth = boldFont.widthOfTextAtSize(titleText, titleFontSize);
+    const titleX = (titlePage.getWidth() - titleWidth) / 2;
+    titlePage.drawText(titleText, {
+      x: titleX,
+      y: titlePage.getHeight() - 50,
+      size: titleFontSize,
+      font: boldFont,
+      color: rgb(0, 0, 0)
+    });
+    
+    // Add subtitle
+    const subtitleText = `Generated on ${new Date().toLocaleDateString()} at ${new Date().toLocaleTimeString()}`;
+    const subtitleFontSize = 12;
+    const subtitleWidth = font.widthOfTextAtSize(subtitleText, subtitleFontSize);
+    const subtitleX = (titlePage.getWidth() - subtitleWidth) / 2;
+    titlePage.drawText(subtitleText, {
+      x: subtitleX,
+      y: titlePage.getHeight() - 80,
+      size: subtitleFontSize,
+      font: font,
+      color: rgb(0.5, 0.5, 0.5)
+    });
+    
+    // Add video info
+    const infoText = `Total Notes: ${sortedNotes.length}`;
+    const infoWidth = font.widthOfTextAtSize(infoText, subtitleFontSize);
+    const infoX = (titlePage.getWidth() - infoWidth) / 2;
+    titlePage.drawText(infoText, {
+      x: infoX,
+      y: titlePage.getHeight() - 110,
+      size: subtitleFontSize,
+      font: font,
+      color: rgb(0.3, 0.3, 0.3)
+    });
+    
+    // Process each note
+    for (let i = 0; i < sortedNotes.length; i++) {
+      const note = sortedNotes[i];
+      
+      // Create a new page for each note
+      const page = pdfDoc.addPage([595.28, 841.89]); // A4 size
+      const pageWidth = page.getWidth();
+      const pageHeight = page.getHeight();
+      const margin = 50;
+      
+      // Add timestamp header
+      const timestampText = `Timestamp: ${formatTime(note.timestamp)}`;
+      const timestampFontSize = 16;
+      const timestampWidth = boldFont.widthOfTextAtSize(timestampText, timestampFontSize);
+      const timestampX = (pageWidth - timestampWidth) / 2;
+      
+      page.drawText(timestampText, {
+        x: timestampX,
+        y: pageHeight - margin,
+        size: timestampFontSize,
+        font: boldFont,
+        color: rgb(0, 0, 0)
+      });
+      
+      // Add note content
+      const noteText = note.note;
+      const noteFontSize = 12;
+      const maxWidth = pageWidth - (2 * margin);
+      const maxHeight = pageHeight - (2 * margin) - 100; // Leave space for header and footer
+      
+      // Simple text wrapping
+      const words = noteText.split(' ');
+      const lines = [];
+      let currentLine = '';
+      
+      for (const word of words) {
+        const testLine = currentLine + (currentLine ? ' ' : '') + word;
+        const testWidth = font.widthOfTextAtSize(testLine, noteFontSize);
+        
+        if (testWidth <= maxWidth) {
+          currentLine = testLine;
+        } else {
+          if (currentLine) {
+            lines.push(currentLine);
+            currentLine = word;
+          } else {
+            // Word is too long, break it
+            lines.push(word);
+          }
+        }
+      }
+      if (currentLine) {
+        lines.push(currentLine);
+      }
+      
+      // Draw note lines
+      let yPosition = pageHeight - margin - 50;
+      for (const line of lines) {
+        if (yPosition < margin + 50) {
+          // Add new page if we run out of space
+          const newPage = pdfDoc.addPage([595.28, 841.89]);
+          yPosition = newPage.getHeight() - margin - 50;
+        }
+        
+        page.drawText(line, {
+          x: margin,
+          y: yPosition,
+          size: noteFontSize,
+          font: font,
+          color: rgb(0, 0, 0)
+        });
+        
+        yPosition -= noteFontSize + 5;
+      }
+      
+      // Add creation date
+      const dateText = `Created: ${new Date(note.createdAt).toLocaleDateString()}`;
+      const dateFontSize = 10;
+      const dateWidth = font.widthOfTextAtSize(dateText, dateFontSize);
+      const dateX = (pageWidth - dateWidth) / 2;
+      
+      page.drawText(dateText, {
+        x: dateX,
+        y: margin + 20,
+        size: dateFontSize,
+        font: font,
+        color: rgb(0.5, 0.5, 0.5)
+      });
+      
+      // Add page number
+      const pageText = `Page ${i + 1} of ${sortedNotes.length}`;
+      const pageFontSize = 10;
+      const pageWidth_text = font.widthOfTextAtSize(pageText, pageFontSize);
+      const pageX = (pageWidth - pageWidth_text) / 2;
+      
+      page.drawText(pageText, {
+        x: pageX,
+        y: margin / 2,
+        size: pageFontSize,
+        font: font,
+        color: rgb(0.3, 0.3, 0.3)
+      });
+    }
+    
+    // Generate PDF bytes
+    const pdfBytes = await pdfDoc.save();
+    
+    // Set response headers
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Disposition', `attachment; filename="${video.videoTitle.replace(/[^a-zA-Z0-9]/g, '_')}_notes.pdf"`);
+    res.setHeader('Content-Length', pdfBytes.length);
+    
+    // Send the PDF
+    res.send(Buffer.from(pdfBytes));
+    
+  } catch (err) {
+    console.error('PDF export failed:', err);
+    res.status(500).json({ error: 'Failed to export PDF', details: err.message });
+  }
+});
+
+// Helper function to format time
+function formatTime(seconds) {
+  const hours = Math.floor(seconds / 3600);
+  const minutes = Math.floor((seconds % 3600) / 60);
+  const secs = seconds % 60;
+  
+  if (hours > 0) {
+    return `${hours}:${minutes.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+  } else {
+    return `${minutes}:${secs.toString().padStart(2, '0')}`;
+  }
+}
+
 const bookmarkRoutes = require('./routes/bookmark');
 const videosRoutes = require('./routes/videos');
 
@@ -792,12 +1088,13 @@ mongoose.connect(DB,{
   useNewUrlParser: true,
   useUnifiedTopology: true,
 })
-.then(() => console.log('🟢DB connection successful!'))
 .then(() => {
+  console.log('🟢DB connection successful!');
   app.listen(PORT, () => {
     console.log(`🟢Server running on port ${PORT}`);
   });
 })
 .catch((err) => {
   console.error('🔴MongoDB connection error:', err);
+  process.exit(1); // Exit if DB connection fails
 }); 
