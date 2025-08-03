@@ -107,6 +107,7 @@ function AppContent() {
   const [search, setSearch] = useState("");
   const [sortBy, setSortBy] = useState("date");
   const [sortOrder, setSortOrder] = useState("desc");
+  const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
   const location = useLocation();
 
   // Add message listener for Chrome extension
@@ -116,21 +117,17 @@ function AppContent() {
       if (event.source !== window) return;
       
       if (event.data && event.data.action === 'getTokens') {
-        console.log('🔍 Dashboard: Extension requesting tokens');
-        
         // Get tokens from localStorage
         const accessToken = localStorage.getItem('accessToken');
         const refreshToken = localStorage.getItem('refreshToken');
         
         if (accessToken && refreshToken) {
-          console.log('✅ Dashboard: Sending tokens to extension');
           event.source.postMessage({
             action: 'getTokens',
             accessToken: accessToken,
             refreshToken: refreshToken
           }, event.origin);
         } else {
-          console.log('❌ Dashboard: No tokens found in localStorage');
           event.source.postMessage({
             action: 'getTokens',
             accessToken: null,
@@ -164,7 +161,6 @@ function AppContent() {
       const response = await authAxios.get("/videos");
       setVideos(response.data);
     } catch (err) {
-      console.error("Error fetching videos:", err);
       setError("Failed to load videos");
     } finally {
       setLoading(false);
@@ -185,7 +181,7 @@ function AppContent() {
       await authAxios.patch(`/videos/${videoId}/favorite`, { favorite });
       setVideos((prev) => prev.map(v => v.videoId === videoId ? { ...v, favorite } : v));
     } catch (err) {
-      alert("Failed to update favorite");
+      // Handle error silently
     }
   };
 
@@ -193,7 +189,7 @@ function AppContent() {
     try {
       setVideos((prev) => prev.filter(v => v.videoId !== videoId));
     } catch (err) {
-      console.error("Error updating videos after delete:", err);
+      // Handle error silently
     }
   };
 
@@ -221,7 +217,7 @@ function AppContent() {
 
   return (
     <div className="flex h-screen dark:bg-gray-900 bg-gray-50 overflow-hidden">
-      <Sidebar />
+      <Sidebar isMobileSidebarOpen={isMobileSidebarOpen} setIsMobileSidebarOpen={setIsMobileSidebarOpen} />
       <div className="flex-1 flex flex-col min-w-0 lg:ml-24">
         <Header 
           search={search} 
@@ -230,7 +226,9 @@ function AppContent() {
           setSortBy={setSortBy} 
           sortOrder={sortOrder} 
           setSortOrder={setSortOrder} 
-          currentPage={getCurrentPage()} 
+          currentPage={getCurrentPage()}
+          isMobileSidebarOpen={isMobileSidebarOpen}
+          setIsMobileSidebarOpen={setIsMobileSidebarOpen}
         />
         <main className="flex-1 overflow-y-auto">
           <Routes>

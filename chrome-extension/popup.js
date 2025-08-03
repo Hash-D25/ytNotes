@@ -26,13 +26,6 @@ document.addEventListener('DOMContentLoaded', function() {
         chrome.storage.local.get(['accessToken', 'refreshToken'], resolve);
       });
       
-      console.log('🔍 Popup: Current stored tokens:', {
-        hasAccessToken: !!storedTokens.accessToken,
-        hasRefreshToken: !!storedTokens.refreshToken,
-        accessTokenLength: storedTokens.accessToken ? storedTokens.accessToken.length : 0,
-        refreshTokenLength: storedTokens.refreshToken ? storedTokens.refreshToken.length : 0
-      });
-      
       if (storedTokens.accessToken) {
         // Test if tokens are valid
         const response = await fetch('http://localhost:5000/auth/status', {
@@ -52,7 +45,6 @@ document.addEventListener('DOMContentLoaded', function() {
         autoStatusEl.className = 'status error';
       }
     } catch (error) {
-      console.error('Auto-detection status check failed:', error);
       autoStatusEl.textContent = '❌ Status check failed';
       autoStatusEl.className = 'status error';
     }
@@ -87,7 +79,6 @@ document.addEventListener('DOMContentLoaded', function() {
           accessToken: accessToken,
           refreshToken: refreshToken
         }, () => {
-          console.log('📋 Manual tokens stored in chrome.storage.local');
           resolve();
         });
       });
@@ -100,7 +91,6 @@ document.addEventListener('DOMContentLoaded', function() {
       manualRefreshToken.value = '';
       
     } catch (error) {
-      console.error('❌ Manual token error:', error);
       statusEl.textContent = 'Failed to set tokens manually.';
       statusEl.className = 'status error';
     } finally {
@@ -115,7 +105,6 @@ document.addEventListener('DOMContentLoaded', function() {
     statusEl.className = 'status info';
 
     try {
-      console.log('🧪 Starting extension test...');
       
       // Test 1: Check if we're on YouTube
       const tabs = await new Promise((resolve) => {
@@ -123,7 +112,6 @@ document.addEventListener('DOMContentLoaded', function() {
       });
       
       const currentTab = tabs[0];
-      console.log('🧪 Current tab:', currentTab.url);
       
       if (!currentTab.url.includes('youtube.com/watch')) {
         statusEl.textContent = 'Please go to a YouTube video first.';
@@ -137,11 +125,6 @@ document.addEventListener('DOMContentLoaded', function() {
         chrome.storage.local.get(['accessToken', 'refreshToken'], resolve);
       });
       
-      console.log('🧪 Stored tokens:', {
-        hasAccessToken: !!storedTokens.accessToken,
-        hasRefreshToken: !!storedTokens.refreshToken
-      });
-
       if (!storedTokens.accessToken) {
         statusEl.textContent = 'No tokens found. Try "Sync Tokens" first.';
         statusEl.className = 'status error';
@@ -161,7 +144,6 @@ document.addEventListener('DOMContentLoaded', function() {
 
         if (response.ok) {
           const data = await response.json();
-          console.log('🧪 Backend auth test:', data);
           
           if (data.authenticated) {
             statusEl.textContent = '✅ Extension is working! You can save notes.';
@@ -175,13 +157,11 @@ document.addEventListener('DOMContentLoaded', function() {
           statusEl.className = 'status error';
         }
       } catch (error) {
-        console.error('🧪 Backend test error:', error);
         statusEl.textContent = '❌ Backend not reachable. Is the server running?';
         statusEl.className = 'status error';
       }
 
     } catch (error) {
-      console.error('🧪 Test error:', error);
       statusEl.textContent = '❌ Test failed: ' + error.message;
       statusEl.className = 'status error';
     } finally {
@@ -309,7 +289,6 @@ document.addEventListener('DOMContentLoaded', function() {
 
   // Sync tokens from dashboard using background script
   syncBtn.onclick = async function() {
-    console.log('🔄 Sync button clicked - requesting token sync via background script...');
     this.disabled = true;
     statusEl.textContent = 'Syncing tokens...';
     statusEl.className = 'status info';
@@ -318,25 +297,21 @@ document.addEventListener('DOMContentLoaded', function() {
       // Use background script to sync tokens
       const response = await new Promise((resolve) => {
         chrome.runtime.sendMessage({ action: 'syncTokensFromDashboard' }, (response) => {
-          console.log('📋 Background script response:', response);
           resolve(response);
         });
       });
 
       if (response && response.success) {
-        console.log('✅ Tokens synced successfully via background script');
         statusEl.textContent = 'Tokens synced successfully!';
         statusEl.className = 'status success';
         
         // Refresh auto-detection status
         checkAutoDetectionStatus();
       } else {
-        console.log('❌ Token sync failed:', response?.error);
         statusEl.textContent = `Sync failed: ${response?.error || 'Unknown error'}`;
         statusEl.className = 'status error';
       }
     } catch (error) {
-      console.error('❌ Sync error:', error);
       statusEl.textContent = `Sync error: ${error.message}`;
       statusEl.className = 'status error';
     } finally {
@@ -346,7 +321,6 @@ document.addEventListener('DOMContentLoaded', function() {
 
   // Debug function to test token storage
   window.debugTokenStorage = async function() {
-    console.log('🔍 Debug: Testing token storage...');
     
     // Test storing a dummy token
     const testToken = 'test-access-token-' + Date.now();
@@ -358,7 +332,6 @@ document.addEventListener('DOMContentLoaded', function() {
           accessToken: testToken,
           refreshToken: testRefreshToken
         }, () => {
-          console.log('🔍 Debug: Test tokens stored');
           resolve();
         });
       });
@@ -366,22 +339,14 @@ document.addEventListener('DOMContentLoaded', function() {
       // Verify storage
       const stored = await new Promise((resolve) => {
         chrome.storage.local.get(['accessToken', 'refreshToken'], (result) => {
-          console.log('🔍 Debug: Stored tokens verification:', {
-            hasAccessToken: !!result.accessToken,
-            hasRefreshToken: !!result.refreshToken,
-            accessTokenLength: result.accessToken ? result.accessToken.length : 0,
-            refreshTokenLength: result.refreshToken ? result.refreshToken.length : 0
-          });
           resolve(result);
         });
       });
       
       if (stored.accessToken === testToken) {
-        console.log('✅ Debug: Token storage working correctly');
         statusEl.textContent = 'Debug: Token storage working';
         statusEl.className = 'status success';
       } else {
-        console.log('❌ Debug: Token storage verification failed');
         statusEl.textContent = 'Debug: Token storage failed';
         statusEl.className = 'status error';
       }
@@ -389,13 +354,11 @@ document.addEventListener('DOMContentLoaded', function() {
       // Clean up test tokens
       await new Promise((resolve) => {
         chrome.storage.local.remove(['accessToken', 'refreshToken'], () => {
-          console.log('🔍 Debug: Test tokens cleaned up');
           resolve();
         });
       });
       
     } catch (error) {
-      console.error('❌ Debug: Token storage test failed:', error);
       statusEl.textContent = 'Debug: Token storage test failed';
       statusEl.className = 'status error';
     }

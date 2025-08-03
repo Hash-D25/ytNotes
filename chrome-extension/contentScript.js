@@ -1,54 +1,27 @@
 // JWT token management functions
 async function getStoredTokens() {
   try {
-    console.log('🔍 Extension: Getting stored tokens from chrome.storage.local...');
     const result = await chrome.storage.local.get(['accessToken', 'refreshToken']);
-    console.log('🔍 Extension: Tokens retrieved:', {
-      hasAccessToken: !!result.accessToken,
-      hasRefreshToken: !!result.refreshToken,
-      accessTokenLength: result.accessToken ? result.accessToken.length : 0,
-      refreshTokenLength: result.refreshToken ? result.refreshToken.length : 0
-    });
     return {
       accessToken: result.accessToken,
       refreshToken: result.refreshToken
     };
   } catch (error) {
-    console.error('❌ Error getting stored tokens:', error);
     return { accessToken: null, refreshToken: null };
   }
 }
 
 async function storeTokens(accessToken, refreshToken) {
   try {
-    console.log('🔍 Extension: Storing tokens in chrome.storage.local...', {
-      hasAccessToken: !!accessToken,
-      hasRefreshToken: !!refreshToken,
-      accessTokenLength: accessToken ? accessToken.length : 0,
-      refreshTokenLength: refreshToken ? refreshToken.length : 0
-    });
     
     const tokensToStore = {
       accessToken: accessToken,
       refreshToken: refreshToken
     };
     
-    console.log('🔍 Extension: About to store tokens object:', tokensToStore);
-    
     await chrome.storage.local.set(tokensToStore);
-    console.log('✅ Tokens stored in chrome.storage.local');
-    
-    // Immediately verify storage
-    const verification = await chrome.storage.local.get(['accessToken', 'refreshToken']);
-    console.log('🔍 Extension: Storage verification:', {
-      hasAccessToken: !!verification.accessToken,
-      hasRefreshToken: !!verification.refreshToken,
-      accessTokenLength: verification.accessToken ? verification.accessToken.length : 0,
-      refreshTokenLength: verification.refreshToken ? verification.refreshToken.length : 0
-    });
     
   } catch (error) {
-    console.error('❌ Error storing tokens:', error);
     throw error; // Re-throw to allow calling function to handle
   }
 }
@@ -56,9 +29,7 @@ async function storeTokens(accessToken, refreshToken) {
 async function clearStoredTokens() {
   try {
     await chrome.storage.local.remove(['accessToken', 'refreshToken']);
-    console.log('✅ Tokens cleared from chrome.storage.local');
   } catch (error) {
-    console.error('❌ Error clearing tokens:', error);
   }
 }
 
@@ -82,7 +53,6 @@ async function fetchWithAuth(url, options = {}) {
     
     // If token is expired, try to refresh
     if (response.status === 401) {
-      console.log('🔐 Access token expired, attempting refresh...');
       const { refreshToken } = await getStoredTokens();
       
       if (refreshToken) {
@@ -110,9 +80,7 @@ async function fetchWithAuth(url, options = {}) {
           await new Promise((resolve) => {
             chrome.runtime.sendMessage({ action: 'clearTokens' }, (response) => {
               if (response && response.success) {
-                console.log('✅ Extension: Tokens cleared via background script after refresh failure');
               } else {
-                console.log('❌ Extension: Failed to clear tokens via background script');
               }
               resolve();
             });
@@ -124,9 +92,7 @@ async function fetchWithAuth(url, options = {}) {
         await new Promise((resolve) => {
           chrome.runtime.sendMessage({ action: 'clearTokens' }, (response) => {
             if (response && response.success) {
-              console.log('✅ Extension: Tokens cleared via background script (no refresh token)');
             } else {
-              console.log('❌ Extension: Failed to clear tokens via background script');
             }
             resolve();
           });
@@ -137,7 +103,6 @@ async function fetchWithAuth(url, options = {}) {
     
     return response;
   } catch (error) {
-    console.error('❌ fetchWithAuth error:', error);
     throw error;
   }
 }
@@ -145,21 +110,17 @@ async function fetchWithAuth(url, options = {}) {
 // Sync tokens from dashboard using background script
 async function syncTokensFromDashboard() {
   try {
-    console.log('🔍 Extension: Requesting token sync from background script...');
     
     return new Promise((resolve) => {
       chrome.runtime.sendMessage({ action: 'syncTokensFromDashboard' }, (response) => {
         if (response && response.success) {
-          console.log('✅ Extension: Tokens synced successfully via background script');
           resolve(true);
         } else {
-          console.log('❌ Extension: Token sync failed via background script:', response?.error);
           resolve(false);
         }
       });
     });
   } catch (error) {
-    console.error('❌ Extension: Failed to sync tokens from dashboard:', error);
     return false;
   }
 }
@@ -167,16 +128,13 @@ async function syncTokensFromDashboard() {
 // Enhanced auto-login detection
 async function detectLoginAndSync() {
   try {
-    console.log('🔍 Extension: Detecting login and syncing tokens...');
     
     // We're on YouTube, try to sync from dashboard
     const synced = await syncTokensFromDashboard();
     
     if (synced) {
-      console.log('✅ Extension: Login detected and tokens synced');
       
       // After successful sync, show markers immediately
-      console.log('🔍 Extension: Showing markers after successful login sync');
       setTimeout(() => {
         addBookmarkMarkers();
       }, 1000); // Show markers after 1 second
@@ -190,14 +148,12 @@ async function detectLoginAndSync() {
       setTimeout(async () => {
         const loggedOut = await detectLogout();
         if (loggedOut) {
-          console.log('🔍 Extension: Logout detected immediately after login sync');
         }
       }, 2000); // Check after 2 seconds
     }
     
     return synced;
   } catch (error) {
-    console.error('❌ Extension: Failed to detect login:', error);
     return false;
   }
 }
@@ -205,25 +161,20 @@ async function detectLoginAndSync() {
 // Enhanced auto-logout detection
 async function detectLogout() {
   try {
-    console.log('🔍 Extension: Checking for logout...');
     
     // First, check if dashboard has cleared tokens (primary logout detection)
     const dashboardLogout = await checkDashboardLogout();
     if (dashboardLogout) {
-      console.log('✅ Extension: Dashboard logout detected, clearing tokens');
       await new Promise((resolve) => {
         chrome.runtime.sendMessage({ action: 'clearTokens' }, (response) => {
           if (response && response.success) {
-            console.log('✅ Extension: Tokens cleared via background script');
           } else {
-            console.log('❌ Extension: Failed to clear tokens via background script');
           }
           resolve();
         });
       });
       
       // Immediately remove markers after logout detection
-      console.log('🔍 Extension: Immediately removing markers after logout detection');
       const existingMarkers = document.querySelectorAll('.yt-bookmark-marker');
       existingMarkers.forEach(marker => marker.remove());
       
@@ -257,17 +208,13 @@ async function detectLogout() {
           await new Promise((resolve) => {
             chrome.runtime.sendMessage({ action: 'clearTokens' }, (response) => {
               if (response && response.success) {
-                console.log('✅ Extension: Tokens cleared via background script');
               } else {
-                console.log('❌ Extension: Failed to clear tokens via background script');
               }
               resolve();
             });
           });
-          console.log('✅ Extension: Tokens expired, cleared');
           
           // Immediately remove markers after token expiration
-          console.log('🔍 Extension: Immediately removing markers after token expiration');
           const existingMarkers = document.querySelectorAll('.yt-bookmark-marker');
           existingMarkers.forEach(marker => marker.remove());
           
@@ -288,13 +235,11 @@ async function detectLogout() {
           return true;
         }
       } catch (error) {
-        console.log('🔍 Extension: Could not verify token validity');
       }
     }
     
     return false;
   } catch (error) {
-    console.error('❌ Extension: Failed to detect logout:', error);
     return false;
   }
 }
@@ -302,48 +247,37 @@ async function detectLogout() {
 // Check if dashboard has logged out by checking its localStorage
 async function checkDashboardLogout() {
   try {
-    console.log('🔍 Extension: Checking dashboard logout status...');
     
     return new Promise((resolve) => {
       chrome.runtime.sendMessage({ action: 'checkDashboardLogout' }, (response) => {
         if (response && response.success) {
-          console.log('🔍 Extension: Dashboard logout check result:', {
-            loggedOut: response.loggedOut,
-            dashboardTokens: response.dashboardTokens
-          });
           resolve(response.loggedOut);
         } else {
-          console.log('❌ Extension: Failed to check dashboard logout status:', response?.error);
           resolve(false);
         }
       });
     });
   } catch (error) {
-    console.error('❌ Extension: Error checking dashboard logout:', error);
     return false;
   }
 }
 
 // Periodic token sync (runs every 15 seconds)
 function startPeriodicTokenSync() {
-  console.log('🔄 Extension: Starting periodic token sync...');
   
   setInterval(async () => {
     try {
       // Check for logout first
       const loggedOut = await detectLogout();
       if (loggedOut) {
-        console.log('🔍 Extension: Logout detected during periodic check');
         return;
       }
       
       // Try to sync tokens if we don't have them
       const { accessToken } = await getStoredTokens();
       if (!accessToken) {
-        console.log('🔍 Extension: No tokens found, attempting sync...');
         const synced = await detectLoginAndSync();
         if (synced) {
-          console.log('🔍 Extension: Tokens synced during periodic check, showing markers');
           // Markers will be shown by detectLoginAndSync, but add a backup call
           setTimeout(() => {
             addBookmarkMarkers();
@@ -351,21 +285,18 @@ function startPeriodicTokenSync() {
         }
       }
     } catch (error) {
-      console.error('❌ Extension: Periodic sync error:', error);
     }
   }, 15000); // 15 seconds (more frequent)
 }
 
 // More frequent logout detection (runs every 5 seconds)
 function startFrequentLogoutDetection() {
-  console.log('🔄 Extension: Starting frequent logout detection...');
   
   setInterval(async () => {
     try {
       // Only check for logout, don't sync tokens
       const loggedOut = await detectLogout();
       if (loggedOut) {
-        console.log('🔍 Extension: Logout detected during frequent check');
         // Force immediate marker removal
         const existingMarkers = document.querySelectorAll('.yt-bookmark-marker');
         existingMarkers.forEach(marker => marker.remove());
@@ -385,14 +316,12 @@ function startFrequentLogoutDetection() {
         }
       }
     } catch (error) {
-      console.error('❌ Extension: Frequent logout detection error:', error);
     }
   }, 3000); // 3 seconds (more frequent than main auth check)
 }
 
 // Setup auto-login/logout detection
 function setupAutoAuthDetection() {
-  console.log('🔍 Extension: Setting up auto auth detection...');
   
   // Start periodic token sync
   startPeriodicTokenSync();
@@ -403,11 +332,9 @@ function setupAutoAuthDetection() {
   // Listen for storage changes (when user logs in/out on dashboard)
   chrome.storage.onChanged.addListener((changes, namespace) => {
     if (namespace === 'local' && (changes.accessToken || changes.refreshToken)) {
-      console.log('🔍 Extension: Token storage changed:', changes);
       
       // If tokens were removed, immediately remove markers
       if (changes.accessToken && changes.accessToken.newValue === undefined) {
-        console.log('🔍 Extension: Tokens cleared, removing markers immediately');
         const existingMarkers = document.querySelectorAll('.yt-bookmark-marker');
         existingMarkers.forEach(marker => marker.remove());
         
@@ -432,7 +359,6 @@ function setupAutoAuthDetection() {
   setTimeout(async () => {
     const loggedOut = await detectLogout();
     if (loggedOut) {
-      console.log('🔍 Extension: Logout detected on page load');
     }
   }, 1000); // Check after 1 second
   
@@ -443,24 +369,18 @@ function setupAutoAuthDetection() {
 // Check authentication status
 async function checkAuthStatus() {
   try {
-    console.log('🔍 Extension: Checking auth status...');
     let { accessToken } = await getStoredTokens();
     
     if (!accessToken) {
-      console.log('❌ Extension: No access token found');
       return false;
     }
-    
-    console.log('🔍 Extension: Found access token, length:', accessToken.length);
     
     // Use fetchWithAuth which handles token refresh automatically
     const response = await fetchWithAuth('http://localhost:5000/auth/status');
     const data = await response.json();
-    console.log('🔍 Extension: Auth response:', data);
     
     return data.authenticated || false;
   } catch (error) {
-    console.error('❌ Extension: Failed to check auth status:', error);
     return false;
   }
 }
@@ -626,7 +546,6 @@ async function addBookmarkMarkers() {
   // Check authentication status first
   const isAuthenticated = await checkAuthStatus();
   if (!isAuthenticated) {
-    console.log('🔐 User not authenticated - not showing timeline markers');
     return;
   }
   
@@ -648,11 +567,9 @@ async function addBookmarkMarkers() {
     try {
       const healthCheck = await fetchWithAuth('http://localhost:5000/');
       if (!healthCheck.ok) {
-        console.warn('Server health check failed');
         return;
       }
     } catch (error) {
-      console.warn('Server appears to be offline');
       return;
     }
     
@@ -679,16 +596,11 @@ async function addBookmarkMarkers() {
           }
         });
       } else {
-        console.warn('Invalid bookmarks data received');
       }
     } else {
-      console.warn(`Failed to fetch bookmarks: ${response.status} ${response.statusText}`);
     }
   } catch (error) {
     // Only log network errors, not aborted requests
-    if (error.name !== 'AbortError') {
-      console.warn('Failed to fetch bookmarks:', error.message);
-    }
   }
 }
 
@@ -701,7 +613,6 @@ function showPopup(x, y) {
     createPopupHTML();
     popup = document.getElementById('yt-notes-popup');
     if (!popup) {
-      console.error('Failed to create popup');
       return;
     }
   }
@@ -765,7 +676,6 @@ async function addSilentScreenshot() {
   const videoId = url.searchParams.get('v');
   
   if (!video || !videoId) {
-    console.warn('Could not get video info for silent screenshot');
     return;
   }
 
@@ -782,8 +692,6 @@ async function addSilentScreenshot() {
         ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
         screenshot = canvas.toDataURL('image/png');
       } catch (error) {
-        console.error('Failed to capture screenshot:', error);
-        return;
       }
     }
 
@@ -827,18 +735,13 @@ async function addSilentScreenshot() {
         retries--;
         
         if (error.name === 'AbortError') {
-          console.warn('Request timeout, retrying...');
         } else if (retries > 0) {
-          console.warn(`Request failed, retrying... (${retries} attempts left)`);
-          await new Promise(resolve => setTimeout(resolve, 1000)); // Wait 1 second before retry
         }
       }
     }
     
     // All retries failed
-    console.warn('Failed to capture silent screenshot:', lastError.message);
   } catch (error) {
-    console.warn('Error capturing silent screenshot:', error.message);
   }
 }
 
@@ -850,7 +753,6 @@ async function addSilentHighlight() {
   const videoId = url.searchParams.get('v');
   
   if (!video || !videoId) {
-    console.warn('Could not get video info for silent highlight');
     return;
   }
 
@@ -894,24 +796,18 @@ async function addSilentHighlight() {
         retries--;
         
         if (error.name === 'AbortError') {
-          console.warn('Request timeout, retrying...');
         } else if (retries > 0) {
-          console.warn(`Request failed, retrying... (${retries} attempts left)`);
-          await new Promise(resolve => setTimeout(resolve, 1000)); // Wait 1 second before retry
         }
       }
     }
     
     // All retries failed
-    console.warn('Failed to add silent highlight marker:', lastError.message);
   } catch (error) {
-    console.warn('Error adding silent highlight marker:', error.message);
   }
 }
 
 // Save note functionality
 async function saveNote() {
-  console.log('🔍 Extension: saveNote function called!');
   const note = document.getElementById('yt-notes-textarea').value.trim();
   const captureScreenshot = document.getElementById('yt-notes-screenshot').checked;
   const statusEl = document.getElementById('yt-notes-status');
@@ -940,10 +836,7 @@ async function saveNote() {
     }
 
     let screenshot = null;
-    console.log('🔍 Extension: captureScreenshot =', captureScreenshot);
-    console.log('🔍 Extension: video found =', !!video);
     if (captureScreenshot && video) {
-      console.log('🔍 Extension: Attempting to capture screenshot...');
       const canvas = document.createElement('canvas');
       const ctx = canvas.getContext('2d');
       canvas.width = video.videoWidth;
@@ -952,12 +845,8 @@ async function saveNote() {
       try {
         ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
         screenshot = canvas.toDataURL('image/png');
-        console.log('🔍 Extension: Screenshot captured, length:', screenshot.length);
       } catch (error) {
-        console.error('Failed to capture screenshot:', error);
       }
-    } else {
-      console.log('🔍 Extension: Screenshot not captured - captureScreenshot:', captureScreenshot, 'video:', !!video);
     }
 
     const requestBody = {
@@ -969,9 +858,6 @@ async function saveNote() {
 
     if (screenshot) {
       requestBody.screenshot = screenshot;
-      console.log('🔍 Extension: Adding screenshot to request body');
-    } else {
-      console.log('🔍 Extension: No screenshot to add to request body');
     }
 
     // Retry logic for network requests
@@ -1019,10 +905,7 @@ async function saveNote() {
         retries--;
         
         if (error.name === 'AbortError') {
-          console.warn('Request timeout, retrying...');
         } else if (retries > 0) {
-          console.warn(`Request failed, retrying... (${retries} attempts left)`);
-          await new Promise(resolve => setTimeout(resolve, 1000)); // Wait 1 second before retry
         }
       }
     }
@@ -1291,7 +1174,6 @@ function injectDashboardButton() {
   }
   
   if (!actionsContainer) {
-    console.warn('Could not find actions container for dashboard button');
     return;
   }
   
@@ -1322,16 +1204,10 @@ function injectDashboardButton() {
   
   // Add error handling for image loading
   img.onerror = () => {
-    console.warn('Failed to load icon48.png, trying fallback...');
     img.src = chrome.runtime.getURL('icon128.png');
     img.onerror = () => {
-      console.warn('Failed to load icon128.png, trying icon32.png...');
       img.src = chrome.runtime.getURL('icon32.png');
       img.onerror = () => {
-        console.error('All icon files failed to load');
-        // Fallback to text
-        dashboardBtn.innerHTML = '📊';
-        dashboardBtn.style.fontSize = '20px';
       };
     };
   };
@@ -1387,13 +1263,11 @@ async function waitForServer() {
     await new Promise(resolve => setTimeout(resolve, 1000));
   }
   
-  console.warn('Server not available after 10 attempts');
   return false;
 }
 
 // Listen for messages from dashboard or popup
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
-  console.log('🔍 Extension: Received message:', request);
   
   if (request.action === 'getTokens') {
     // Dashboard is requesting tokens from extension
@@ -1446,7 +1320,6 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 
 // Initialize everything
 setTimeout(async () => {
-  console.log('🔍 Extension: VERSION 3.1 - Auto-login/logout detection enabled!');
   
   // Setup auto-login/logout detection
   setupAutoAuthDetection();
@@ -1462,7 +1335,6 @@ setTimeout(async () => {
   if (serverReady) {
     // Check authentication status and update UI accordingly
     const isAuthenticated = await checkAuthStatus();
-    console.log('🔐 Authentication status:', isAuthenticated ? 'Logged In' : 'Not Logged In');
     
     if (isAuthenticated) {
       // Add bookmark markers after server is confirmed ready
@@ -1482,7 +1354,6 @@ setTimeout(async () => {
         showMarkersBtn.title = 'Hide Timeline Markers';
       }
     } else {
-      console.log('🔐 User not authenticated - timeline markers disabled');
       
       // Update show markers button state
       const showMarkersBtn = document.getElementById('yt-show-markers-btn');
@@ -1499,7 +1370,6 @@ setTimeout(async () => {
       
       if (!currentAuthStatus && previousAuthStatus) {
         // User logged out - remove timeline markers
-        console.log('🔐 User logged out - removing timeline markers');
         const existingMarkers = document.querySelectorAll('.yt-bookmark-marker');
         existingMarkers.forEach(marker => marker.remove());
         
@@ -1518,7 +1388,6 @@ setTimeout(async () => {
         }
       } else if (currentAuthStatus && !previousAuthStatus) {
         // User logged in - add timeline markers
-        console.log('🔐 User logged in - adding timeline markers');
         addBookmarkMarkers();
         
         // Update show markers button state
@@ -1538,16 +1407,12 @@ setTimeout(async () => {
       
       // Debug: Log auth status changes
       if (currentAuthStatus !== previousAuthStatus) {
-        console.log('🔐 Auth status changed:', {
-          from: previousAuthStatus ? 'Logged In' : 'Not Logged In',
-          to: currentAuthStatus ? 'Logged In' : 'Not Logged In'
-        });
+        // Auth status changed
       }
       
       previousAuthStatus = currentAuthStatus;
     }, 5000); // Check every 5 seconds
   } else {
-    console.log('⚠️ Server not ready, but UI elements are injected');
   }
 }, 2000);
 
@@ -1589,7 +1454,6 @@ setInterval(async () => {
         // Check for logout first
         const loggedOut = await detectLogout();
         if (loggedOut) {
-          console.log('🔍 Extension: Logout detected during video navigation');
           return;
         }
         
@@ -1605,7 +1469,6 @@ setInterval(async () => {
             addBookmarkMarkers();
           }, 3000);
         } else {
-          console.log('🔐 User not authenticated - timeline markers disabled during navigation');
         }
       }
     }, 1000);

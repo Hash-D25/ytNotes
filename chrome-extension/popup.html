@@ -58,7 +58,7 @@
     .dashboard-btn:hover:not(:disabled) {
       background: #e6395c;
     }
-    .status {
+    /* .status {
       padding: 8px;
       border-radius: 4px;
       font-size: 13px;
@@ -126,7 +126,7 @@
       margin: 0 0 10px 0;
       font-size: 14px;
       color: #ccc;
-    }
+    } */
   </style>
 </head>
 <body>
@@ -142,13 +142,13 @@
     </div>
     <div class="button-group">
       <button id="syncBtn" class="dashboard-btn">Sync Tokens</button>
-      <button id="testBtn" class="test-btn">Test Extension</button>
+      <!-- <button id="testBtn" class="test-btn">Test Extension</button> -->
     </div>
-    <div class="button-group">
+    <!-- <div class="button-group">
       <button id="debugBtn" class="test-btn" onclick="debugTokenStorage()">Debug Storage</button>
-    </div>
+    </div> -->
     
-    <div class="auto-detection-status">
+    <!-- <div class="auto-detection-status">
       <h4>Auto-Detection Status</h4>
       <div id="autoStatus" class="status info">Checking...</div>
     </div>
@@ -158,7 +158,7 @@
       <input type="text" id="manualAccessToken" class="token-input" placeholder="Paste access token here...">
       <input type="text" id="manualRefreshToken" class="token-input" placeholder="Paste refresh token here...">
       <button id="manualTokenBtn" class="manual-btn">Set Tokens Manually</button>
-    </div>
+    </div> -->
     
     <div id="status" class="status"></div>
   </div>

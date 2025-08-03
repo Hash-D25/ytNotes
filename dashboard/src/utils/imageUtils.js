@@ -13,12 +13,10 @@ export const getImageUrl = (path) => {
         if (fileIdMatch) {
           const fileId = fileIdMatch[1];
           processedUrl = `https://drive.google.com/uc?id=${fileId}`;
-          console.log('🔍 Converting view URL to direct URL:', processedUrl);
         }
       }
       
       const proxyUrl = `http://localhost:5000/proxy-image?url=${encodeURIComponent(processedUrl)}`;
-      console.log('🔍 Final proxy URL:', proxyUrl);
       return proxyUrl;
     }
     // Handle other HTTP URLs
@@ -32,4 +30,20 @@ export const getImageUrl = (path) => {
 // Helper function to check if an image is from Google Drive
 export const isGoogleDriveImage = (path) => {
   return path && path.includes('drive.google.com');
+}; 
+
+export const convertViewUrlToDirectUrl = (viewUrl) => {
+  if (!viewUrl) return null;
+  
+  // Remove any query parameters and get the base URL
+  const url = new URL(viewUrl);
+  const baseUrl = `${url.protocol}//${url.host}${url.pathname}`;
+  
+  // Convert to direct URL format
+  const processedUrl = baseUrl.replace('/view', '/uc');
+  
+  // Create proxy URL
+  const proxyUrl = `/api/proxy-image?url=${encodeURIComponent(processedUrl)}`;
+  
+  return proxyUrl;
 }; 

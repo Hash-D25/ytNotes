@@ -33,22 +33,11 @@ router.get('/stats', getCurrentUser, requireAuth, requireAdmin, async (req, res)
 
     // Get currently active users (logged in within last 5 minutes and not null)
     const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000);
-    console.log('🔍 Admin stats - Five minutes ago:', fiveMinutesAgo);
     
     const activeUsers = await User.countDocuments({ 
       lastLogin: { $gte: fiveMinutesAgo, $ne: null } 
     });
     
-    // Debug: Get all users and their lastLogin status
-    const allUsers = await User.find({}, 'email lastLogin');
-    console.log('🔍 Admin stats - All users:', allUsers.map(u => ({
-      email: u.email,
-      lastLogin: u.lastLogin,
-      isActive: u.lastLogin && new Date(u.lastLogin) > fiveMinutesAgo
-    })));
-    
-    console.log('🔍 Admin stats - Active users count:', activeUsers);
-
     // Get total videos
     const totalVideos = await Video.countDocuments();
 

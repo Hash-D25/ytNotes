@@ -41,7 +41,7 @@ export default function BookmarkCard({ video, onFavoriteToggle, onVideoDelete })
   };
 
   return (
-    <div className="youtube-card group overflow-hidden transition-all duration-300 hover:scale-[1.02] h-80 flex flex-col">
+    <div className="youtube-card group overflow-hidden transition-all duration-300 hover:scale-[1.02] min-h-[320px] flex flex-col">
       {/* Thumbnail Container */}
       <div className="relative aspect-video overflow-hidden flex-shrink-0">
         <img
@@ -83,7 +83,7 @@ export default function BookmarkCard({ video, onFavoriteToggle, onVideoDelete })
       </div>
 
       {/* Content */}
-      <div className="p-4 flex-1 flex flex-col">
+      <div className="p-4 flex-1 flex flex-col min-h-0">
         {/* Title */}
         <h3 className="dark:text-white text-gray-900 font-medium text-sm line-clamp-2 mb-3 group-hover:text-red-400 transition-colors duration-200 flex-shrink-0">
           {video.videoTitle}
@@ -99,7 +99,7 @@ export default function BookmarkCard({ video, onFavoriteToggle, onVideoDelete })
         </div>
 
         {/* Action Button */}
-        <div className="mt-auto">
+        <div className="mt-auto pt-2">
           <Link
             to={`/notes/${video.videoId}`}
             className="youtube-button w-full text-center text-sm py-2 hover:bg-red-500 hover:text-white transition-all duration-200 block"

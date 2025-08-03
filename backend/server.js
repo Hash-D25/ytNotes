@@ -45,14 +45,12 @@ app.use(cors({
     
     // Allow Chrome extension origins (they start with chrome-extension://)
     if (origin.startsWith('chrome-extension://')) {
-      console.log('🔍 Allowing Chrome extension origin:', origin);
       return callback(null, true);
     }
     
     if (allowedOrigins.indexOf(origin) !== -1) {
       callback(null, true);
     } else {
-      console.log('🔍 Blocked origin:', origin);
       callback(new Error('Not allowed by CORS'));
     }
   },
@@ -117,15 +115,11 @@ app.get('/proxy-image', async (req, res) => {
       return res.status(400).json({ error: 'URL parameter required' });
     }
 
-    console.log('🔍 Proxying image from:', url);
-    
     const response = await fetch(url, {
       headers: {
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
       }
     });
-    console.log('🔍 Proxy response status:', response.status);
-    console.log('🔍 Proxy response headers:', Object.fromEntries(response.headers.entries()));
     
     if (!response.ok) {
       throw new Error(`Failed to fetch image: ${response.status} ${response.statusText}`);
@@ -133,8 +127,6 @@ app.get('/proxy-image', async (req, res) => {
 
     const buffer = await response.arrayBuffer();
     const contentType = response.headers.get('content-type') || 'image/png';
-    
-    console.log('🔍 Proxy success - Content-Type:', contentType, 'Size:', buffer.byteLength);
     
     res.setHeader('Content-Type', contentType);
     res.setHeader('Cache-Control', 'public, max-age=3600');
@@ -147,7 +139,6 @@ app.get('/proxy-image', async (req, res) => {
 
 // Health check
 app.get('/', (req, res) => {
-  console.log('🔍 Health check from:', req.headers.origin);
   res.send('API is running');
 });
 
@@ -189,14 +180,8 @@ app.get('/auth/google', (req, res) => {
 app.get('/auth/google/callback', async (req, res) => {
   const { code } = req.query;
   
-  console.log('🔐 OAuth Callback - Code received:', code ? 'Yes' : 'No');
-  
   try {
     const { tokens } = await oauth2Client.getToken(code);
-    console.log('🔐 Tokens received:', tokens ? 'Yes' : 'No');
-    console.log('🔐 Access token:', tokens.access_token ? 'Present' : 'Missing');
-    console.log('🔐 Refresh token:', tokens.refresh_token ? 'Present' : 'Missing');
-    console.log('🔐 Token keys:', Object.keys(tokens));
     
     // Get user info from Google
     oauth2Client.setCredentials(tokens);
@@ -245,41 +230,26 @@ app.get('/auth/google/callback', async (req, res) => {
 // JWT token refresh endpoint
 app.post('/auth/refresh', async (req, res) => {
   try {
-    console.log('🔐 Token refresh request received');
     const { refreshToken } = req.body;
     
     if (!refreshToken) {
-      console.log('❌ Token refresh - No refresh token provided');
       return res.status(400).json({ error: 'Refresh token required' });
     }
-    
-    console.log('🔐 Token refresh - Refresh token length:', refreshToken.length);
     
     // Verify refresh token
     const decoded = verifyToken(refreshToken);
     if (!decoded || decoded.type !== 'refresh') {
-      console.log('❌ Token refresh - Invalid refresh token:', {
-        decoded: !!decoded,
-        type: decoded ? decoded.type : 'undefined'
-      });
       return res.status(401).json({ error: 'Invalid refresh token' });
     }
-    
-    console.log('✅ Token refresh - Refresh token verified, user ID:', decoded.userId);
     
     // Get user from database
     const user = await User.findById(decoded.userId);
     if (!user) {
-      console.log('❌ Token refresh - User not found in database');
       return res.status(401).json({ error: 'User not found' });
     }
     
-    console.log('✅ Token refresh - User found:', user.email);
-    
     // Generate new access token
     const newAccessToken = generateAccessToken(user);
-    
-    console.log('✅ Token refresh - New access token generated');
     
     res.json({
       accessToken: newAccessToken,
@@ -294,41 +264,23 @@ app.post('/auth/refresh', async (req, res) => {
 // Check authentication status (for extension)
 app.get('/auth/status', async (req, res) => {
   try {
-    console.log('🔍 Auth status check - Headers:', {
-      authorization: req.headers.authorization ? 'Present' : 'Missing',
-      origin: req.headers.origin,
-      userAgent: req.headers['user-agent']
-    });
-    
     const authHeader = req.headers.authorization;
     const token = extractTokenFromHeader(authHeader);
     
     if (!token) {
-      console.log('❌ Auth status check - No token provided');
       return res.json({ authenticated: false, message: 'No token provided' });
     }
     
-    console.log('🔍 Auth status check - Token extracted, length:', token.length);
-    
     const decoded = verifyToken(token);
     if (!decoded) {
-      console.log('❌ Auth status check - Invalid or expired token');
       return res.json({ authenticated: false, message: 'Invalid or expired token' });
     }
     
-    console.log('🔍 Auth status check - Token decoded successfully:', {
-      userId: decoded.userId,
-      email: decoded.email,
-      exp: decoded.exp
-    });
-    
     const user = await User.findById(decoded.userId);
     if (!user) {
-      console.log('❌ Auth status check - User not found in database');
       return res.json({ authenticated: false, message: 'User not found' });
     }
     
-    console.log('✅ Auth status check - User authenticated successfully');
     res.json({
       authenticated: true,
       message: 'User is authenticated',
@@ -349,33 +301,21 @@ app.get('/auth/status', async (req, res) => {
 // Logout endpoint (for dashboard)
 app.post('/auth/logout', async (req, res) => {
   try {
-    console.log('🔍 Logout request received');
     
     // Extract token from header
     const authHeader = req.headers.authorization;
     const token = extractTokenFromHeader(authHeader);
     
-    console.log('🔍 Logout - Auth header present:', !!authHeader);
-    console.log('🔍 Logout - Token extracted:', !!token);
-    
     if (token) {
       // Verify token to get user info
       const decoded = verifyToken(token);
-      console.log('🔍 Logout - Token decoded:', !!decoded);
-      console.log('🔍 Logout - Decoded user ID:', decoded?.userId);
-      console.log('🔍 Logout - Decoded email:', decoded?.email);
       
       if (decoded && decoded.userId) {
         // Update user's lastLogin to mark them as inactive
         await User.findByIdAndUpdate(decoded.userId, {
           lastLogin: null // Mark as inactive
         });
-        console.log(`✅ User ${decoded.email} logged out, marked as inactive`);
-      } else {
-        console.log('❌ Logout - Invalid token or missing user ID');
       }
-    } else {
-      console.log('❌ Logout - No token provided');
     }
     
     res.json({ message: 'Logged out successfully' });
@@ -420,7 +360,6 @@ app.get('/auth/profile', getCurrentUser, requireAuth, async (req, res) => {
 // Check if Google Drive is available (for extension)
 app.get('/auth/drive-available', getCurrentUser, requireAuth, (req, res) => {
   const hasTokens = req.currentUser.accessToken && req.currentUser.refreshToken;
-  console.log('🔍 Drive availability check - User tokens:', hasTokens ? 'Present' : 'Missing');
   res.json({ 
     available: hasTokens,
     message: hasTokens ? 'Google Drive available' : 'Google Drive not available'
@@ -735,7 +674,6 @@ app.delete('/screenshots/:videoId/:timestamp', getCurrentUser, requireAuth, asyn
 
         try {
           await drive.files.delete({ fileId });
-          console.log('Deleted from Google Drive:', fileId);
         } catch (driveError) {
           console.error('Failed to delete from Google Drive:', driveError);
           // Continue with database deletion even if Drive deletion fails
@@ -746,11 +684,7 @@ app.delete('/screenshots/:videoId/:timestamp', getCurrentUser, requireAuth, asyn
     // Find and delete associated note
     const associatedNoteIndex = video.notes.findIndex(note => note.screenshotPath === screenshot.path);
     if (associatedNoteIndex !== -1) {
-      console.log('Found associated note at index:', associatedNoteIndex);
       video.notes.splice(associatedNoteIndex, 1);
-      console.log('Removed associated note from database');
-    } else {
-      console.log('No associated note found for this screenshot');
     }
 
     // Remove from database

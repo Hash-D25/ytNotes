@@ -23,19 +23,15 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 
 async function handleSyncTokensFromDashboard(sendResponse) {
   try {
-    console.log('🔍 Background: Starting token sync from dashboard...');
-    
     // Find the dashboard tab
     const tabs = await chrome.tabs.query({ url: 'http://localhost:5173/*' });
     
     if (tabs.length === 0) {
-      console.log('❌ Background: No dashboard tab found');
       sendResponse({ success: false, error: 'Dashboard not found' });
       return;
     }
     
     const dashboardTab = tabs[0];
-    console.log('🔍 Background: Found dashboard tab:', dashboardTab.id);
     
     // Execute script to get tokens from localStorage
     const results = await chrome.scripting.executeScript({
@@ -48,22 +44,13 @@ async function handleSyncTokensFromDashboard(sendResponse) {
     });
     
     if (!results || !results[0] || !results[0].result) {
-      console.log('❌ Background: Failed to execute script or no results');
       sendResponse({ success: false, error: 'Failed to get tokens from dashboard' });
       return;
     }
     
     const { accessToken, refreshToken } = results[0].result;
     
-    console.log('🔍 Background: Tokens from localStorage:', {
-      hasAccessToken: !!accessToken,
-      hasRefreshToken: !!refreshToken,
-      accessTokenLength: accessToken ? accessToken.length : 0,
-      refreshTokenLength: refreshToken ? refreshToken.length : 0
-    });
-    
     if (!accessToken || !refreshToken) {
-      console.log('❌ Background: No tokens found in dashboard localStorage');
       sendResponse({ success: false, error: 'No tokens found in dashboard' });
       return;
     }
@@ -74,52 +61,34 @@ async function handleSyncTokensFromDashboard(sendResponse) {
       refreshToken: refreshToken
     });
     
-    console.log('✅ Background: Tokens synced successfully');
-    
-    // Verify tokens were stored correctly
-    const storedTokens = await chrome.storage.local.get(['accessToken', 'refreshToken']);
-    console.log('🔍 Background: Verification after storing:', {
-      hasAccessToken: !!storedTokens.accessToken,
-      hasRefreshToken: !!storedTokens.refreshToken,
-      accessTokenLength: storedTokens.accessToken ? storedTokens.accessToken.length : 0,
-      refreshTokenLength: storedTokens.refreshToken ? storedTokens.refreshToken.length : 0
-    });
-    
     sendResponse({ success: true });
     
   } catch (error) {
-    console.error('❌ Background: Token sync error:', error);
     sendResponse({ success: false, error: error.message });
   }
 }
 
 async function handleClearTokens(sendResponse) {
   try {
-    console.log('🔍 Background: Clearing tokens...');
     await chrome.storage.local.remove(['accessToken', 'refreshToken']);
-    console.log('✅ Background: Tokens cleared successfully');
     sendResponse({ success: true });
   } catch (error) {
-    console.error('❌ Background: Clear tokens error:', error);
     sendResponse({ success: false, error: error.message });
   }
 }
 
 async function handleCheckDashboardLogout(sendResponse) {
   try {
-    console.log('🔍 Background: Checking dashboard logout status...');
     
     // Find the dashboard tab
     const tabs = await chrome.tabs.query({ url: 'http://localhost:5173/*' });
     
     if (tabs.length === 0) {
-      console.log('❌ Background: No dashboard tab found for logout check');
       sendResponse({ success: false, error: 'Dashboard not found', loggedOut: false });
       return;
     }
     
     const dashboardTab = tabs[0];
-    console.log('🔍 Background: Found dashboard tab for logout check:', dashboardTab.id);
     
     // Execute script to check if tokens exist in localStorage
     const results = await chrome.scripting.executeScript({
@@ -137,19 +106,12 @@ async function handleCheckDashboardLogout(sendResponse) {
     });
     
     if (!results || !results[0] || !results[0].result) {
-      console.log('❌ Background: Failed to execute script for logout check');
       sendResponse({ success: false, error: 'Failed to check dashboard tokens', loggedOut: false });
       return;
     }
     
     const { hasAccessToken, hasRefreshToken } = results[0].result;
     const loggedOut = !hasAccessToken || !hasRefreshToken;
-    
-    console.log('🔍 Background: Dashboard token status:', {
-      hasAccessToken,
-      hasRefreshToken,
-      loggedOut
-    });
     
     sendResponse({ 
       success: true, 
@@ -161,7 +123,6 @@ async function handleCheckDashboardLogout(sendResponse) {
     });
     
   } catch (error) {
-    console.error('❌ Background: Dashboard logout check error:', error);
     sendResponse({ success: false, error: error.message, loggedOut: false });
   }
 }

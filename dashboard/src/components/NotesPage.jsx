@@ -52,9 +52,14 @@ export default function NotesPage({ videos, fetchVideos, search, setSearch, sort
 
     if (!apiReady || !player) return;
 
-    // Prevent default behavior for these keys
+    // Allow Ctrl+C (copy) to work normally
+    if (event.ctrlKey && event.key === 'c') {
+      return; // Let the default copy behavior work
+    }
+
+    // Prevent default behavior for these keys (but not when Ctrl is pressed)
     const preventDefaultKeys = [' ', 'ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'f', 'm', 'c', '<', '>'];
-    if (preventDefaultKeys.includes(event.key)) {
+    if (preventDefaultKeys.includes(event.key) && !event.ctrlKey) {
       event.preventDefault();
     }
 
@@ -111,17 +116,19 @@ export default function NotesPage({ videos, fetchVideos, search, setSearch, sort
         }
         break;
 
-      case 'c': // C key - Toggle captions
-        try {
-          const currentCaptions = player.getOption('captions', 'track');
-          if (currentCaptions && currentCaptions.length > 0) {
-            player.unloadModule('captions');
-          } else {
-            player.loadModule('captions');
-            player.setOption('captions', 'track', {});
+      case 'c': // C key - Toggle captions (only when Ctrl is not pressed)
+        if (!event.ctrlKey) {
+          try {
+            const currentCaptions = player.getOption('captions', 'track');
+            if (currentCaptions && currentCaptions.length > 0) {
+              player.unloadModule('captions');
+            } else {
+              player.loadModule('captions');
+              player.setOption('captions', 'track', {});
+            }
+          } catch (error) {
+            console.log('Captions not available for this video');
           }
-        } catch (error) {
-          console.log('Captions not available for this video');
         }
         break;
 

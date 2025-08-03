@@ -3,10 +3,9 @@ import { BookOpenIcon, HomeIcon, HeartIcon, Bars3Icon, XMarkIcon, UserIcon, Cog6
 import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 
-export default function Sidebar() {
+export default function Sidebar({ isMobileSidebarOpen, setIsMobileSidebarOpen }) {
   const location = useLocation();
   const [isCollapsed, setIsCollapsed] = useState(false);
-  const [isMobileOpen, setIsMobileOpen] = useState(false);
   const { isAuthenticated, userProfile, logout, isAdmin } = useAuth();
 
   const NAV_LINKS = [
@@ -23,16 +22,16 @@ export default function Sidebar() {
   };
 
   const toggleMobileSidebar = () => {
-    setIsMobileOpen(!isMobileOpen);
+    setIsMobileSidebarOpen(!isMobileSidebarOpen);
   };
 
   return (
     <>
       {/* Mobile Overlay */}
-      {isMobileOpen && (
+      {isMobileSidebarOpen && (
         <div 
           className="lg:hidden fixed inset-0 bg-black/50 z-40"
-          onClick={() => setIsMobileOpen(false)}
+          onClick={() => setIsMobileSidebarOpen(false)}
         />
       )}
 
@@ -46,7 +45,7 @@ export default function Sidebar() {
 
       {/* Mobile Sidebar */}
       <aside className={`lg:hidden fixed top-0 left-0 h-full z-50 transition-all duration-300 ${
-        isMobileOpen ? 'translate-x-0' : '-translate-x-full'
+        isMobileSidebarOpen ? 'translate-x-0' : '-translate-x-full'
       } w-64`}>
         <div className="h-full dark:bg-gray-900/95 bg-white/95 backdrop-blur-xl border-r dark:border-gray-700/50 border-gray-200/50 flex flex-col">
           {/* Mobile Header */}
@@ -65,7 +64,7 @@ export default function Sidebar() {
               </div>
             </div>
             <button
-              onClick={() => setIsMobileOpen(false)}
+              onClick={() => setIsMobileSidebarOpen(false)}
               className="p-2 rounded-lg dark:hover:bg-gray-800 hover:bg-gray-100 transition-colors duration-200"
             >
               <XMarkIcon className="w-5 h-5 dark:text-gray-400 text-gray-600" />
@@ -87,7 +86,7 @@ export default function Sidebar() {
                       ? 'bg-gradient-to-r from-purple-500 to-blue-600 text-white shadow-lg' 
                       : 'dark:text-gray-400 text-gray-600 dark:hover:bg-gray-800/50 hover:bg-gray-100/50 dark:hover:text-white hover:text-gray-900'
                   }`}
-                  onClick={() => setIsMobileOpen(false)}
+                  onClick={() => setIsMobileSidebarOpen(false)}
                 >
                   <span className="flex items-center justify-center w-6 h-6">
                     {link.icon}

@@ -235,9 +235,7 @@
     color: #1F2937 !important;
   }
   
-  html.light button[class*="bg-"] {
-    color: #FFFFFF !important;
-  }
+
   
   /* Red button improvements */
   html.light .bg-red-600 {
@@ -479,11 +477,9 @@
     background-opacity: 1 !important;
   }
   
-  /* Ensure dropdown has high z-index and solid background */
+  /* Ensure dropdown has high z-index */
   html.light [style*="z-index"] {
     z-index: 99999 !important;
-    background-color: #FFFFFF !important;
-    background-opacity: 1 !important;
   }
   
   /* Force dropdown to be on top of everything */
@@ -543,7 +539,6 @@ header:has(~ .fixed.inset-0) {
   .absolute.right-0.mt-2 {
     z-index: 999999 !important;
     position: absolute !important;
-    background-color: #FFFFFF !important;
   }
   
   /* Dark mode dropdown background */
@@ -1062,6 +1057,64 @@ html.dark ::-webkit-scrollbar-thumb:hover {
 }
 
 html.light ::-webkit-scrollbar-thumb:hover {
-  background: #94A3B8;
+  background: #9CA3AF;
 }
+
+/* Dark mode dropdown background override */
+html.dark div[style*="zIndex: 999999"] {
+  background-color: #000000 !important;
+}
+
+/* More specific dropdown override */
+html.dark .absolute.right-0.mt-2 {
+  background-color: #000000 !important;
+}
+
+/* Force black background for dropdown in dark mode */
+html.dark div[style*="position: absolute"][style*="zIndex"] {
+  background-color: #000000 !important;
+}
+
+/* Force text color for dropdown options */
+.sort-dropdown button {
+  color: #1F2937 !important;
+}
+
+html.dark .sort-dropdown button {
+  color: #FFFFFF !important;
+}
+
+/* Ultra aggressive override for dropdown text - LIGHT MODE */
+.sort-dropdown button,
+.sort-dropdown button *,
+.sort-dropdown button:hover,
+.sort-dropdown button:focus,
+.sort-dropdown button:active {
+  color: #000000 !important;
+}
+
+/* Force black text for dropdown options in light mode */
+html.light .sort-dropdown button {
+  color: #000000 !important;
+}
+
+/* Ultra specific override for dropdown text */
+.sort-dropdown button[style*="cursor: pointer"] {
+  color: #000000 !important;
+}
+
+html.dark .sort-dropdown button[style*="cursor: pointer"] {
+  color: #FFFFFF !important;
+}
+
+/* Ultra aggressive override for dropdown text - DARK MODE */
+html.dark .sort-dropdown button,
+html.dark .sort-dropdown button *,
+html.dark .sort-dropdown button:hover,
+html.dark .sort-dropdown button:focus,
+html.dark .sort-dropdown button:active {
+  color: #FFFFFF !important;
+}
+
+
 

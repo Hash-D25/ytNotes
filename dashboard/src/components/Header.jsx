@@ -1,10 +1,11 @@
 import React, { useRef, useEffect, useState } from 'react';
-import { MagnifyingGlassIcon, ArrowsUpDownIcon } from '@heroicons/react/24/outline';
+import { MagnifyingGlassIcon, ArrowsUpDownIcon, Bars3Icon } from '@heroicons/react/24/outline';
 import ThemeToggle from './ThemeToggle';
 
-export default function Header({ search, setSearch, sortBy, setSortBy, sortOrder, setSortOrder, currentPage = 'home' }) {
+export default function Header({ search, setSearch, sortBy, setSortBy, sortOrder, setSortOrder, currentPage = 'home', isMobileSidebarOpen, setIsMobileSidebarOpen }) {
   const searchInputRef = useRef(null);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [isMobileSearchExpanded, setIsMobileSearchExpanded] = useState(false);
   const dropdownRef = useRef(null);
 
   useEffect(() => {
@@ -12,6 +13,10 @@ export default function Header({ search, setSearch, sortBy, setSortBy, sortOrder
       if (event.key === '/' && document.activeElement?.tagName !== 'INPUT' && document.activeElement?.tagName !== 'TEXTAREA') {
         event.preventDefault();
         searchInputRef.current?.focus();
+      }
+      if (event.key === 'Escape') {
+        setIsMobileSearchExpanded(false);
+        setIsDropdownOpen(false);
       }
     };
 
@@ -30,53 +35,56 @@ export default function Header({ search, setSearch, sortBy, setSortBy, sortOrder
     };
   }, []);
 
+  const handleMobileSearchClick = () => {
+    setIsMobileSearchExpanded(!isMobileSearchExpanded);
+    if (!isMobileSearchExpanded) {
+      setTimeout(() => searchInputRef.current?.focus(), 100);
+    }
+  };
+
+  const handleMobileSearchSubmit = (e) => {
+    e.preventDefault();
+    setIsMobileSearchExpanded(false);
+  };
+
+  const handleMobileHamburgerClick = () => {
+    setIsMobileSidebarOpen(!isMobileSidebarOpen);
+  };
+
   const getSortOptions = () => {
-    console.log('🔧 Getting sort options for page:', currentPage);
-    
     switch (currentPage) {
       case 'home':
       case 'favorites':
-        const homeOptions = [
+        return [
           { value: 'createdAt', label: 'Newest' },
           { value: 'title', label: 'Title' },
           { value: 'favorite', label: 'Favorites' }
         ];
-        console.log('Home/Favorites options:', homeOptions);
-        return homeOptions;
       case 'notes':
-        const notesOptions = [
+        return [
           { value: 'createdAt', label: 'Newest' },
           { value: 'timestamp', label: 'By Timestamp' },
           { value: 'title', label: 'By Video Title' }
         ];
-        console.log('Notes options:', notesOptions);
-        return notesOptions;
       case 'video':
-        const videoOptions = [
+        return [
           { value: 'createdAt', label: 'Newest' },
           { value: 'timestamp', label: 'By Timestamp' }
         ];
-        console.log('Video options:', videoOptions);
-        return videoOptions;
       case 'drive':
-        const driveOptions = [
+        return [
           { value: 'createdAt', label: 'Newest' },
           { value: 'title', label: 'Title' }
         ];
-        console.log('Drive options:', driveOptions);
-        return driveOptions;
       default:
-        const defaultOptions = [
+        return [
           { value: 'createdAt', label: 'Newest' },
           { value: 'title', label: 'Title' }
         ];
-        console.log('Default options:', defaultOptions);
-        return defaultOptions;
     }
   };
 
   const handleOptionSelect = (value) => {
-    console.log('🔧 Selecting option:', value);
     setSortBy(value);
     setIsDropdownOpen(false);
   };
@@ -84,17 +92,25 @@ export default function Header({ search, setSearch, sortBy, setSortBy, sortOrder
   const currentSortLabel = getSortOptions().find(opt => opt.value === sortBy)?.label || 'Sort By';
   const sortOptions = getSortOptions();
 
-  console.log('🔧 Current page:', currentPage);
-  console.log('🔧 Current sort by:', sortBy);
-  console.log('🔧 Sort options:', sortOptions);
-  console.log('🔧 Dropdown open:', isDropdownOpen);
-
   return (
     <header className="top-0 px-4 sm:px-6 lg:px-8 py-4 absolute youtube-header" style={{ zIndex: 999999, backgroundColor: '#151515', left: 0, right: 0 }}>
       <div className="flex items-center justify-between">
-        {/* Left Section - Page Title */}
+        {/* Left Section - Page Title + Mobile Hamburger */}
         <div className="flex items-center space-x-4 lg:ml-28">
-          <h1 className="text-xl font-semibold dark:text-white text-gray-900 hidden sm:block">
+          {/* Mobile Hamburger - only visible on mobile */}
+          <button 
+            onClick={handleMobileHamburgerClick}
+            className="lg:hidden p-2 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition-all duration-200"
+            style={{
+              backgroundColor: document.documentElement.classList.contains('dark') ? '#242424' : '#FFFFFF',
+              borderColor: document.documentElement.classList.contains('dark') ? '#374151' : '#E5E7EB'
+            }}
+          >
+            <Bars3Icon className="w-5 h-5 dark:text-gray-400 text-gray-600" />
+          </button>
+          
+          {/* Page Title - hidden on mobile when search is expanded */}
+          <h1 className={`text-xl font-semibold dark:text-white text-gray-900 hidden sm:block ${isMobileSearchExpanded ? 'lg:hidden' : ''}`}>
             {currentPage === 'home' && 'Dashboard'}
             {currentPage === 'favorites' && 'Favorites'}
             {currentPage === 'notes' && 'All Notes'}
@@ -104,7 +120,8 @@ export default function Header({ search, setSearch, sortBy, setSortBy, sortOrder
 
         {/* Center Section - Search */}
         <div className="flex-1 max-w-2xl mx-4 lg:ml-8">
-          <div className="relative">
+          {/* Desktop Search - unchanged */}
+          <div className="hidden lg:block relative">
             <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
               <MagnifyingGlassIcon className="h-5 w-5 dark:text-gray-400 text-gray-500" />
             </div>
@@ -117,10 +134,48 @@ export default function Header({ search, setSearch, sortBy, setSortBy, sortOrder
               className="youtube-input w-full pl-10 pr-4 py-2 text-sm"
             />
           </div>
+
+          {/* Mobile Search - expandable */}
+          <div className="lg:hidden">
+            {isMobileSearchExpanded ? (
+              <form onSubmit={handleMobileSearchSubmit} className="w-full">
+                <div className="relative">
+                  <input
+                    ref={searchInputRef}
+                    type="text"
+                    placeholder="Search videos..."
+                    value={search}
+                    onChange={e => setSearch(e.target.value)}
+                    className="youtube-input w-full pl-4 pr-12 py-2 text-sm"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setIsMobileSearchExpanded(false)}
+                    className="absolute inset-y-0 right-0 pr-3 flex items-center"
+                  >
+                    <svg className="w-5 h-5 dark:text-gray-400 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
+                </div>
+              </form>
+            ) : (
+              <button 
+                onClick={handleMobileSearchClick}
+                className="p-2 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition-all duration-200"
+                style={{
+                  backgroundColor: document.documentElement.classList.contains('dark') ? '#242424' : '#FFFFFF',
+                  borderColor: document.documentElement.classList.contains('dark') ? '#374151' : '#E5E7EB'
+                }}
+              >
+                <MagnifyingGlassIcon className="w-5 h-5 dark:text-gray-400 text-gray-600" />
+              </button>
+            )}
+          </div>
         </div>
 
         {/* Right Section - Sort Controls */}
-        <div className="flex items-center space-x-3">
+        <div className={`flex items-center space-x-3 ${isMobileSearchExpanded ? 'lg:flex hidden' : ''}`}>
           {/* Sort By Dropdown */}
           <div className="relative" ref={dropdownRef}>
             <button
@@ -140,18 +195,20 @@ export default function Header({ search, setSearch, sortBy, setSortBy, sortOrder
             
             {isDropdownOpen && (
               <div 
-                className="absolute right-0 mt-2 w-48 dark:bg-gray-800 bg-white border dark:border-gray-700 border-gray-200 rounded-lg shadow-xl py-1"
+                className="sort-dropdown"
                 style={{
-                  zIndex: 999999,
                   position: 'absolute',
                   top: '100%',
                   right: 0,
                   marginTop: '8px',
-                  backgroundColor: document.documentElement.classList.contains('dark') ? '#1F2937' : '#FFFFFF',
-                  border: '1px solid var(--tw-border-opacity, 1)',
+                  width: '12rem',
+                  backgroundColor: document.documentElement.classList.contains('dark') ? '#000000' : '#FFFFFF',
+                  border: document.documentElement.classList.contains('dark') ? '1px solid #374151' : '1px solid #E5E7EB',
                   borderRadius: '8px',
                   boxShadow: '0 10px 25px rgba(0, 0, 0, 0.5)',
-                  minWidth: '200px'
+                  minWidth: '200px',
+                  padding: '0.25rem 0',
+                  zIndex: 999999
                 }}
               >
                 {sortOptions.length > 0 ? (
@@ -160,11 +217,15 @@ export default function Header({ search, setSearch, sortBy, setSortBy, sortOrder
                       key={option.value}
                       className={`w-full text-left px-4 py-2 text-sm transition-colors duration-150 ${
                         sortBy === option.value 
-                          ? 'bg-red-500 text-white' 
-                          : 'dark:text-white text-gray-900 dark:hover:bg-gray-700 hover:bg-gray-100'
+                          ? 'bg-red-500' 
+                          : 'hover:bg-gray-100 dark:hover:bg-gray-700'
                       }`}
                       onClick={() => handleOptionSelect(option.value)}
-                      style={{ cursor: 'pointer' }}
+                      style={{ 
+                        cursor: 'pointer',
+                        color: document.documentElement.classList.contains('dark') ? '#FFFFFF' : '#000000',
+                        fontWeight: '500'
+                      }}
                     >
                       {option.label}
                     </button>
