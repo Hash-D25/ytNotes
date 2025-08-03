@@ -151,6 +151,24 @@ app.get('/', (req, res) => {
   res.send('API is running');
 });
 
+// Debug endpoint to check user status (temporary)
+app.get('/debug/users', async (req, res) => {
+  try {
+    const users = await User.find({}, 'email lastLogin');
+    res.json({
+      totalUsers: users.length,
+      users: users.map(user => ({
+        email: user.email,
+        lastLogin: user.lastLogin,
+        isActive: user.lastLogin && new Date(user.lastLogin) > new Date(Date.now() - 5 * 60 * 1000)
+      }))
+    });
+  } catch (error) {
+    console.error('Debug users error:', error);
+    res.status(500).json({ error: 'Failed to get debug info' });
+  }
+});
+
 // Google OAuth routes
 app.get('/auth/google', (req, res) => {
   const scopes = [
@@ -318,7 +336,8 @@ app.get('/auth/status', async (req, res) => {
         id: user._id,
         email: user.email,
         name: user.name,
-        picture: user.picture
+        picture: user.picture,
+        lastLogin: user.lastLogin
       }
     });
   } catch (error) {
@@ -328,10 +347,42 @@ app.get('/auth/status', async (req, res) => {
 });
 
 // Logout endpoint (for dashboard)
-app.post('/auth/logout', (req, res) => {
-  // With JWT, logout is handled client-side by removing tokens
-  // The server doesn't need to do anything
-  res.json({ message: 'Logged out successfully' });
+app.post('/auth/logout', async (req, res) => {
+  try {
+    console.log('🔍 Logout request received');
+    
+    // Extract token from header
+    const authHeader = req.headers.authorization;
+    const token = extractTokenFromHeader(authHeader);
+    
+    console.log('🔍 Logout - Auth header present:', !!authHeader);
+    console.log('🔍 Logout - Token extracted:', !!token);
+    
+    if (token) {
+      // Verify token to get user info
+      const decoded = verifyToken(token);
+      console.log('🔍 Logout - Token decoded:', !!decoded);
+      console.log('🔍 Logout - Decoded user ID:', decoded?.userId);
+      console.log('🔍 Logout - Decoded email:', decoded?.email);
+      
+      if (decoded && decoded.userId) {
+        // Update user's lastLogin to mark them as inactive
+        await User.findByIdAndUpdate(decoded.userId, {
+          lastLogin: null // Mark as inactive
+        });
+        console.log(`✅ User ${decoded.email} logged out, marked as inactive`);
+      } else {
+        console.log('❌ Logout - Invalid token or missing user ID');
+      }
+    } else {
+      console.log('❌ Logout - No token provided');
+    }
+    
+    res.json({ message: 'Logged out successfully' });
+  } catch (error) {
+    console.error('❌ Logout error:', error);
+    res.status(500).json({ error: 'Failed to logout' });
+  }
 });
 
 // Force re-authentication endpoint (for expired tokens)
@@ -1006,9 +1057,11 @@ function formatTime(seconds) {
 
 const bookmarkRoutes = require('./routes/bookmark');
 const videosRoutes = require('./routes/videos');
+const adminRoutes = require('./routes/admin');
 
 app.use('/bookmark', bookmarkRoutes);
 app.use('/videos', videosRoutes);
+app.use('/admin', adminRoutes);
 
 // Temporary endpoint for generating test tokens (for debugging)
 app.get('/auth/test-tokens', async (req, res) => {

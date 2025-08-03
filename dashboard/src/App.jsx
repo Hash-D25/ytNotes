@@ -7,6 +7,7 @@ import NotesPage from "./components/NotesPage";
 import FavoritesPage from "./components/FavoritesPage";
 import AllNotesPage from "./components/AllNotesPage";
 import GoogleDrivePage from "./components/GoogleDrivePage";
+import AdminDashboard from "./components/AdminDashboard";
 import LoginPage from "./components/LoginPage";
 import AuthCallback from "./components/AuthCallback";
 import { AuthProvider, useAuth } from "./contexts/AuthContext";
@@ -255,6 +256,7 @@ function AppContent() {
             <Route path="/notes" element={<AllNotesPage videos={videos} search={search} setSearch={setSearch} sortBy={sortBy} setSortBy={setSortBy} sortOrder={sortOrder} setSortOrder={setSortOrder} />} />
             <Route path="/notes/:videoId" element={<NotesPage videos={videos} fetchVideos={fetchVideos} search={search} setSearch={setSearch} sortBy={sortBy} setSortBy={setSortBy} sortOrder={sortOrder} setSortOrder={setSortOrder} />} />
             <Route path="/drive" element={<GoogleDrivePage />} />
+            <Route path="/admin" element={<AdminDashboard />} />
           </Routes>
         </main>
       </div>

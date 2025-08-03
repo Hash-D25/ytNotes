@@ -141,6 +141,20 @@ export const AuthProvider = ({ children }) => {
     return createAuthAxios();
   });
 
+  // Admin email addresses from environment variables
+  const ADMIN_EMAILS = import.meta.env.VITE_ADMIN_EMAILS ? 
+    import.meta.env.VITE_ADMIN_EMAILS.split(',').map(email => email.trim()) : 
+    ['seenew1729@gmail.com']; // Fallback for development
+
+  // Check if current user is admin
+  const isAdmin = () => {
+    console.log('🔍 Checking if admin - userProfile:', userProfile);
+    console.log('🔍 Checking if admin - userProfile?.email:', userProfile?.email);
+    const isAdminUser = userProfile && ADMIN_EMAILS.includes(userProfile.email);
+    console.log('🔍 Is admin result:', isAdminUser);
+    return isAdminUser;
+  };
+
   const checkAuthStatus = async () => {
     try {
       console.log('🔍 Checking auth status...');
@@ -214,7 +228,8 @@ export const AuthProvider = ({ children }) => {
     loading,
     checkAuthStatus,
     logout,
-    authAxios
+    authAxios,
+    isAdmin: isAdmin()
   };
 
   return (

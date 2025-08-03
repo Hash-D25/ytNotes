@@ -1,20 +1,22 @@
 import React, { useState } from 'react';
-import { BookOpenIcon, HomeIcon, HeartIcon, Bars3Icon, XMarkIcon, UserIcon, Cog6ToothIcon, BellIcon, MagnifyingGlassIcon, CloudIcon } from '@heroicons/react/24/outline';
+import { BookOpenIcon, HomeIcon, HeartIcon, Bars3Icon, XMarkIcon, UserIcon, Cog6ToothIcon, BellIcon, MagnifyingGlassIcon, CloudIcon, ShieldCheckIcon } from '@heroicons/react/24/outline';
 import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
-
-const NAV_LINKS = [
-  { name: 'Dashboard', icon: <HomeIcon className="w-5 h-5" />, href: '/' },
-  { name: 'All Notes', icon: <BookOpenIcon className="w-5 h-5" />, href: '/notes' },
-  { name: 'Favorites', icon: <HeartIcon className="w-5 h-5" />, href: '/favorites' },
-  { name: 'Google Drive', icon: <CloudIcon className="w-5 h-5" />, href: '/drive' },
-];
 
 export default function Sidebar() {
   const location = useLocation();
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [isMobileOpen, setIsMobileOpen] = useState(false);
-  const { isAuthenticated, userProfile, logout } = useAuth();
+  const { isAuthenticated, userProfile, logout, isAdmin } = useAuth();
+
+  const NAV_LINKS = [
+    { name: 'Dashboard', icon: <HomeIcon className="w-5 h-5" />, href: '/' },
+    { name: 'All Notes', icon: <BookOpenIcon className="w-5 h-5" />, href: '/notes' },
+    { name: 'Favorites', icon: <HeartIcon className="w-5 h-5" />, href: '/favorites' },
+    { name: 'Google Drive', icon: <CloudIcon className="w-5 h-5" />, href: '/drive' },
+    // Admin link - only show if user is admin
+    ...(isAdmin ? [{ name: 'Admin', icon: <ShieldCheckIcon className="w-5 h-5" />, href: '/admin' }] : []),
+  ];
 
   const toggleSidebar = () => {
     setIsCollapsed(!isCollapsed);
