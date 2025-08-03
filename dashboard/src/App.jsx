@@ -10,6 +10,7 @@ import GoogleDrivePage from "./components/GoogleDrivePage";
 import LoginPage from "./components/LoginPage";
 import AuthCallback from "./components/AuthCallback";
 import { AuthProvider, useAuth } from "./contexts/AuthContext";
+import { ThemeProvider } from "./contexts/ThemeContext";
 
 function Dashboard({ videos, search, setSearch, loading, error, sortBy, setSortBy, sortOrder, setSortOrder, onFavoriteToggle, onVideoDelete }) {
   let filteredVideos = videos.filter((v) => v.videoTitle.toLowerCase().includes(search.toLowerCase()));
@@ -22,34 +23,34 @@ function Dashboard({ videos, search, setSearch, loading, error, sortBy, setSortB
 
   if (loading)
     return (
-      <div className="flex justify-center items-center h-screen bg-gray-900">
+      <div className="flex justify-center items-center h-screen dark:bg-gray-900 bg-gray-50">
         <div className="flex flex-col items-center space-y-4">
           <div className="w-12 h-12 border-4 border-purple-500 border-t-transparent rounded-full animate-spin"></div>
-          <p className="text-gray-400">Loading your bookmarks...</p>
+          <p className="dark:text-gray-400 text-gray-600">Loading your bookmarks...</p>
         </div>
       </div>
     );
     
   if (error)
     return (
-      <div className="flex justify-center items-center h-screen bg-gray-900">
+      <div className="flex justify-center items-center h-screen dark:bg-gray-900 bg-gray-50">
         <div className="text-center">
           <div className="text-purple-500 text-6xl mb-4">⚠️</div>
-          <div className="text-white text-xl mb-2">Oops! Something went wrong</div>
-          <div className="text-gray-400">{error}</div>
+          <div className="dark:text-white text-gray-900 text-xl mb-2">Oops! Something went wrong</div>
+          <div className="dark:text-gray-400 text-gray-600">{error}</div>
         </div>
       </div>
     );
 
   return (
-    <div className="min-h-screen bg-gray-900">
+    <div className="min-h-screen dark:bg-gray-900 bg-gray-50">
       <div className="pt-20 pb-8 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
         {/* Hero Section */}
         <div className="text-center mb-12">
           <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold mb-4 gradient-text animate-fade-in">
             YouTube Notes
           </h1>
-          <p className="text-gray-400 text-lg sm:text-xl max-w-2xl mx-auto">
+          <p className="dark:text-gray-400 text-gray-600 text-lg sm:text-xl max-w-2xl mx-auto">
             Organize and manage your YouTube bookmarks with smart notes and favorites
           </p>
         </div>
@@ -57,29 +58,29 @@ function Dashboard({ videos, search, setSearch, loading, error, sortBy, setSortB
         {/* Stats Section */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
           <div className="youtube-card p-6 text-center">
-            <div className="text-3xl font-bold text-white mb-2">{filteredVideos.length}</div>
-            <div className="text-gray-400">Total Videos</div>
+                      <div className="text-3xl font-bold dark:text-white text-gray-900 mb-2">{filteredVideos.length}</div>
+          <div className="dark:text-gray-400 text-gray-600">Total Videos</div>
+        </div>
+        <div className="youtube-card p-6 text-center">
+          <div className="text-3xl font-bold dark:text-white text-gray-900 mb-2">
+            {filteredVideos.filter(v => v.favorite).length}
           </div>
-          <div className="youtube-card p-6 text-center">
-            <div className="text-3xl font-bold text-white mb-2">
-              {filteredVideos.filter(v => v.favorite).length}
-            </div>
-            <div className="text-gray-400">Favorites</div>
+          <div className="dark:text-gray-400 text-gray-600">Favorites</div>
+        </div>
+        <div className="youtube-card p-6 text-center">
+          <div className="text-3xl font-bold dark:text-white text-gray-900 mb-2">
+            {filteredVideos.reduce((total, v) => total + (v.notes?.length || 0), 0)}
           </div>
-          <div className="youtube-card p-6 text-center">
-            <div className="text-3xl font-bold text-white mb-2">
-              {filteredVideos.reduce((total, v) => total + (v.notes?.length || 0), 0)}
-            </div>
-            <div className="text-gray-400">Total Notes</div>
+          <div className="dark:text-gray-400 text-gray-600">Total Notes</div>
           </div>
         </div>
 
         {/* Videos Grid */}
         {filteredVideos.length === 0 ? (
           <div className="text-center py-20">
-            <div className="text-gray-400 text-6xl mb-6">📚</div>
-            <h3 className="text-2xl font-semibold text-white mb-2">No videos found</h3>
-            <p className="text-gray-400">
+            <div className="dark:text-gray-400 text-gray-500 text-6xl mb-6">📚</div>
+            <h3 className="text-2xl font-semibold dark:text-white text-gray-900 mb-2">No videos found</h3>
+            <p className="dark:text-gray-400 text-gray-600">
               {search ? 'Try adjusting your search terms' : 'Start bookmarking videos to see them here'}
             </p>
           </div>
@@ -198,10 +199,10 @@ function AppContent() {
   // Show loading while checking authentication
   if (authLoading) {
     return (
-      <div className="flex justify-center items-center h-screen bg-gray-900">
+      <div className="flex justify-center items-center h-screen dark:bg-gray-900 bg-gray-50">
         <div className="flex flex-col items-center space-y-4">
           <div className="w-12 h-12 border-4 border-purple-500 border-t-transparent rounded-full animate-spin"></div>
-          <p className="text-gray-400">Checking authentication...</p>
+          <p className="dark:text-gray-400 text-gray-600">Checking authentication...</p>
         </div>
       </div>
     );
@@ -218,7 +219,7 @@ function AppContent() {
   }
 
   return (
-    <div className="flex h-screen bg-gray-900 overflow-hidden">
+    <div className="flex h-screen dark:bg-gray-900 bg-gray-50 overflow-hidden">
       <Sidebar />
       <div className="flex-1 flex flex-col min-w-0 lg:ml-24">
         <Header 
@@ -263,11 +264,13 @@ function AppContent() {
 
 function App() {
   return (
-    <AuthProvider>
-      <Router>
-        <AppContent />
-      </Router>
-    </AuthProvider>
+    <ThemeProvider>
+      <AuthProvider>
+        <Router>
+          <AppContent />
+        </Router>
+      </AuthProvider>
+    </ThemeProvider>
   );
 }
 

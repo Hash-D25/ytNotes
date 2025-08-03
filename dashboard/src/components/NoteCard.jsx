@@ -48,8 +48,20 @@ export default function NoteCard({
         }
       };
 
+      // Hide header when screenshot modal is active
+      const header = document.querySelector('header');
+      if (header) {
+        header.style.display = 'none';
+      }
+
       document.addEventListener('keydown', handleKeyDown);
-      return () => document.removeEventListener('keydown', handleKeyDown);
+      return () => {
+        document.removeEventListener('keydown', handleKeyDown);
+        // Show header when screenshot modal is closed
+        if (header) {
+          header.style.display = '';
+        }
+      };
     }
   }, [showScreenshotModal]);
 
@@ -266,7 +278,7 @@ export default function NoteCard({
 
         {/* Screenshot Modal - Now shows as in-app popup */}
         {showScreenshotModal && screenshot && (
-          <div className="fixed inset-0 bg-black bg-opacity-90 z-50 flex items-center justify-center p-4">
+          <div className="fixed inset-0 bg-black bg-opacity-90 z-[9999999] flex items-center justify-center p-4">
             <div className="relative max-w-6xl w-full max-h-[90vh] overflow-hidden">
               {/* Close Button - Top Right */}
               <button

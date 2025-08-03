@@ -75,7 +75,7 @@ export default function AllNotesPage({ videos, search, setSearch, sortBy, setSor
   const totalNotes = videos.reduce((total, v) => total + (v.notes?.length || 0), 0);
 
   return (
-    <div className="min-h-screen bg-gray-900">
+    <div className="min-h-screen dark:bg-gray-900 bg-gray-50">
       <div className="pt-20 pb-8 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
         {/* Header */}
         <div className="text-center mb-8">
@@ -90,15 +90,15 @@ export default function AllNotesPage({ videos, search, setSearch, sortBy, setSor
         {/* Stats Section */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
           <div className="youtube-card p-6 text-center">
-            <div className="text-3xl font-bold text-white mb-2">{totalNotes}</div>
+            <div className="text-3xl font-bold dark:text-white text-gray-900 mb-2">{totalNotes}</div>
             <div className="text-gray-400">Total Notes</div>
           </div>
           <div className="youtube-card p-6 text-center">
-            <div className="text-3xl font-bold text-white mb-2">{totalVideos}</div>
+            <div className="text-3xl font-bold dark:text-white text-gray-900 mb-2">{totalVideos}</div>
             <div className="text-gray-400">Total Videos</div>
           </div>
           <div className="youtube-card p-6 text-center">
-            <div className="text-3xl font-bold text-white mb-2">{allNotes.length}</div>
+            <div className="text-3xl font-bold dark:text-white text-gray-900 mb-2">{allNotes.length}</div>
             <div className="text-gray-400">Filtered Notes</div>
           </div>
         </div>
@@ -113,7 +113,7 @@ export default function AllNotesPage({ videos, search, setSearch, sortBy, setSor
           {filteredNotes.length === 0 ? (
             <div className="text-center py-20">
               <div className="text-gray-400 text-6xl mb-6">📝</div>
-              <h3 className="text-2xl font-semibold text-white mb-2">No notes found</h3>
+              <h3 className="text-2xl font-semibold dark:text-white text-gray-900 mb-2">No notes found</h3>
               <p className="text-gray-400">
                 {search ? 'Try adjusting your search terms' : 'Start adding notes to see them here'}
               </p>

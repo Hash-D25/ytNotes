@@ -46,7 +46,7 @@ export default function NotesPage({ videos, fetchVideos, search, setSearch, sort
   // Keyboard shortcuts handler - use useCallback to prevent recreation
   const handleKeyDown = useCallback((event) => {
     // Don't handle shortcuts if focus is in input field (except for specific shortcuts)
-    if (isInputFocused() && !['m', 'c', '?', 'Escape'].includes(event.key)) {
+    if (isInputFocused() && !['?', 'Escape'].includes(event.key)) {
       return;
     }
 
@@ -427,7 +427,7 @@ export default function NotesPage({ videos, fetchVideos, search, setSearch, sort
   }
 
   return (
-    <div className="min-h-screen bg-gray-900 pt-5">
+    <div className="min-h-screen dark:bg-gray-900 bg-gray-50 pt-5">
       <div className="max-w-6xl mx-auto px-4 md:px-8">
         {/* Back Button - Top Left */}
         <button
@@ -451,7 +451,7 @@ export default function NotesPage({ videos, fetchVideos, search, setSearch, sort
 
           {/* Video Title and Shortcuts Help */}
           <div className="flex items-center justify-between mb-8">
-            <h1 className="text-2xl md:text-3xl font-bold text-white max-w-4xl leading-tight">
+            <h1 className="text-2xl md:text-3xl font-bold dark:text-white text-gray-900 max-w-4xl leading-tight">
               {video.videoTitle}
             </h1>
             <div className="flex items-center gap-4">
@@ -476,7 +476,7 @@ export default function NotesPage({ videos, fetchVideos, search, setSearch, sort
           <div className="fixed inset-0 bg-black/20 backdrop-blur-sm flex items-center justify-center z-50">
             <div className="youtube-card p-6 max-w-md w-full mx-4 shadow-2xl">
               <div className="flex items-center justify-between mb-4">
-                <h3 className="text-lg font-semibold text-white">Keyboard Shortcuts</h3>
+                <h3 className="text-lg font-semibold dark:text-white text-gray-900">Keyboard Shortcuts</h3>
                 <button
                   onClick={() => setShowShortcuts(false)}
                   className="text-gray-400 hover:text-gray-300"

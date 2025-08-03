@@ -37,18 +37,18 @@ export default function Sidebar() {
       {/* Mobile Hamburger Button */}
       <button
         onClick={toggleMobileSidebar}
-        className="lg:hidden fixed top-4 left-4 z-50 p-3 bg-gray-900/95 backdrop-blur-xl border border-gray-700/50 rounded-xl hover:bg-gray-800/50 transition-all duration-200 shadow-2xl"
+        className="lg:hidden fixed top-4 left-4 z-50 p-3 dark:bg-gray-900/95 bg-white/95 backdrop-blur-xl border dark:border-gray-700/50 border-gray-200/50 rounded-xl dark:hover:bg-gray-800/50 hover:bg-gray-100/50 transition-all duration-200 shadow-2xl"
       >
-        <Bars3Icon className="w-5 h-5 text-gray-400" />
+        <Bars3Icon className="w-5 h-5 dark:text-gray-400 text-gray-600" />
       </button>
 
       {/* Mobile Sidebar */}
       <aside className={`lg:hidden fixed top-0 left-0 h-full z-50 transition-all duration-300 ${
         isMobileOpen ? 'translate-x-0' : '-translate-x-full'
       } w-64`}>
-        <div className="h-full bg-gray-900/95 backdrop-blur-xl border-r border-gray-700/50 flex flex-col">
+        <div className="h-full dark:bg-gray-900/95 bg-white/95 backdrop-blur-xl border-r dark:border-gray-700/50 border-gray-200/50 flex flex-col">
           {/* Mobile Header */}
-          <div className="flex items-center justify-between p-6 border-b border-gray-700">
+          <div className="flex items-center justify-between p-6 border-b dark:border-gray-700 border-gray-200">
             <div className="flex items-center space-x-3">
               <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-blue-600 rounded-xl flex items-center justify-center">
                 <img 
@@ -58,15 +58,15 @@ export default function Sidebar() {
                 />
               </div>
               <div>
-                <h1 className="text-lg font-bold text-white">YouTube Notes</h1>
-                <p className="text-xs text-gray-400">Bookmark Manager</p>
+                <h1 className="text-lg font-bold dark:text-white text-gray-900">YouTube Notes</h1>
+                <p className="text-xs dark:text-gray-400 text-gray-600">Bookmark Manager</p>
               </div>
             </div>
             <button
               onClick={() => setIsMobileOpen(false)}
-              className="p-2 rounded-lg hover:bg-gray-800 transition-colors duration-200"
+              className="p-2 rounded-lg dark:hover:bg-gray-800 hover:bg-gray-100 transition-colors duration-200"
             >
-              <XMarkIcon className="w-5 h-5 text-gray-400" />
+              <XMarkIcon className="w-5 h-5 dark:text-gray-400 text-gray-600" />
             </button>
           </div>
 
@@ -83,7 +83,7 @@ export default function Sidebar() {
                   className={`flex items-center space-x-3 p-3 rounded-lg transition-all duration-200 ${
                     isActive 
                       ? 'bg-gradient-to-r from-purple-500 to-blue-600 text-white shadow-lg' 
-                      : 'text-gray-400 hover:bg-gray-800/50 hover:text-white'
+                      : 'dark:text-gray-400 text-gray-600 dark:hover:bg-gray-800/50 hover:bg-gray-100/50 dark:hover:text-white hover:text-gray-900'
                   }`}
                   onClick={() => setIsMobileOpen(false)}
                 >
@@ -97,13 +97,13 @@ export default function Sidebar() {
           </nav>
 
           {/* Mobile Footer */}
-          <div className="p-4 border-t border-gray-700">
+          <div className="p-4 border-t dark:border-gray-700 border-gray-200">
             <div className="flex items-center space-x-3">
               {isAuthenticated && userProfile?.picture ? (
                 <img 
                   src={userProfile.picture} 
                   alt={userProfile.name || 'User'} 
-                  className="w-10 h-10 rounded-full border-2 border-gray-600"
+                  className="w-10 h-10 rounded-full border-2 dark:border-gray-600 border-gray-300"
                 />
               ) : (
                 <div className="w-10 h-10 rounded-full bg-gradient-to-br from-purple-500 to-blue-600 flex items-center justify-center">
@@ -111,10 +111,10 @@ export default function Sidebar() {
                 </div>
               )}
               <div>
-                <p className="text-sm font-medium text-white">
+                <p className="text-sm font-medium dark:text-white text-gray-900">
                   {isAuthenticated && userProfile?.name ? userProfile.name : 'User'}
                 </p>
-                <p className="text-xs text-gray-400">
+                <p className="text-xs dark:text-gray-400 text-gray-600">
                   {isAuthenticated && userProfile?.email ? userProfile.email : 'Guest'}
                 </p>
               </div>
@@ -129,7 +129,7 @@ export default function Sidebar() {
       }`}>
         
         {/* Main Ribbon Container */}
-        <div className="h-full bg-gray-900/95 backdrop-blur-xl border border-gray-700/50 rounded-2xl shadow-2xl flex flex-col items-center py-6 space-y-8">
+        <div className="h-full dark:bg-gray-900/95 bg-white/95 backdrop-blur-xl border dark:border-gray-700/50 border-gray-200/50 rounded-2xl shadow-2xl flex flex-col items-center py-6 space-y-8">
           
           {/* Logo Section */}
           <div className="flex flex-col items-center space-y-4">
@@ -142,8 +142,8 @@ export default function Sidebar() {
             </div>
             {!isCollapsed && (
               <div className="text-center">
-                <h1 className="text-xs font-bold text-white">YouTube</h1>
-                <p className="text-xs text-gray-400">Notes</p>
+                <h1 className="text-xs font-bold dark:text-white text-gray-900">YouTube</h1>
+                <p className="text-xs dark:text-gray-400 text-gray-600">Notes</p>
               </div>
             )}
           </div>
@@ -161,7 +161,7 @@ export default function Sidebar() {
                   className={`group relative p-3 rounded-xl transition-all duration-200 ${
                     isActive 
                       ? 'bg-gradient-to-r from-purple-500 to-blue-600 text-white shadow-lg' 
-                      : 'text-gray-400 hover:bg-gray-800/50 hover:text-white'
+                      : 'dark:text-gray-400 text-gray-600 dark:hover:bg-gray-800/50 hover:bg-gray-100/50 dark:hover:text-white hover:text-gray-900'
                   }`}
                 >
                   <span className="flex items-center justify-center">
@@ -170,7 +170,7 @@ export default function Sidebar() {
                   
                   {/* Tooltip for collapsed state */}
                   {isCollapsed && (
-                    <div className="absolute left-16 bg-gray-800 border border-gray-700 rounded-lg px-2 py-1 text-xs text-white opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap z-50">
+                    <div className="absolute left-16 dark:bg-gray-800 bg-gray-100 border dark:border-gray-700 border-gray-300 rounded-lg px-2 py-1 text-xs dark:text-white text-gray-900 opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap z-50">
                       {link.name}
                     </div>
                   )}
@@ -185,7 +185,7 @@ export default function Sidebar() {
               <img 
                 src={userProfile.picture} 
                 alt={userProfile.name || 'User'} 
-                className="w-10 h-10 rounded-full border-2 border-gray-600 shadow-lg"
+                className="w-10 h-10 rounded-full border-2 dark:border-gray-600 border-gray-300 shadow-lg"
               />
             ) : (
               <div className="w-10 h-10 rounded-full bg-gradient-to-br from-purple-500 to-blue-600 flex items-center justify-center shadow-lg">
@@ -194,7 +194,7 @@ export default function Sidebar() {
             )}
             {!isCollapsed && (
               <div className="text-center">
-                <p className="text-xs font-medium text-white">
+                <p className="text-xs font-medium dark:text-white text-gray-900">
                   {isAuthenticated && userProfile?.name ? userProfile.name : 'User'}
                 </p>
               </div>
@@ -205,9 +205,9 @@ export default function Sidebar() {
         {/* Desktop Toggle Button */}
         <button
           onClick={toggleSidebar}
-          className="absolute -right-3 top-1/2 transform -translate-y-1/2 w-6 h-6 bg-gray-800 border border-gray-700 rounded-full hover:bg-gray-700 transition-colors duration-200 shadow-lg"
+          className="absolute -right-3 top-1/2 transform -translate-y-1/2 w-6 h-6 dark:bg-gray-800 bg-gray-100 border dark:border-gray-700 border-gray-300 rounded-full dark:hover:bg-gray-700 hover:bg-gray-200 transition-colors duration-200 shadow-lg"
         >
-          <Bars3Icon className="w-3 h-3 text-gray-400 mx-auto" />
+          <Bars3Icon className="w-3 h-3 dark:text-gray-400 text-gray-600 mx-auto" />
         </button>
       </aside>
     </>

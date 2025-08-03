@@ -240,8 +240,8 @@ export default function NotesList({
       {/* Header with Tabs */}
       <div className="mb-8">
         <div className="flex items-center justify-between mb-4">
-          <h3 className="text-2xl font-bold text-white">
-            {activeTab === 'notes' ? `Notes (${video.notes.length})` : 'Screenshots'}
+          <h3 className="text-2xl font-bold dark:text-white text-gray-900">
+            {activeTab === 'notes' ? `Notes (${video.notes.length})` : `Screenshots (${video.screenshots?.length || 0})`}
           </h3>
           
           
@@ -304,7 +304,7 @@ export default function NotesList({
         <>
           {/* Add Note Form */}
           <div className="youtube-card p-6 mb-8">
-            <h4 className="text-lg font-semibold text-white mb-4">
+            <h4 className="text-lg font-semibold dark:text-white text-gray-900 mb-4">
               Add New Note
             </h4>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -314,16 +314,16 @@ export default function NotesList({
                   placeholder="Timestamp (mm:ss or h:mm:ss)"
                   value={newTimestamp}
                   onChange={(e) => setNewTimestamp(e.target.value)}
-                  className="px-4 py-3 rounded-lg border border-gray-600 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-gray-800 text-white placeholder-gray-400 w-full"
+                  className="px-4 py-3 rounded-lg border dark:border-gray-600 border-gray-300 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent dark:bg-gray-800 bg-gray-100 dark:text-white text-gray-900 dark:placeholder-gray-400 placeholder-gray-500 w-full"
                 />
-                <p className="text-xs text-gray-400 mt-1">Format: mm:ss or h:mm:ss</p>
+                                  <p className="text-xs dark:text-gray-400 text-gray-600 mt-1">Format: mm:ss or h:mm:ss</p>
               </div>
               <input
                 type="text"
                 placeholder="Add a new note..."
                 value={newNote}
                 onChange={(e) => setNewNote(e.target.value)}
-                className="px-4 py-3 rounded-lg border border-gray-600 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-gray-800 text-white placeholder-gray-400 md:col-span-2"
+                className="px-4 py-3 rounded-lg border dark:border-gray-600 border-gray-300 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent dark:bg-gray-800 bg-gray-100 dark:text-white text-gray-900 dark:placeholder-gray-400 placeholder-gray-500 md:col-span-2"
               />
             </div>
             <div className="mt-4 flex justify-end">
@@ -340,8 +340,8 @@ export default function NotesList({
           <div className="space-y-4">
             {video.notes.length === 0 ? (
               <div className="text-center py-12 youtube-card">
-                <Sparkles className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                <p className="text-gray-400 text-lg">
+                <Sparkles className="w-12 h-12 dark:text-gray-400 text-gray-500 mx-auto mb-4" />
+                <p className="dark:text-gray-400 text-gray-600 text-lg">
                   No notes yet. Add your first note above!
                 </p>
               </div>
@@ -370,14 +370,14 @@ export default function NotesList({
                         <span className="inline-block bg-purple-600 text-white font-mono px-3 py-1 rounded-lg text-sm">
                           {formatTimestamp(note.timestamp) || "00:00"}
                         </span>
-                        <span className="text-sm text-gray-400">•</span>
+                        <span className="text-sm dark:text-gray-400 text-gray-600">•</span>
                         <span className="text-sm text-purple-400 font-medium">{video.videoTitle}</span>
-                        <span className="text-xs text-gray-400 ml-2">{new Date(note.createdAt).toLocaleDateString()}</span>
+                        <span className="text-xs dark:text-gray-400 text-gray-600 ml-2">{new Date(note.createdAt).toLocaleDateString()}</span>
                       </div>
                       <textarea
                         value={editNote}
                         onChange={(e) => setEditNote(e.target.value)}
-                        className="w-full p-3 border border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent resize-none bg-gray-800 text-white"
+                        className="w-full p-3 border dark:border-gray-600 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent resize-none dark:bg-gray-800 bg-gray-100 dark:text-white text-gray-900"
                         rows="4"
                       />
                       <div className="flex items-center gap-2 mt-4">
@@ -471,8 +471,8 @@ export default function NotesList({
               console.error('Error rendering ScreenshotsList:', error);
               return (
                 <div className="text-center py-12 youtube-card">
-                  <Camera className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                  <p className="text-gray-400 text-lg">
+                  <Camera className="w-12 h-12 dark:text-gray-400 text-gray-500 mx-auto mb-4" />
+                  <p className="dark:text-gray-400 text-gray-600 text-lg">
                     Error loading screenshots. Please try refreshing the page.
                   </p>
                 </div>

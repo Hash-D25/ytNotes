@@ -2,11 +2,11 @@ import React from 'react';
 
 export default function LoginPage() {
   return (
-    <div className="min-h-screen bg-gray-900 flex items-center justify-center">
+    <div className="min-h-screen dark:bg-gray-900 bg-gray-50 flex items-center justify-center">
       <div className="youtube-card p-8 max-w-md w-full text-center">
         <div className="text-6xl mb-4">📝</div>
-        <h2 className="text-2xl font-bold text-white mb-4">YouTube Notes</h2>
-        <p className="text-gray-400 mb-6">
+        <h2 className="text-2xl font-bold dark:text-white text-gray-900 mb-4">YouTube Notes</h2>
+        <p className="dark:text-gray-400 text-gray-600 mb-6">
           Sign in with Google to access your notes and screenshots
         </p>
         <a
@@ -21,7 +21,7 @@ export default function LoginPage() {
           </svg>
           Sign in with Google
         </a>
-        <div className="mt-6 text-sm text-gray-500">
+        <div className="mt-6 text-sm dark:text-gray-500 text-gray-600">
           <p>• Save notes and timestamps</p>
           <p>• Capture screenshots</p>
           <p>• Sync with Google Drive</p>

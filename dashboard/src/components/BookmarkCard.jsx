@@ -85,12 +85,12 @@ export default function BookmarkCard({ video, onFavoriteToggle, onVideoDelete })
       {/* Content */}
       <div className="p-4 flex-1 flex flex-col">
         {/* Title */}
-        <h3 className="text-white font-medium text-sm line-clamp-2 mb-3 group-hover:text-red-400 transition-colors duration-200 flex-shrink-0">
+        <h3 className="dark:text-white text-gray-900 font-medium text-sm line-clamp-2 mb-3 group-hover:text-red-400 transition-colors duration-200 flex-shrink-0">
           {video.videoTitle}
         </h3>
 
         {/* Stats */}
-        <div className="flex items-center justify-between text-xs text-gray-400 mb-4 flex-shrink-0">
+        <div className="flex items-center justify-between text-xs dark:text-gray-400 text-gray-600 mb-4 flex-shrink-0">
           <div className="flex items-center space-x-1">
             <DocumentTextIcon className="w-3 h-3" />
             <span>{video.notes?.length || 0} notes</span>

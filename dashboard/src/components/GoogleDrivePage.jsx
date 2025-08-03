@@ -84,10 +84,10 @@ const GoogleDrivePage = () => {
 
   if (!isAuthenticated) {
     return (
-      <div className="min-h-screen bg-gray-900 flex items-center justify-center">
+      <div className="min-h-screen dark:bg-gray-900 bg-gray-50 flex items-center justify-center">
         <div className="youtube-card p-8 max-w-md w-full text-center">
           <div className="text-6xl mb-4">☁️</div>
-          <h2 className="text-2xl font-bold text-white mb-4">Google Drive Integration</h2>
+                      <h2 className="text-2xl font-bold dark:text-white text-gray-900 mb-4">Google Drive Integration</h2>
           <p className="text-gray-400 mb-6">
             Connect your Google Drive to upload and manage your files
           </p>
@@ -109,12 +109,12 @@ const GoogleDrivePage = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-900 pt-20 pb-8 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
+    <div className="min-h-screen dark:bg-gray-900 bg-gray-50 pt-20 pb-8 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
       {/* Header */}
       <div className="mb-8">
         <div className="flex justify-between items-center mb-6">
           <div>
-            <h1 className="text-4xl font-bold text-white mb-2">Google Drive</h1>
+            <h1 className="text-4xl font-bold dark:text-white text-gray-900 mb-2">Google Drive</h1>
             <p className="text-gray-400">Upload and manage your files in Google Drive</p>
           </div>
           <div className="flex items-center gap-4">
@@ -134,10 +134,10 @@ const GoogleDrivePage = () => {
 
         {/* Connection Info */}
         <div className="youtube-card p-6 mb-8">
-          <h3 className="text-xl font-semibold text-white mb-4">Connection Status</h3>
+                      <h3 className="text-xl font-semibold dark:text-white text-gray-900 mb-4">Connection Status</h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="bg-gray-800 p-4 rounded-lg border border-gray-700">
-              <h4 className="text-lg font-medium text-white mb-2">📁 Folder Structure</h4>
+                              <h4 className="text-lg font-medium dark:text-white text-gray-900 mb-2">📁 Folder Structure</h4>
               <div className="text-gray-300 text-sm space-y-1">
                 <div>• ytNotes/</div>
                 <div className="ml-4">• screenshots/</div>
@@ -150,7 +150,7 @@ const GoogleDrivePage = () => {
         {/* Files List */}
         <div className="youtube-card p-6">
           <div className="flex justify-between items-center mb-6">
-            <h3 className="text-xl font-semibold text-white">Your Files</h3>
+            <h3 className="text-xl font-semibold dark:text-white text-gray-900">Your Files</h3>
             <button
               onClick={fetchFiles}
               disabled={loading}
@@ -174,7 +174,7 @@ const GoogleDrivePage = () => {
               {files.map((file) => (
                 <div key={file.id} className="bg-gray-800 p-4 rounded-lg border border-gray-700">
                   <div className="flex items-start justify-between mb-2">
-                    <div className="text-white font-medium truncate">{file.name}</div>
+                    <div className="dark:text-white text-gray-900 font-medium truncate">{file.name}</div>
                     <div className="text-gray-400 text-sm">
                       {file.mimeType?.startsWith('image/') ? '🖼️' : '📄'}
                     </div>

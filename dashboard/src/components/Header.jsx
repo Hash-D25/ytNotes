@@ -1,5 +1,6 @@
 import React, { useRef, useEffect, useState } from 'react';
 import { MagnifyingGlassIcon, ArrowsUpDownIcon } from '@heroicons/react/24/outline';
+import ThemeToggle from './ThemeToggle';
 
 export default function Header({ search, setSearch, sortBy, setSortBy, sortOrder, setSortOrder, currentPage = 'home' }) {
   const searchInputRef = useRef(null);
@@ -89,11 +90,11 @@ export default function Header({ search, setSearch, sortBy, setSortBy, sortOrder
   console.log('🔧 Dropdown open:', isDropdownOpen);
 
   return (
-    <header className="sticky top-0 px-4 sm:px-6 lg:px-8 py-4">
+    <header className="top-0 px-4 sm:px-6 lg:px-8 py-4 absolute youtube-header" style={{ zIndex: 999999, backgroundColor: '#151515', left: 0, right: 0 }}>
       <div className="flex items-center justify-between">
         {/* Left Section - Page Title */}
-        <div className="flex items-center space-x-4">
-          <h1 className="text-xl font-semibold text-white hidden sm:block">
+        <div className="flex items-center space-x-4 lg:ml-28">
+          <h1 className="text-xl font-semibold dark:text-white text-gray-900 hidden sm:block">
             {currentPage === 'home' && 'Dashboard'}
             {currentPage === 'favorites' && 'Favorites'}
             {currentPage === 'notes' && 'All Notes'}
@@ -102,10 +103,10 @@ export default function Header({ search, setSearch, sortBy, setSortBy, sortOrder
         </div>
 
         {/* Center Section - Search */}
-        <div className="flex-1 max-w-2xl mx-4">
+        <div className="flex-1 max-w-2xl mx-4 lg:ml-8">
           <div className="relative">
             <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-              <MagnifyingGlassIcon className="h-5 w-5 text-gray-400" />
+              <MagnifyingGlassIcon className="h-5 w-5 dark:text-gray-400 text-gray-500" />
             </div>
             <input
               ref={searchInputRef}
@@ -139,15 +140,15 @@ export default function Header({ search, setSearch, sortBy, setSortBy, sortOrder
             
             {isDropdownOpen && (
               <div 
-                className="absolute right-0 mt-2 w-48 bg-gray-800 border border-gray-700 rounded-lg shadow-xl py-1"
+                className="absolute right-0 mt-2 w-48 dark:bg-gray-800 bg-white border dark:border-gray-700 border-gray-200 rounded-lg shadow-xl py-1"
                 style={{
-                  zIndex: 9999,
+                  zIndex: 999999,
                   position: 'absolute',
                   top: '100%',
                   right: 0,
                   marginTop: '8px',
-                  backgroundColor: 'rgb(31, 41, 55)',
-                  border: '1px solid rgb(55, 65, 81)',
+                  backgroundColor: document.documentElement.classList.contains('dark') ? '#1F2937' : '#FFFFFF',
+                  border: '1px solid var(--tw-border-opacity, 1)',
                   borderRadius: '8px',
                   boxShadow: '0 10px 25px rgba(0, 0, 0, 0.5)',
                   minWidth: '200px'
@@ -160,7 +161,7 @@ export default function Header({ search, setSearch, sortBy, setSortBy, sortOrder
                       className={`w-full text-left px-4 py-2 text-sm transition-colors duration-150 ${
                         sortBy === option.value 
                           ? 'bg-red-500 text-white' 
-                          : 'text-white hover:bg-gray-700'
+                          : 'dark:text-white text-gray-900 dark:hover:bg-gray-700 hover:bg-gray-100'
                       }`}
                       onClick={() => handleOptionSelect(option.value)}
                       style={{ cursor: 'pointer' }}
@@ -169,7 +170,7 @@ export default function Header({ search, setSearch, sortBy, setSortBy, sortOrder
                     </button>
                   ))
                 ) : (
-                  <div className="px-4 py-2 text-sm text-gray-400">
+                  <div className="px-4 py-2 text-sm dark:text-gray-400 text-gray-600">
                     No options available
                   </div>
                 )}
@@ -185,6 +186,9 @@ export default function Header({ search, setSearch, sortBy, setSortBy, sortOrder
           >
             <ArrowsUpDownIcon className={`w-4 h-4 ${sortOrder === 'asc' ? '' : 'rotate-180'}`} />
           </button>
+          
+          {/* Theme Toggle */}
+          <ThemeToggle />
         </div>
       </div>
     </header>

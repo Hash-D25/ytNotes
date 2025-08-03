@@ -10,31 +10,995 @@
   }
   
   body {
-    background-color: #0F0F0F;
-    color: #FFFFFF;
     font-family: 'Roboto', Arial, sans-serif;
+  }
+  
+  /* Dark mode (default) */
+  html.dark body {
+    background-color: #151515;
+    color: #FFFFFF;
+  }
+  
+  /* Light mode */
+  html.light body {
+    background-color: #F8F9FA;
+    color: #1F2937;
   }
 }
 
 @layer components {
   .youtube-card {
-    @apply bg-gray-800 border border-gray-700 rounded-lg shadow-lg hover:shadow-xl transition-all duration-200;
+    @apply dark:bg-gray-800 dark:border-gray-700 bg-white border-gray-200 rounded-lg shadow-lg hover:shadow-xl transition-all duration-200;
   }
   
   .youtube-button {
-    @apply bg-gray-700 hover:bg-gray-600 text-white border border-gray-600 rounded-lg px-4 py-2 transition-all duration-200 font-medium;
+    @apply dark:bg-gray-700 dark:hover:bg-gray-600 dark:text-white dark:border-gray-600 bg-gray-100 hover:bg-gray-200 text-gray-700 border-gray-300 rounded-lg px-4 py-2 transition-all duration-200 font-medium;
   }
   
   .youtube-input {
-    @apply bg-gray-700 border border-gray-600 text-white placeholder-gray-400 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent;
+    @apply dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder-gray-400 bg-white border-gray-300 text-gray-900 placeholder-gray-500 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent;
   }
   
   .youtube-sidebar {
-    @apply bg-gray-900 border-r border-gray-700;
+    @apply dark:bg-gray-900 dark:border-gray-700 bg-white border-gray-200;
   }
   
   .youtube-header {
-    @apply bg-gray-900 border-b border-gray-700;
+    @apply dark:bg-gray-900 dark:border-gray-700 border-gray-200;
+  }
+  
+  /* Light mode overrides for better contrast */
+  html.light .dark\\:bg-gray-900 {
+    background-color: #F8F9FA !important;
+  }
+  
+  html.light .dark\\:bg-gray-800 {
+    background-color: #FFFFFF !important;
+  }
+  
+  html.light .dark\\:bg-gray-700 {
+    background-color: #F3F4F6 !important;
+  }
+  
+  html.light .dark\\:text-white {
+    color: #1F2937 !important;
+  }
+  
+  html.light .dark\\:text-gray-400 {
+    color: #6B7280 !important;
+  }
+  
+  html.light .dark\\:text-gray-600 {
+    color: #4B5563 !important;
+  }
+  
+  html.light .dark\\:border-gray-700 {
+    border-color: #E5E7EB !important;
+  }
+  
+  html.light .dark\\:border-gray-600 {
+    border-color: #D1D5DB !important;
+  }
+  
+  /* Google Drive page specific overrides */
+  html.light .bg-gray-800 {
+    background-color: #FFFFFF !important;
+  }
+  
+  html.light .border-gray-700 {
+    border-color: #E5E7EB !important;
+  }
+  
+  html.light .text-gray-300 {
+    color: #4B5563 !important;
+  }
+  
+  html.light .text-gray-400 {
+    color: #6B7280 !important;
+  }
+  
+  html.light .text-gray-500 {
+    color: #6B7280 !important;
+  }
+  
+  /* Button improvements for light mode */
+  html.light .bg-gray-700 {
+    background-color: #4B5563 !important;
+    color: #FFFFFF !important;
+  }
+  
+  html.light .bg-blue-600 {
+    background-color: #2563EB !important;
+    color: #FFFFFF !important;
+  }
+  
+  html.light .bg-green-900 {
+    background-color: #14532D !important;
+    color: #FFFFFF !important;
+  }
+  
+  html.light .border-green-700 {
+    border-color: #15803D !important;
+  }
+  
+  html.light .text-green-200 {
+    color: #BBF7D0 !important;
+  }
+  
+  html.light .bg-green-400 {
+    background-color: #4ADE80 !important;
+  }
+  
+  /* Purple elements for better contrast */
+  html.light .bg-purple-500 {
+    background-color: #8B5CF6 !important;
+    color: #FFFFFF !important;
+  }
+  
+  html.light .bg-purple-600 {
+    background-color: #7C3AED !important;
+    color: #FFFFFF !important;
+  }
+  
+  html.light .text-purple-400 {
+    color: #7b5df5 !important;
+  }
+  
+  /* Ensure all text has proper contrast */
+  html.light .text-white {
+    color: #1F2937 !important;
+  }
+  
+  html.light .text-gray-100 {
+    color: #1F2937 !important;
+  }
+  
+  html.light .text-gray-200 {
+    color: #374151 !important;
+  }
+  
+  html.light .text-gray-300 {
+    color: #4B5563 !important;
+  }
+  
+  /* Additional comprehensive light mode overrides */
+  html.light .min-h-screen {
+    background-color: #F8F9FA !important;
+  }
+  
+  html.light .flex.h-screen {
+    background-color: #F8F9FA !important;
+  }
+  
+  html.light .flex.justify-center.items-center.h-screen {
+    background-color: #F8F9FA !important;
+  }
+  
+  html.light .flex-1.overflow-y-auto {
+    background-color: #F8F9FA !important;
+  }
+  
+  html.light .pt-20.pb-8.px-4.sm\\:px-6.lg\\:px-8.max-w-7xl.mx-auto {
+    background-color: #F8F9FA !important;
+  }
+  
+  /* Dark mode background improvements */
+  html.dark .flex.h-screen {
+    background-color: #151515 !important;
+  }
+  
+  html.dark .flex.justify-center.items-center.h-screen {
+    background-color: #151515 !important;
+  }
+  
+  html.dark .flex-1.overflow-y-auto {
+    background-color: #151515 !important;
+  }
+  
+  html.dark .pt-20.pb-8.px-4.sm\\:px-6.lg\\:px-8.max-w-7xl.mx-auto {
+    background-color: #151515 !important;
+  }
+  
+  html.dark .min-h-screen {
+    background-color: #151515 !important;
+  }
+  
+  /* Override any remaining dark mode classes */
+  html.light [class*="dark:"] {
+    color: inherit !important;
+    background-color: inherit !important;
+    border-color: inherit !important;
+  }
+  
+  /* Specific overrides for common UI patterns */
+  html.light .bg-white {
+    background-color: #FFFFFF !important;
+    color: #1F2937 !important;
+  }
+  
+  html.light .bg-gray-50 {
+    background-color: #F9FAFB !important;
+    color: #1F2937 !important;
+  }
+  
+  html.light .bg-gray-100 {
+    background-color: #F3F4F6 !important;
+    color: #1F2937 !important;
+  }
+  
+  /* Ensure proper contrast for all interactive elements */
+  html.light [class*="bg-"] {
+    color: inherit !important;
+  }
+  
+  html.light button {
+    color: #1F2937 !important;
+  }
+  
+  html.light button[class*="bg-"] {
+    color: #FFFFFF !important;
+  }
+  
+  /* Red button improvements */
+  html.light .bg-red-600 {
+    background-color: #DC2626 !important;
+    color: #FFFFFF !important;
+  }
+  
+  html.light .bg-red-600:hover {
+    background-color: #B91C1C !important;
+  }
+  
+  html.light .bg-red-700 {
+    background-color: #B91C1C !important;
+    color: #FFFFFF !important;
+  }
+  
+  html.light .bg-red-700:hover {
+    background-color: #991B1B !important;
+  }
+  
+  /* Specific overrides for cards and buttons that aren't changing */
+  html.light .youtube-card {
+    background-color: #FFFFFF !important;
+    border-color: #E5E7EB !important;
+  }
+  
+  html.light .youtube-button {
+    background-color: #F3F4F6 !important;
+    color: #374151 !important;
+    border-color: #D1D5DB !important;
+  }
+  
+  html.light .youtube-button:hover {
+    background-color: #E5E7EB !important;
+  }
+  
+  html.light .youtube-input {
+    background-color: #FFFFFF !important;
+    border-color: #D1D5DB !important;
+    color: #1F2937 !important;
+  }
+  
+  html.light .youtube-input::placeholder {
+    color: #6B7280 !important;
+  }
+  
+  html.light .youtube-sidebar {
+    background-color: #FFFFFF !important;
+    border-color: #E5E7EB !important;
+  }
+  
+  html.light .youtube-header {
+    background-color: transparent !important;
+    border-color: transparent !important;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12), 0 4px 16px rgba(0, 0, 0, 0.08) !important;
+    width: 100% !important;
+    left: 0 !important;
+    right: 0 !important;
+  }
+  
+  /* Override any remaining dark mode classes more aggressively */
+  html.light [class*="dark:bg-gray-800"] {
+    background-color: #FFFFFF !important;
+  }
+  
+  html.light [class*="dark:bg-gray-700"] {
+    background-color: #F3F4F6 !important;
+  }
+  
+  html.light [class*="dark:bg-gray-900"] {
+    background-color: #F8F9FA !important;
+  }
+  
+  html.light [class*="dark:text-white"] {
+    color: #1F2937 !important;
+  }
+  
+  html.light [class*="dark:text-gray-400"] {
+    color: #6B7280 !important;
+  }
+  
+  html.light [class*="dark:text-gray-600"] {
+    color: #4B5563 !important;
+  }
+  
+  html.light [class*="dark:border-gray-700"] {
+    border-color: #E5E7EB !important;
+  }
+  
+  html.light [class*="dark:border-gray-600"] {
+    border-color: #D1D5DB !important;
+  }
+  
+  /* Force override for any element with dark: classes */
+  html.light *[class*="dark:"] {
+    color: inherit !important;
+    background-color: inherit !important;
+    border-color: inherit !important;
+  }
+
+  /* Fix the Connected div text visibility */
+  html.light .bg-green-900 {
+    color: #FFFFFF !important;
+  }
+  
+  /* Fix specific issues only */
+  
+  /* Fix slideshow button text to black */
+  html.light .bg-blue-600 {
+    color: #000000 !important;
+  }
+  
+  /* Fix slideshow text color to black */
+  html.light .text-gray-400,
+  html.light .text-gray-300,
+  html.light .text-gray-200 {
+    color: #000000 !important;
+  }
+  
+  /* Force any light text to black for visibility */
+  html.light .text-white,
+  html.light .text-gray-100,
+  html.light .text-gray-200,
+  html.light .text-gray-300,
+  html.light .text-gray-400 {
+    color: #000000 !important;
+  }
+  
+  /* Target slideshow button text specifically */
+  html.light .bg-primary.text-white {
+    color: #000000 !important;
+  }
+  
+  /* Also target any white text on primary background */
+  html.light .bg-primary .text-white {
+    color: #000000 !important;
+  }
+  
+  /* Keep white text on hover */
+  html.light .bg-primary:hover .text-white,
+  html.light .bg-primary:hover.text-white {
+    color: #FFFFFF !important;
+  }
+  
+  /* Fix sort controls - active black, inactive gray */
+  html.light .text-gray-500 {
+    color: #6B7280 !important;
+  }
+  
+  /* Active sort button - black text */
+  html.light .bg-primary.text-white {
+    color: #000000 !important;
+  }
+  
+  /* Force inactive sort buttons to stay gray */
+  html.light button:not(.bg-primary) .text-gray-500 {
+    color: #6B7280 !important;
+  }
+  
+  /* Target slideshow button specifically */
+  html.light button.bg-primary.text-white {
+    color: #000000 !important;
+  }
+  
+  html.light button.bg-primary:hover .text-white {
+    color: #FFFFFF !important;
+  }
+  
+  /* Sort buttons stay as they are */
+  html.light .text-gray-500 {
+    color: #6B7280 !important;
+  }
+  
+  /* Make button backgrounds brighter */
+  html.light [class*="bg-pink-"] {
+    background-color: #F472B6 !important;
+  }
+  
+  html.light [class*="bg-blue-"] {
+    background-color: #60A5FA !important;
+  }
+  
+  /* Fix timestamp text in expanded screenshots */
+  html.light .fixed.inset-0 .text-gray-300 {
+    color: #FFFFFF !important;
+  }
+  
+  html.light .fixed.inset-0 .text-white {
+    color: #FFFFFF !important;
+  }
+  
+  /* Fix BookmarkCard like button - keep red when liked */
+  html.light .text-red-500 {
+    color: #EF4444 !important;
+  }
+  
+  /* Fix BookmarkCard like button outline - white when not liked */
+  html.light .text-white {
+    color: #FFFFFF !important;
+  }
+  
+  /* Fix like buttons on favorites page - keep red when liked */
+  html.light .text-pink-500,
+  html.light .text-red-400,
+  html.light .text-red-600 {
+    color: #EF4444 !important;
+  }
+  
+  /* Force red color for like buttons */
+  html.light .text-red-500 {
+    color: #EF4444 !important;
+  }
+  
+  html.light button .text-red-500 {
+    color: #EF4444 !important;
+  }
+  
+  /* Fix header text, icons, and buttons */
+  html.light .text-gray-900 {
+    color: #000000 !important;
+  }
+  
+  html.light .text-gray-500 {
+    color: #374151 !important;
+  }
+  
+  /* Fix sort dropdown text color and z-index */
+  html.light .bg-white .text-gray-900 {
+    color: #000000 !important;
+  }
+  
+  html.light .bg-white .dark\\:text-white {
+    color: #000000 !important;
+  }
+  
+  /* Fix dropdown transparency and ensure solid background */
+  html.light .bg-white {
+    background-color: #FFFFFF !important;
+    background-opacity: 1 !important;
+  }
+  
+  /* Ensure dropdown has high z-index and solid background */
+  html.light [style*="z-index"] {
+    z-index: 99999 !important;
+    background-color: #FFFFFF !important;
+    background-opacity: 1 !important;
+  }
+  
+  /* Force dropdown to be on top of everything */
+  html.light .absolute.mt-2 {
+    z-index: 999999 !important;
+    position: absolute !important;
+  }
+  
+  /* Target the specific dropdown structure from Header.jsx */
+  html.light .absolute.right-0.mt-2 {
+    /* z-index: 999999 !important; */
+    position: absolute !important;
+    /* background-color: #FFFFFF !important; */
+  }
+  
+  /* Hide header when overlays are active */
+  .fixed.inset-0 ~ header,
+  .fixed.inset-0 + header {
+    display: none !important;
+  }
+  
+  /* Alternative: lower z-index for header when overlays are active */
+.fixed.inset-0 ~ header,
+.fixed.inset-0 + header {
+  z-index: 1 !important;
+}
+
+/* Hide header when any modal/overlay is active */
+.fixed.inset-0 ~ header,
+.fixed.inset-0 + header,
+header:has(~ .fixed.inset-0) {
+  display: none !important;
+}
+
+/* Hide header when modal overlay is present */
+.modal-overlay ~ header,
+.modal-overlay + header {
+  display: none !important;
+}
+
+/* Force hide header when any modal is active */
+.modal-overlay ~ * header,
+.modal-overlay + * header,
+.modal-overlay ~ header,
+.modal-overlay + header {
+  display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+}
+  
+  /* Force all dropdowns to be on top */
+  html.light div[style*="z-index"] {
+    z-index: 999999 !important;
+  }
+  
+  /* Global dropdown fixes for both light and dark modes */
+  .absolute.right-0.mt-2 {
+    z-index: 999999 !important;
+    position: absolute !important;
+    background-color: #FFFFFF !important;
+  }
+  
+  /* Dark mode dropdown background */
+  .dark .absolute.right-0.mt-2 {
+    background-color: #1F2937 !important;
+  }
+  
+  /* Force all dropdowns to be on top globally */
+  div[style*="z-index"] {
+    z-index: 999999 !important;
+  }
+  
+  /* Override any inline z-index styles */
+  div[style*="zIndex"] {
+    z-index: 999999 !important;
+  }
+  
+  /* Target the specific dropdown from Header.jsx */
+  div[style*="zIndex: 9999"] {
+    z-index: 999999 !important;
+  }
+  
+  /* Force dropdown to be on top with maximum specificity */
+  .relative > div[style*="zIndex"] {
+    z-index: 999999 !important;
+  }
+  
+  /* Target any element with position absolute and z-index */
+  [style*="position: absolute"][style*="zIndex"] {
+    z-index: 999999 !important;
+  }
+  
+  /* Ensure dropdown text is visible in both modes */
+  .bg-white .text-gray-900,
+  .bg-white .dark\\:text-white {
+    color: #000000 !important;
+  }
+  
+  .dark .bg-gray-800 .text-white {
+    color: #FFFFFF !important;
+  }
+  
+  /* Restore icon styling */
+  html.light svg {
+    color: inherit !important;
+  }
+  
+  html.light .w-4,
+  html.light .w-3 {
+    color: inherit !important;
+  }
+  
+  /* Keep purple text purple */
+  html.light .text-purple-400,
+  html.light .text-purple-500,
+  html.light .text-purple-600 {
+    color: #7C3AED !important;
+  }
+  
+  /* Fix time and date filter text to black */
+  html.light .text-gray-400,
+  html.light .text-gray-500 {
+    color: #000000 !important;
+  }
+  
+  /* Fix timestamp text to white for better contrast */
+  html.light .bg-purple-500,
+  html.light .bg-purple-600 {
+    color: #FFFFFF !important;
+  }
+  
+  /* Remove solid black border from sidebar and add 3D effect */
+  html.light .border-gray-700,
+  html.light .border-gray-800,
+  html.light .border-gray-900,
+  html.light .border-gray-200\/50,
+  html.light .border-gray-300 {
+    border-color: transparent !important;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12), 0 4px 16px rgba(0, 0, 0, 0.08) !important;
+  }
+  
+  /* Ensure sidebar has higher z-index than header */
+  html.light aside[class*="fixed"] {
+    z-index: 9999999 !important;
+  }
+  
+  /* Ensure sidebar has higher z-index than header in dark mode too */
+  aside[class*="fixed"] {
+    z-index: 9999999 !important;
+  }
+  
+  /* Improve sidebar styling in dark mode */
+  html.dark aside[class*="fixed"] {
+    background-color: #111111 !important;
+    border-color: #333333 !important;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3), 0 4px 16px rgba(0, 0, 0, 0.2) !important;
+  }
+  
+  html.dark aside[class*="fixed"] .dark\\:bg-gray-900\/95 {
+    background-color: #111111 !important;
+  }
+  
+  html.dark aside[class*="fixed"] .dark\\:border-gray-700\/50 {
+    border-color: #333333 !important;
+  }
+  
+  html.dark aside[class*="fixed"] .bg-white\/95 {
+    background-color: #111111 !important;
+  }
+  
+  html.dark aside[class*="fixed"] .border-gray-200\/50 {
+    border-color: #333333 !important;
+  }
+  
+  /* Change bluish cards and backgrounds to blackish in dark mode */
+  html.dark .youtube-card {
+    background-color: #242424 !important;
+    border-color: #333333 !important;
+  }
+  
+  html.dark .dark\\:bg-gray-800 {
+    background-color: #242424 !important;
+  }
+  
+  html.dark .dark\\:bg-gray-900 {
+    background-color: #151515 !important;
+  }
+  
+  html.dark .dark\\:bg-gray-700 {
+    background-color: #242424 !important;
+  }
+  
+  html.dark .dark\\:border-gray-700 {
+    border-color: #333333 !important;
+  }
+  
+  html.dark .dark\\:border-gray-600 {
+    border-color: #444444 !important;
+  }
+  
+  html.dark .bg-gray-800 {
+    background-color: #242424 !important;
+  }
+  
+  html.dark .bg-gray-900 {
+    background-color: #151515 !important;
+  }
+  
+  html.dark .bg-gray-700 {
+    background-color: #242424 !important;
+  }
+  
+  html.dark .border-gray-700 {
+    border-color: #333333 !important;
+  }
+  
+  html.dark .border-gray-600 {
+    border-color: #444444 !important;
+  }
+  
+  /* Fix bluish input fields in dark mode */
+  html.dark .youtube-input {
+    background-color: #242424 !important;
+    border-color: #444444 !important;
+    color: #FFFFFF !important;
+  }
+  
+  html.dark .youtube-input:focus {
+    border-color: #8B5CF6 !important;
+    box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.1) !important;
+  }
+  
+  html.dark .youtube-input::placeholder {
+    color: #9CA3AF !important;
+  }
+  
+  html.dark input[type="text"],
+  html.dark input[type="email"],
+  html.dark input[type="password"],
+  html.dark textarea {
+    background-color: #242424 !important;
+    border-color: #444444 !important;
+    color: #FFFFFF !important;
+  }
+  
+  html.dark input[type="text"]:focus,
+  html.dark input[type="email"]:focus,
+  html.dark input[type="password"]:focus,
+  html.dark textarea:focus {
+    border-color: #8B5CF6 !important;
+    box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.1) !important;
+  }
+  
+  html.dark input[type="text"]::placeholder,
+  html.dark input[type="email"]::placeholder,
+  html.dark input[type="password"]::placeholder,
+  html.dark textarea::placeholder {
+    color: #9CA3AF !important;
+  }
+  
+  /* Fix specific buttons in dark mode - only Sort By, arrow, Go to Video, and View Notes */
+  html.dark .youtube-header .youtube-button {
+    background-color: #242424 !important;
+    color: #FFFFFF !important;
+    border-color: #444444 !important;
+  }
+  
+  html.dark .youtube-header .youtube-button:hover {
+    background-color: #333333 !important;
+    color: #FFFFFF !important;
+    border-color: #555555 !important;
+  }
+  
+  /* Fix Go to Video and View Notes buttons specifically */
+  html.dark .youtube-button[class*="flex justify-end"],
+  html.dark .youtube-button[class*="px-4 py-2"] {
+    background-color: #333333 !important;
+    color: #FFFFFF !important;
+    border-color: #555555 !important;
+    transition: all 0.3s ease-in-out !important;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2) !important;
+    transform: translateY(0) !important;
+  }
+  
+  html.dark .youtube-button[class*="flex justify-end"]:hover,
+  html.dark .youtube-button[class*="px-4 py-2"]:hover {
+    background-color: #8B5CF6 !important;
+    color: #FFFFFF !important;
+    border-color: #7C3AED !important;
+    transform: translateY(-3px) !important;
+    box-shadow: 0 8px 25px rgba(139, 92, 246, 0.4), 0 4px 12px rgba(0, 0, 0, 0.3) !important;
+  }
+  
+  /* Fix View Notes button in BookmarkCard specifically */
+  html.dark .youtube-button[class*="w-full text-center"] {
+    background-color: #333333 !important;
+    color: #FFFFFF !important;
+    border-color: #555555 !important;
+    transition: all 0.3s ease-in-out !important;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2) !important;
+    transform: translateY(0) !important;
+  }
+  
+  html.dark .youtube-button[class*="w-full text-center"]:hover {
+    background-color: #8B5CF6 !important;
+    color: #FFFFFF !important;
+    border-color: #7C3AED !important;
+    transform: translateY(-3px) !important;
+    box-shadow: 0 8px 25px rgba(139, 92, 246, 0.4), 0 4px 12px rgba(0, 0, 0, 0.3) !important;
+  }
+  
+
+  
+
+  
+  /* Improve action button colors in light mode for NotesList */
+  html.light .text-red-500.bg-red-500\/20 {
+    color: #EF4444 !important;
+    background-color: rgba(239, 68, 68, 0.1) !important;
+  }
+  
+  html.light .text-red-500.bg-red-500\/20:hover {
+    background-color: rgba(239, 68, 68, 0.2) !important;
+  }
+  
+  html.light .text-gray-400.bg-gray-500\/20 {
+    color: #6B7280 !important;
+    background-color: rgba(107, 114, 128, 0.1) !important;
+  }
+  
+  html.light .text-gray-400.bg-gray-500\/20:hover {
+    background-color: rgba(107, 114, 128, 0.2) !important;
+  }
+  
+  html.light .text-blue-400.bg-blue-500\/20 {
+    color: #60A5FA !important;
+    background-color: rgba(96, 165, 250, 0.1) !important;
+  }
+  
+  html.light .text-blue-400.bg-blue-500\/20:hover {
+    background-color: rgba(96, 165, 250, 0.2) !important;
+  }
+  
+  html.light .text-red-400.bg-red-500\/20 {
+    color: #F87171 !important;
+    background-color: rgba(239, 68, 68, 0.1) !important;
+  }
+  
+  html.light .text-red-400.bg-red-500\/20:hover {
+    background-color: rgba(239, 68, 68, 0.2) !important;
+  }
+  
+  html.light .text-green-400.bg-green-500\/20 {
+    color: #34D399 !important;
+    background-color: rgba(52, 211, 153, 0.1) !important;
+  }
+  
+  html.light .text-green-400.bg-green-500\/20:hover {
+    background-color: rgba(52, 211, 153, 0.2) !important;
+  }
+  
+  html.light .text-gray-400.bg-gray-500\/20 {
+    color: #9CA3AF !important;
+    background-color: rgba(156, 163, 175, 0.1) !important;
+  }
+  
+  html.light .text-gray-400.bg-gray-500\/20:hover {
+    background-color: rgba(156, 163, 175, 0.2) !important;
+  }
+  
+  /* Improve Go to Video button hover effects in light mode */
+  html.light .youtube-button {
+    background-color: #F3F4F6 !important;
+    color: #374151 !important;
+    border-color: #D1D5DB !important;
+    transition: all 0.2s ease-in-out !important;
+  }
+  
+  html.light .youtube-button:hover {
+    background-color: #8B5CF6 !important;
+    color: #FFFFFF !important;
+    border-color: #7C3AED !important;
+    transform: translateY(-1px) !important;
+    box-shadow: 0 4px 12px rgba(139, 92, 246, 0.3) !important;
+  }
+  
+  html.light .youtube-button:active {
+    transform: translateY(0) !important;
+    box-shadow: 0 2px 8px rgba(139, 92, 246, 0.2) !important;
+  }
+  
+  /* Improve header elements in light mode */
+  html.light .youtube-header {
+    background-color: #FFFFFF !important;
+    border-color: #E5E7EB !important;
+    box-shadow: none !important;
+    width: 100% !important;
+    left: 0 !important;
+    right: 0 !important;
+  }
+  
+  /* Ensure header background matches main background in dark mode */
+  html.dark .youtube-header {
+    background-color: #151515 !important;
+    border-color: #333333 !important;
+    box-shadow: none !important;
+    width: 100% !important;
+    left: 0 !important;
+    right: 0 !important;
+  }
+  
+  /* Improve search input in light mode */
+  html.light .youtube-input {
+    background-color: #FFFFFF !important;
+    border-color: #E5E7EB !important;
+    color: #1F2937 !important;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08) !important;
+    transition: all 0.2s ease-in-out !important;
+  }
+  
+  html.light .youtube-input:focus {
+    border-color: #8B5CF6 !important;
+    box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.1), 0 2px 8px rgba(0, 0, 0, 0.08) !important;
+  }
+  
+  html.light .youtube-input::placeholder {
+    color: #6B7280 !important;
+  }
+  
+  /* Improve search icon in light mode */
+  html.light .youtube-header .dark\\:text-gray-400.text-gray-500 {
+    color: #6B7280 !important;
+  }
+  
+  /* Improve header buttons in light mode */
+  html.light .youtube-header .youtube-button {
+    background-color: #F3F4F6 !important;
+    color: #374151 !important;
+    border-color: #D1D5DB !important;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05) !important;
+    transition: all 0.2s ease-in-out !important;
+  }
+  
+  html.light .youtube-header .youtube-button:hover {
+    background-color: #E5E7EB !important;
+    color: #1F2937 !important;
+    border-color: #9CA3AF !important;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1) !important;
+    transform: translateY(-1px) !important;
+  }
+  
+  html.light .youtube-header .youtube-button:active {
+    transform: translateY(0) !important;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05) !important;
+  }
+  
+  /* Improve dropdown styling in light mode */
+  html.light .youtube-header .absolute.right-0.mt-2 {
+    background-color: #FFFFFF !important;
+    border-color: #E5E7EB !important;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15) !important;
+  }
+  
+  html.light .youtube-header .absolute.right-0.mt-2 button {
+    color: #374151 !important;
+  }
+  
+  html.light .youtube-header .absolute.right-0.mt-2 button:hover {
+    background-color: #F3F4F6 !important;
+    color: #1F2937 !important;
+  }
+  
+  html.light .youtube-header .absolute.right-0.mt-2 .bg-red-500 {
+    background-color: #EF4444 !important;
+    color: #FFFFFF !important;
+  }
+  
+  /* Improve header title in light mode */
+  html.light .youtube-header .text-xl.font-semibold {
+    color: #1F2937 !important;
+    font-weight: 600 !important;
+  }
+  
+  /* Improve theme toggle button in light mode */
+  html.light .youtube-header button[title*="Switch to dark mode"],
+  html.light .youtube-header button[title*="Switch to light mode"] {
+    background-color: #F3F4F6 !important;
+    color: #374151 !important;
+    border: 1px solid #D1D5DB !important;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05) !important;
+    transition: all 0.2s ease-in-out !important;
+  }
+  
+  html.light .youtube-header button[title*="Switch to dark mode"]:hover,
+  html.light .youtube-header button[title*="Switch to light mode"]:hover {
+    background-color: #E5E7EB !important;
+    color: #1F2937 !important;
+    border-color: #9CA3AF !important;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1) !important;
+    transform: translateY(-1px) scale(1.05) !important;
+  }
+  
+  html.light .youtube-header button[title*="Switch to dark mode"]:active,
+  html.light .youtube-header button[title*="Switch to light mode"]:active {
+    transform: translateY(0) scale(1.02) !important;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05) !important;
+  }
+  
+  /* Improve theme toggle icon colors in light mode */
+  html.light .youtube-header svg[class*="w-5 h-5"] {
+    color: #374151 !important;
+  }
+  
+  html.light .youtube-header button:hover svg[class*="w-5 h-5"] {
+    color: #1F2937 !important;
   }
   
   .gradient-text {
@@ -65,7 +1029,15 @@
 }
 
 ::-webkit-scrollbar-track {
-  background: #0F0F0F;
+  background: #151515;
+}
+
+html.dark ::-webkit-scrollbar-track {
+  background: #151515;
+}
+
+html.light ::-webkit-scrollbar-track {
+  background: #F8F9FA;
 }
 
 ::-webkit-scrollbar-thumb {
@@ -73,7 +1045,23 @@
   border-radius: 4px;
 }
 
+html.dark ::-webkit-scrollbar-thumb {
+  background: #383838;
+}
+
+html.light ::-webkit-scrollbar-thumb {
+  background: #CBD5E1;
+}
+
 ::-webkit-scrollbar-thumb:hover {
   background: #555;
+}
+
+html.dark ::-webkit-scrollbar-thumb:hover {
+  background: #555;
+}
+
+html.light ::-webkit-scrollbar-thumb:hover {
+  background: #94A3B8;
 }
 
