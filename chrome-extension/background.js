@@ -76,7 +76,7 @@ async function handleClearTokens(sendResponse) {
     sendResponse({ success: false, error: error.message });
   }
 }
-
+//
 async function handleCheckDashboardLogout(sendResponse) {
   try {
     
