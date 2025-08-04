@@ -24,7 +24,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 async function handleSyncTokensFromDashboard(sendResponse) {
   try {
     // Find the dashboard tab
-    const tabs = await chrome.tabs.query({ url: 'http://localhost:5173/*' });
+    const tabs = await chrome.tabs.query({ url: 'https://ytnotes.netlify.app/*' });
     
     if (tabs.length === 0) {
       sendResponse({ success: false, error: 'Dashboard not found' });
@@ -81,7 +81,7 @@ async function handleCheckDashboardLogout(sendResponse) {
   try {
     
     // Find the dashboard tab
-    const tabs = await chrome.tabs.query({ url: 'http://localhost:5173/*' });
+    const tabs = await chrome.tabs.query({ url: 'https://ytnotes.netlify.app/*' });
     
     if (tabs.length === 0) {
       sendResponse({ success: false, error: 'Dashboard not found', loggedOut: false });
@@ -173,7 +173,7 @@ async function saveNoteInPage(note, captureScreenshot) {
       return;
     }
     
-    fetch('http://localhost:5000/bookmark', {
+    fetch('https://ytnotes-r6h4.onrender.com/bookmark', {
       method: 'POST',
       headers: { 
         'Content-Type': 'application/json',

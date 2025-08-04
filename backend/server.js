@@ -36,7 +36,7 @@ app.use(cors({
     if (!origin) return callback(null, true);
     
     const allowedOrigins = [
-      'http://localhost:5173',
+      'https://ytnotes.netlify.app',
       'https://www.youtube.com',
       'https://youtube.com',
       'https://www.youtube.com:443',
@@ -101,7 +101,7 @@ app.use((error, req, res, next) => {
 const oauth2Client = new google.auth.OAuth2(
   process.env.GOOGLE_CLIENT_ID,
   process.env.GOOGLE_CLIENT_SECRET,
-  process.env.GOOGLE_REDIRECT_URI || 'http://localhost:5000/auth/google/callback'
+  process.env.GOOGLE_REDIRECT_URI || 'https://ytnotes-r6h4.onrender.com/auth/google/callback'
 );
 
 // Serve static files from screenshots directory
@@ -219,7 +219,7 @@ app.get('/auth/google/callback', async (req, res) => {
     console.log('🔐 JWT tokens generated for user:', user.email);
     
     // Redirect to frontend with tokens
-    const redirectUrl = `http://localhost:5173/auth-callback?accessToken=${accessToken}&refreshToken=${refreshToken}`;
+    const redirectUrl = `https://ytnotes.netlify.app/auth-callback?accessToken=${accessToken}&refreshToken=${refreshToken}`;
     res.redirect(redirectUrl);
   } catch (error) {
     console.error('❌ Error getting tokens:', error);

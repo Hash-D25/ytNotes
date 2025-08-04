@@ -10,8 +10,8 @@
     "tabs"
   ],
   "host_permissions": [
-    "http://localhost:5000/*",
-    "http://localhost:5173/*",
+    "https://ytnotes-r6h4.onrender.com/*",
+    "https://ytnotes.netlify.app/*",
     "*://*.youtube.com/*"
   ],
   "content_scripts": [

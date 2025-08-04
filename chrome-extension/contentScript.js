@@ -56,7 +56,7 @@ async function fetchWithAuth(url, options = {}) {
       const { refreshToken } = await getStoredTokens();
       
       if (refreshToken) {
-        const refreshResponse = await fetch('http://localhost:5000/auth/refresh', {
+        const refreshResponse = await fetch('https://ytnotes-r6h4.onrender.com/auth/refresh', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ refreshToken })
@@ -199,7 +199,7 @@ async function detectLogout() {
     const { accessToken } = await getStoredTokens();
     if (accessToken) {
       try {
-        const response = await fetch('http://localhost:5000/auth/status', {
+        const response = await fetch('https://ytnotes-r6h4.onrender.com/auth/status', {
           headers: { 'Authorization': `Bearer ${accessToken}` }
         });
         
@@ -376,7 +376,7 @@ async function checkAuthStatus() {
     }
     
     // Use fetchWithAuth which handles token refresh automatically
-    const response = await fetchWithAuth('http://localhost:5000/auth/status');
+    const response = await fetchWithAuth('https://ytnotes-r6h4.onrender.com/auth/status');
     const data = await response.json();
     
     return data.authenticated || false;
@@ -412,7 +412,7 @@ function showAuthRequiredPopup() {
         To save notes and screenshots, you need to log in to your Google account first.
       </div>
       <div style="display: flex; gap: 10px;">
-        <a href="http://localhost:5173" target="_blank" style="flex: 1; padding: 10px 0; background: ${btnBlue}; color: #fff; border: none; border-radius: 6px; cursor: pointer; font-size: 15px; font-weight: 500; letter-spacing: 0.01em; transition: background 0.2s; text-decoration: none; text-align: center; display: inline-block;">Go to Dashboard</a>
+        <a href="https://ytnotes.netlify.app" target="_blank" style="flex: 1; padding: 10px 0; background: ${btnBlue}; color: #fff; border: none; border-radius: 6px; cursor: pointer; font-size: 15px; font-weight: 500; letter-spacing: 0.01em; transition: background 0.2s; text-decoration: none; text-align: center; display: inline-block;">Go to Dashboard</a>
         <button id="yt-notes-auth-cancel" style="flex: 1; padding: 10px 0; background: ${isDark ? '#383838' : '#f2f2f2'}; color: ${isDark ? '#fff' : '#222'}; border: 1px solid ${isDark ? '#555' : '#ccc'}; border-radius: 6px; cursor: pointer; font-size: 15px; font-weight: 500; letter-spacing: 0.01em; transition: background 0.2s;">Cancel</button>
       </div>
     </div>
@@ -565,7 +565,7 @@ async function addBookmarkMarkers() {
     
     // Check if server is running first
     try {
-      const healthCheck = await fetchWithAuth('http://localhost:5000/');
+      const healthCheck = await fetchWithAuth('https://ytnotes-r6h4.onrender.com/');
       if (!healthCheck.ok) {
         return;
       }
@@ -577,7 +577,7 @@ async function addBookmarkMarkers() {
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 5000); // 5 second timeout
     
-    const response = await fetchWithAuth(`http://localhost:5000/bookmark/${videoId}`, {
+    const response = await fetchWithAuth(`https://ytnotes-r6h4.onrender.com/bookmark/${videoId}`, {
       signal: controller.signal
     });
     
@@ -712,7 +712,7 @@ async function addSilentScreenshot() {
         const controller = new AbortController();
         const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
         
-        const res = await fetchWithAuth('http://localhost:5000/bookmark', {
+        const res = await fetchWithAuth('https://ytnotes-r6h4.onrender.com/bookmark', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(requestBody)
@@ -773,7 +773,7 @@ async function addSilentHighlight() {
         const controller = new AbortController();
         const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
         
-        const res = await fetchWithAuth('http://localhost:5000/bookmark', {
+        const res = await fetchWithAuth('https://ytnotes-r6h4.onrender.com/bookmark', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(requestBody)
@@ -869,7 +869,7 @@ async function saveNote() {
         const controller = new AbortController();
         const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
         
-        const res = await fetchWithAuth('http://localhost:5000/bookmark', {
+        const res = await fetchWithAuth('https://ytnotes-r6h4.onrender.com/bookmark', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(requestBody)
@@ -1229,7 +1229,7 @@ function injectDashboardButton() {
     }
     
     // Open dashboard in new tab
-    window.open('http://localhost:5173', '_blank');
+    window.open('https://ytnotes.netlify.app', '_blank');
   });
   
   dashboardBtn.addEventListener('mouseenter', () => {
@@ -1251,7 +1251,7 @@ async function waitForServer() {
   
   while (attempts < maxAttempts) {
     try {
-      const response = await fetchWithAuth('http://localhost:5000/');
+      const response = await fetchWithAuth('https://ytnotes-r6h4.onrender.com/');
       if (response.ok) {
         return true;
       }

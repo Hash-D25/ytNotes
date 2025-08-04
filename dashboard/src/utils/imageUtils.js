@@ -16,7 +16,7 @@ export const getImageUrl = (path) => {
         }
       }
       
-      const proxyUrl = `http://localhost:5000/proxy-image?url=${encodeURIComponent(processedUrl)}`;
+      const proxyUrl = `https://ytnotes-r6h4.onrender.com/proxy-image?url=${encodeURIComponent(processedUrl)}`;
       return proxyUrl;
     }
     // Handle other HTTP URLs
@@ -24,7 +24,7 @@ export const getImageUrl = (path) => {
   }
   
   // Handle local paths
-  return `http://localhost:5000${path}`;
+  return `https://ytnotes-r6h4.onrender.com${path}`;
 };
 
 // Helper function to check if an image is from Google Drive
