@@ -1,4 +1,4 @@
-// Wrap everything in a function that runs when the popup loads
+// Initialize the popup when it loads
 document.addEventListener('DOMContentLoaded', function() {
   const saveBtn = document.getElementById('saveBtn');
   const noteInput = document.getElementById('note');
@@ -12,22 +12,22 @@ document.addEventListener('DOMContentLoaded', function() {
   const autoStatusEl = document.getElementById('autoStatus');
   const debugBtn = document.getElementById('debugBtn');
 
-  // Clear any previous state
+  // Reset the form to a clean state
   noteInput.value = '';
   statusEl.textContent = '';
   statusEl.className = 'status';
   saveBtn.disabled = false;
 
-  // Check auto-detection status
+  // See if the user is already logged in and tokens are working
   async function checkAutoDetectionStatus() {
     try {
-      // Check if we have tokens
+      // Look for existing tokens in storage
       const storedTokens = await new Promise((resolve) => {
         chrome.storage.local.get(['accessToken', 'refreshToken'], resolve);
       });
       
       if (storedTokens.accessToken) {
-        // Test if tokens are valid
+        // Test the tokens to see if they're still valid
         const response = await fetch('https://ytnotes-server.onrender.com/auth/status', {
           headers: { 'Authorization': `Bearer ${storedTokens.accessToken}` }
         });
@@ -40,7 +40,7 @@ document.addEventListener('DOMContentLoaded', function() {
           autoStatusEl.className = 'status error';
         }
       } else {
-        // No tokens found
+        // User needs to log in first
         autoStatusEl.textContent = '❌ No tokens found - Login to dashboard first';
         autoStatusEl.className = 'status error';
       }
@@ -50,15 +50,15 @@ document.addEventListener('DOMContentLoaded', function() {
     }
   }
 
-  // Check status on popup open
+  // Check the status as soon as popup opens
   checkAutoDetectionStatus();
 
-  // Debug button handler
+  // Handle debug button clicks
   debugBtn.onclick = function() {
     debugTokenStorage();
   };
 
-  // Manual token input functionality
+  // Let users manually enter tokens if auto-detection isn't working
   manualTokenBtn.onclick = async function() {
     const accessToken = manualAccessToken.value.trim();
     const refreshToken = manualRefreshToken.value.trim();
@@ -86,7 +86,7 @@ document.addEventListener('DOMContentLoaded', function() {
       statusEl.textContent = 'Tokens set manually! Try "Test Extension" now.';
       statusEl.className = 'status success';
       
-      // Clear the input fields
+      // Clean up the input fields
       manualAccessToken.value = '';
       manualRefreshToken.value = '';
       

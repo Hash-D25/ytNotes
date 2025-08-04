@@ -1,29 +1,30 @@
-// background.js
+// Background service worker - handles communication between content script and popup
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   if (request.action === 'saveNote') {
     handleSaveNote(request, sender, sendResponse);
-    return true; // Required for async sendResponse
+    return true; // Keep the message channel open for async response
   }
   
   if (request.action === 'syncTokensFromDashboard') {
     handleSyncTokensFromDashboard(sendResponse);
-    return true; // Required for async sendResponse
+    return true; // Keep the message channel open for async response
   }
   
   if (request.action === 'clearTokens') {
     handleClearTokens(sendResponse);
-    return true; // Required for async sendResponse
+    return true; // Keep the message channel open for async response
   }
   
   if (request.action === 'checkDashboardLogout') {
     handleCheckDashboardLogout(sendResponse);
-    return true; // Required for async sendResponse
+    return true; // Keep the message channel open for async response
   }
 });
 
+// Fetch tokens from the dashboard tab and store them in extension storage
 async function handleSyncTokensFromDashboard(sendResponse) {
   try {
-    // Find the dashboard tab
+    // Look for the dashboard tab
     const tabs = await chrome.tabs.query({ url: 'https://ytnotes.netlify.app/*' });
     
     if (tabs.length === 0) {
@@ -33,7 +34,7 @@ async function handleSyncTokensFromDashboard(sendResponse) {
     
     const dashboardTab = tabs[0];
     
-    // Execute script to get tokens from localStorage
+    // script in the dashboard tab to fetch the tokens
     const results = await chrome.scripting.executeScript({
       target: { tabId: dashboardTab.id },
       func: () => {
@@ -55,7 +56,7 @@ async function handleSyncTokensFromDashboard(sendResponse) {
       return;
     }
     
-    // Store tokens in chrome.storage.local
+    // Save the tokens in the extension's storage
     await chrome.storage.local.set({
       accessToken: accessToken,
       refreshToken: refreshToken
@@ -68,6 +69,7 @@ async function handleSyncTokensFromDashboard(sendResponse) {
   }
 }
 
+// Remove stored tokens when user logs out
 async function handleClearTokens(sendResponse) {
   try {
     await chrome.storage.local.remove(['accessToken', 'refreshToken']);
@@ -76,11 +78,11 @@ async function handleClearTokens(sendResponse) {
     sendResponse({ success: false, error: error.message });
   }
 }
-//
+
+// Check if the user logged out in the dashboard
 async function handleCheckDashboardLogout(sendResponse) {
   try {
-    
-    // Find the dashboard tab
+    // Look for the dashboard tab
     const tabs = await chrome.tabs.query({ url: 'https://ytnotes.netlify.app/*' });
     
     if (tabs.length === 0) {
@@ -90,14 +92,14 @@ async function handleCheckDashboardLogout(sendResponse) {
     
     const dashboardTab = tabs[0];
     
-    // Execute script to check if tokens exist in localStorage
+    // Check if tokens still exist in the dashboard
     const results = await chrome.scripting.executeScript({
       target: { tabId: dashboardTab.id },
       func: () => {
         const accessToken = localStorage.getItem('accessToken');
         const refreshToken = localStorage.getItem('refreshToken');
         return { 
-          hasAccessToken: !!accessToken, 
+          hasAccessToken: !!accessToken,
           hasRefreshToken: !!refreshToken,
           accessTokenLength: accessToken ? accessToken.length : 0,
           refreshTokenLength: refreshToken ? refreshToken.length : 0

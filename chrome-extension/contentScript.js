@@ -1,4 +1,4 @@
-// JWT token management functions
+// Helper functions to manage user authentication tokens
 async function getStoredTokens() {
   try {
     const result = await chrome.storage.local.get(['accessToken', 'refreshToken']);
@@ -13,7 +13,7 @@ async function getStoredTokens() {
 
 async function storeTokens(accessToken, refreshToken) {
   try {
-    
+    // Save the tokens securely in the extension's storage
     const tokensToStore = {
       accessToken: accessToken,
       refreshToken: refreshToken
@@ -22,7 +22,7 @@ async function storeTokens(accessToken, refreshToken) {
     await chrome.storage.local.set(tokensToStore);
     
   } catch (error) {
-    throw error; // Re-throw to allow calling function to handle
+    throw error; 
   }
 }
 
@@ -30,10 +30,11 @@ async function clearStoredTokens() {
   try {
     await chrome.storage.local.remove(['accessToken', 'refreshToken']);
   } catch (error) {
+    // handle any storage errors
   }
 }
 
-// Authenticated fetch function with token refresh
+// Make API calls with automatic token refresh when needed
 async function fetchWithAuth(url, options = {}) {
   try {
     const { accessToken } = await getStoredTokens();
@@ -51,7 +52,7 @@ async function fetchWithAuth(url, options = {}) {
       }
     });
     
-    // If token is expired, try to refresh
+    // If the token expired, try to get a fresh one
     if (response.status === 401) {
       const { refreshToken } = await getStoredTokens();
       
@@ -66,7 +67,7 @@ async function fetchWithAuth(url, options = {}) {
           const { accessToken: newAccessToken } = await refreshResponse.json();
           await storeTokens(newAccessToken, refreshToken);
           
-          // Retry the original request with new token
+          // Try the original request again with the new token
           return fetch(url, {
             ...options,
             headers: {
@@ -76,11 +77,13 @@ async function fetchWithAuth(url, options = {}) {
             }
           });
         } else {
-          // Refresh failed, clear tokens via background script
+          // Token refresh didn't work, so clear everything and start fresh
           await new Promise((resolve) => {
             chrome.runtime.sendMessage({ action: 'clearTokens' }, (response) => {
               if (response && response.success) {
+                // Tokens cleared successfully
               } else {
+                // Something went wrong clearing tokens
               }
               resolve();
             });
@@ -88,11 +91,13 @@ async function fetchWithAuth(url, options = {}) {
           throw new Error('Token refresh failed');
         }
       } else {
-        // No refresh token, clear tokens via background script
+        // No refresh token available, clear everything
         await new Promise((resolve) => {
           chrome.runtime.sendMessage({ action: 'clearTokens' }, (response) => {
             if (response && response.success) {
+              // Tokens cleared successfully
             } else {
+              // Something went wrong clearing tokens
             }
             resolve();
           });
@@ -107,10 +112,10 @@ async function fetchWithAuth(url, options = {}) {
   }
 }
 
-// Sync tokens from dashboard using background script
+// Get tokens from the dashboard tab and save them in the extension
 async function syncTokensFromDashboard() {
   try {
-    
+    // Ask the background script to grab tokens from the dashboard
     return new Promise((resolve) => {
       chrome.runtime.sendMessage({ action: 'syncTokensFromDashboard' }, (response) => {
         if (response && response.success) {
@@ -125,29 +130,28 @@ async function syncTokensFromDashboard() {
   }
 }
 
-// Enhanced auto-login detection
+// Automatically detect when user logs in and sync their tokens
 async function detectLoginAndSync() {
   try {
-    
-    // We're on YouTube, try to sync from dashboard
+    // Since we're on YouTube, try to grab tokens from the dashboard tab
     const synced = await syncTokensFromDashboard();
     
     if (synced) {
-      
-      // After successful sync, show markers immediately
+      // Once we have tokens, show the bookmark markers right away
       setTimeout(() => {
         addBookmarkMarkers();
-      }, 1000); // Show markers after 1 second
+      }, 1000); // Give it a second to settle
       
-      // Also try again after 3 seconds as backup
+      // Also try again after 3 seconds just to be sure
       setTimeout(() => {
         addBookmarkMarkers();
       }, 3000);
       
-      // After successful sync, start monitoring for logout immediately
+      // Start watching for logout right after successful login
       setTimeout(async () => {
         const loggedOut = await detectLogout();
         if (loggedOut) {
+          // User logged out, but we already handled it
         }
       }, 2000); // Check after 2 seconds
     }
@@ -158,34 +162,36 @@ async function detectLoginAndSync() {
   }
 }
 
-// Enhanced auto-logout detection
+// Watch for when the user logs out and clean up accordingly
 async function detectLogout() {
   try {
-    
-    // First, check if dashboard has cleared tokens (primary logout detection)
+    // First check if the dashboard cleared the tokens (main way we detect logout)
     const dashboardLogout = await checkDashboardLogout();
     if (dashboardLogout) {
+      // Clear our stored tokens too
       await new Promise((resolve) => {
         chrome.runtime.sendMessage({ action: 'clearTokens' }, (response) => {
           if (response && response.success) {
+            // Tokens cleared successfully
           } else {
+            // Something went wrong
           }
           resolve();
         });
       });
       
-      // Immediately remove markers after logout detection
+      // Remove all the bookmark markers from the timeline
       const existingMarkers = document.querySelectorAll('.yt-bookmark-marker');
       existingMarkers.forEach(marker => marker.remove());
       
-      // Update show markers button state
+      // Reset the show markers button to its default state
       const showMarkersBtn = document.getElementById('yt-show-markers-btn');
       if (showMarkersBtn) {
         showMarkersBtn.textContent = '📍';
         showMarkersBtn.title = 'Show Timeline Markers';
       }
       
-      // Update dashboard button appearance
+      // Update the dashboard button to show logged out state
       const dashboardBtn = document.getElementById('yt-dashboard-btn');
       if (dashboardBtn) {
         dashboardBtn.title = 'ytNotes Dashboard (Not Logged In)';
@@ -484,10 +490,19 @@ function createPopupHTML() {
       </div>
       <textarea id="yt-notes-textarea" placeholder="Add your note here..." style="width: 100%; height: 80px; padding: 10px; border: 1px solid ${border}; border-radius: 6px; resize: vertical; font-family: inherit; font-size: 15px; background: ${isDark ? '#181818' : '#fafafa'}; color: ${text}; margin-bottom: 14px; transition: border 0.2s; box-sizing: border-box;"></textarea>
       <div style="display: flex; gap: 10px; margin-bottom: 2px;">
-        <button id="yt-notes-save" onclick="window.ytNotesSaveNote && window.ytNotesSaveNote()" style="flex: 1; padding: 10px 0; background: ${btnBlue}; color: #fff; border: none; border-radius: 6px; cursor: pointer; font-size: 15px; font-weight: 500; letter-spacing: 0.01em; transition: background 0.2s;">Save Note</button>
+        <button id="yt-notes-save" onclick="window.ytNotesSaveNote && window.ytNotesSaveNote()" style="flex: 1; padding: 10px 0; background: ${btnBlue}; color: #fff; border: none; border-radius: 6px; cursor: pointer; font-size: 15px; font-weight: 500; letter-spacing: 0.01em; transition: background 0.2s; position: relative;">
+          <span id="yt-notes-save-text">Save Note</span>
+          <div id="yt-notes-save-spinner" style="display: none; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 16px; height: 16px; border: 2px solid transparent; border-top: 2px solid #fff; border-radius: 50%; animation: spin 1s linear infinite;"></div>
+        </button>
         <button id="yt-notes-cancel" onclick="window.ytNotesHidePopup && window.ytNotesHidePopup()" style="flex: 1; padding: 10px 0; background: ${btnGray}; color: ${btnGrayText}; border: 1px solid ${btnGrayBorder}; border-radius: 6px; cursor: pointer; font-size: 15px; font-weight: 500; letter-spacing: 0.01em; transition: background 0.2s;">Cancel</button>
       </div>
       <div id="yt-notes-status" style="margin-top: 10px; padding: 8px; border-radius: 4px; font-size: 13px; display: none;"></div>
+      <style>
+        @keyframes spin {
+          0% { transform: translate(-50%, -50%) rotate(0deg); }
+          100% { transform: translate(-50%, -50%) rotate(360deg); }
+        }
+      </style>
     </div>
   `;
   const div = document.createElement('div');
@@ -680,9 +695,9 @@ async function addSilentScreenshot() {
   }
 
   try {
-    // Capture screenshot
+    // Capture screenshot with better error handling
     let screenshot = null;
-    if (video) {
+    if (video && video.videoWidth > 0 && video.videoHeight > 0) {
       const canvas = document.createElement('canvas');
       const ctx = canvas.getContext('2d');
       canvas.width = video.videoWidth;
@@ -692,6 +707,7 @@ async function addSilentScreenshot() {
         ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
         screenshot = canvas.toDataURL('image/png');
       } catch (error) {
+        // Screenshot failed, continue without it
       }
     }
 
@@ -710,7 +726,7 @@ async function addSilentScreenshot() {
     while (retries > 0) {
       try {
         const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
+        const timeoutId = setTimeout(() => controller.abort(), 15000); // Increased timeout to 15 seconds
         
         const res = await fetchWithAuth('https://ytnotes-server.onrender.com/bookmark', {
           method: 'POST',
@@ -721,7 +737,7 @@ async function addSilentScreenshot() {
         clearTimeout(timeoutId);
         
         if (res.ok) {
-          // Refresh timeline markers after saving
+          // Refresh timeline markers after saving (non-blocking)
           setTimeout(() => {
             addBookmarkMarkers();
           }, 500);
@@ -735,13 +751,17 @@ async function addSilentScreenshot() {
         retries--;
         
         if (error.name === 'AbortError') {
+          // Timeout occurred, try again
         } else if (retries > 0) {
+          // Wait before retrying
+          await new Promise(resolve => setTimeout(resolve, 1000));
         }
       }
     }
     
     // All retries failed
   } catch (error) {
+    // Silent failure for automatic screenshots
   }
 }
 
@@ -812,14 +832,19 @@ async function saveNote() {
   const captureScreenshot = document.getElementById('yt-notes-screenshot').checked;
   const statusEl = document.getElementById('yt-notes-status');
   const saveBtn = document.getElementById('yt-notes-save');
+  const saveText = document.getElementById('yt-notes-save-text');
+  const saveSpinner = document.getElementById('yt-notes-save-spinner');
   
   if (!note) {
-    if (saveBtn) saveBtn.disabled = false; // Re-enable button
+    if (saveBtn) saveBtn.disabled = false;
     return;
   }
   
   if (saveBtn) saveBtn.disabled = true;
-  statusEl.textContent = 'Saving...';
+  if (saveText) saveText.style.display = 'none';
+  if (saveSpinner) saveSpinner.style.display = 'block';
+  
+  statusEl.textContent = 'Starting save process...';
   statusEl.style.display = 'block';
   statusEl.style.background = '#d1ecf1';
   statusEl.style.color = '#0c5460';
@@ -835,8 +860,14 @@ async function saveNote() {
       throw new Error('Could not get video info.');
     }
 
+    // Capture screenshot first if needed
     let screenshot = null;
     if (captureScreenshot && video) {
+      statusEl.textContent = 'Capturing screenshot...';
+      
+      // Use setTimeout to allow UI to update
+      await new Promise(resolve => setTimeout(resolve, 100));
+      
       const canvas = document.createElement('canvas');
       const ctx = canvas.getContext('2d');
       canvas.width = video.videoWidth;
@@ -846,6 +877,7 @@ async function saveNote() {
         ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
         screenshot = canvas.toDataURL('image/png');
       } catch (error) {
+        // Screenshot failed, continue without it
       }
     }
 
@@ -860,69 +892,67 @@ async function saveNote() {
       requestBody.screenshot = screenshot;
     }
 
-    // Retry logic for network requests
-    let retries = 3;
-    let lastError;
+    // Clear the textarea immediately
+    document.getElementById('yt-notes-textarea').value = '';
     
-    while (retries > 0) {
-      try {
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
-        
-        const res = await fetchWithAuth('https://ytnotes-server.onrender.com/bookmark', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(requestBody)
-        });
-        
-        clearTimeout(timeoutId);
-        
-        if (res.ok) {
-          statusEl.textContent = `Note saved!${screenshot ? ' Screenshot captured.' : ''}`;
-          statusEl.style.background = '#d4edda';
-          statusEl.style.color = '#155724';
-          statusEl.style.border = '1px solid #c3e6cb';
-          document.getElementById('yt-notes-textarea').value = '';
+    // Reset button state before hiding popup
+    if (saveBtn) saveBtn.disabled = false;
+    if (saveText) saveText.style.display = 'inline';
+    if (saveSpinner) saveSpinner.style.display = 'none';
+    
+    // Hide popup immediately - don't wait for the save to complete
+    hidePopup();
+    
+    // Continue saving in the background (non-blocking)
+    (async () => {
+      let retries = 3;
+      let lastError;
+      
+      while (retries > 0) {
+        try {
+          const controller = new AbortController();
+          const timeoutId = setTimeout(() => controller.abort(), 15000);
           
-          // Re-enable save button immediately after success
-          if (saveBtn) {
-            saveBtn.disabled = false;
+          const res = await fetchWithAuth('https://ytnotes-server.onrender.com/bookmark', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(requestBody)
+          });
+          
+          clearTimeout(timeoutId);
+          
+          if (res.ok) {
+            // Success - refresh timeline markers after saving
+            setTimeout(() => {
+              addBookmarkMarkers();
+            }, 500);
+            return;
+          } else {
+            throw new Error(`Server error: ${res.status} ${res.statusText}`);
           }
+        } catch (error) {
+          lastError = error;
+          retries--;
           
-          // Refresh timeline markers after saving
-          setTimeout(() => {
-            addBookmarkMarkers();
-          }, 500);
-          
-          // Hide popup after 2 seconds
-          setTimeout(hidePopup, 2000);
-          return; // Success, exit the function
-        } else {
-          throw new Error(`Server error: ${res.status} ${res.statusText}`);
-        }
-      } catch (error) {
-        lastError = error;
-        retries--;
-        
-        if (error.name === 'AbortError') {
-        } else if (retries > 0) {
+          // Wait a bit before retrying
+          if (retries > 0) {
+            await new Promise(resolve => setTimeout(resolve, 1000));
+          }
         }
       }
-    }
+      
+      // All retries failed - could show a notification here if needed
+      console.log('Failed to save note after all retries:', lastError?.message);
+    })();
     
-    // All retries failed
-    statusEl.textContent = lastError.message || 'Network error. Please check if the server is running.';
-    statusEl.style.background = '#f8d7da';
-    statusEl.style.color = '#721c24';
-    statusEl.style.border = '1px solid #f5c6cb';
   } catch (error) {
-    statusEl.textContent = error.message || 'An unexpected error occurred.';
-    statusEl.style.background = '#f8d7da';
-    statusEl.style.color = '#721c24';
-    statusEl.style.border = '1px solid #f5c6cb';
+    // Re-enable button and hide spinner in case of immediate errors
+    if (saveBtn) saveBtn.disabled = false;
+    if (saveText) saveText.style.display = 'inline';
+    if (saveSpinner) saveSpinner.style.display = 'none';
+    
+    console.log('Error preparing note save:', error.message);
   }
-  
-  if (saveBtn) saveBtn.disabled = false; // Always re-enable button
 }
 
 // Global flag to prevent multiple initializations
@@ -1005,6 +1035,26 @@ function bindPopupEventListeners() {
     saveBtn.onclick = function(e) {
       e.preventDefault();
       e.stopPropagation();
+      
+      // Show spinner immediately
+      const saveText = document.getElementById('yt-notes-save-text');
+      const saveSpinner = document.getElementById('yt-notes-save-spinner');
+      if (saveText && saveSpinner) {
+        saveText.style.display = 'none';
+        saveSpinner.style.display = 'block';
+      }
+      
+      // Show immediate feedback
+      const statusEl = document.getElementById('yt-notes-status');
+      if (statusEl) {
+        statusEl.textContent = 'Starting save process...';
+        statusEl.style.display = 'block';
+        statusEl.style.background = '#d1ecf1';
+        statusEl.style.color = '#0c5460';
+        statusEl.style.border = '1px solid #bee5eb';
+      }
+      
+      // Start save process
       saveNote();
     };
   }
@@ -1015,6 +1065,8 @@ function bindPopupEventListeners() {
     closeBtn.onclick = function(e) {
       e.preventDefault();
       e.stopPropagation();
+      
+      // Allow closing even if save is in progress
       hidePopup();
     };
   }
@@ -1025,6 +1077,8 @@ function bindPopupEventListeners() {
     cancelBtn.onclick = function(e) {
       e.preventDefault();
       e.stopPropagation();
+      
+      // Allow canceling even if save is in progress
       hidePopup();
     };
   }
