@@ -1,16 +1,17 @@
 // Initialize the popup when it loads
 document.addEventListener('DOMContentLoaded', function() {
   const saveBtn = document.getElementById('saveBtn');
+  const dashboardBtn = document.getElementById('dashboardBtn');
   const noteInput = document.getElementById('note');
   const captureScreenshot = document.getElementById('captureScreenshot');
   const statusEl = document.getElementById('status');
   const syncBtn = document.getElementById('syncBtn');
-  const testBtn = document.getElementById('testBtn');
-  const manualAccessToken = document.getElementById('manualAccessToken');
-  const manualRefreshToken = document.getElementById('manualRefreshToken');
-  const manualTokenBtn = document.getElementById('manualTokenBtn');
-  const autoStatusEl = document.getElementById('autoStatus');
-  const debugBtn = document.getElementById('debugBtn');
+  // const testBtn = document.getElementById('testBtn');
+  // const manualAccessToken = document.getElementById('manualAccessToken');
+  // const manualRefreshToken = document.getElementById('manualRefreshToken');
+  // const manualTokenBtn = document.getElementById('manualTokenBtn');
+  // const autoStatusEl = document.getElementById('autoStatus');
+  // const debugBtn = document.getElementById('debugBtn');
 
   // Reset the form to a clean state
   noteInput.value = '';
@@ -19,155 +20,155 @@ document.addEventListener('DOMContentLoaded', function() {
   saveBtn.disabled = false;
 
   // See if the user is already logged in and tokens are working
-  async function checkAutoDetectionStatus() {
-    try {
-      // Look for existing tokens in storage
-      const storedTokens = await new Promise((resolve) => {
-        chrome.storage.local.get(['accessToken', 'refreshToken'], resolve);
-      });
+  // async function checkAutoDetectionStatus() {
+  //   try {
+  //     // Look for existing tokens in storage
+  //     const storedTokens = await new Promise((resolve) => {
+  //       chrome.storage.local.get(['accessToken', 'refreshToken'], resolve);
+  //     });
       
-      if (storedTokens.accessToken) {
-        // Test the tokens to see if they're still valid
-        const response = await fetch('https://ytnotes-server.onrender.com/auth/status', {
-          headers: { 'Authorization': `Bearer ${storedTokens.accessToken}` }
-        });
+  //     if (storedTokens.accessToken) {
+  //       // Test the tokens to see if they're still valid
+  //       const response = await fetch('https://ytnotes-server.onrender.com/auth/status', {
+  //       headers: { 'Authorization': `Bearer ${storedTokens.accessToken}` }
+  //     });
         
-        if (response.ok) {
-          autoStatusEl.textContent = '✅ Auto-detection working - User logged in';
-          autoStatusEl.className = 'status success';
-        } else {
-          autoStatusEl.textContent = '⚠️ Tokens found but expired - Try sync';
-          autoStatusEl.className = 'status error';
-        }
-      } else {
-        // User needs to log in first
-        autoStatusEl.textContent = '❌ No tokens found - Login to dashboard first';
-        autoStatusEl.className = 'status error';
-      }
-    } catch (error) {
-      autoStatusEl.textContent = '❌ Status check failed';
-      autoStatusEl.className = 'status error';
-    }
-  }
+  //       if (response.ok) {
+  //         autoStatusEl.textContent = '✅ Auto-detection working - User logged in';
+  //         autoStatusEl.className = 'status success';
+  //       } else {
+  //         autoStatusEl.textContent = '⚠️ Tokens found but expired - Try sync';
+  //         autoStatusEl.className = 'status error';
+  //       }
+  //     } else {
+  //       // User needs to log in first
+  //       autoStatusEl.textContent = '❌ No tokens found - Login to dashboard first';
+  //       autoStatusEl.className = 'status error';
+  //     }
+  //   } catch (error) {
+  //     autoStatusEl.textContent = '❌ Status check failed';
+  //     autoStatusEl.className = 'status error';
+  //   }
+  // }
 
   // Check the status as soon as popup opens
-  checkAutoDetectionStatus();
+  // checkAutoDetectionStatus();
 
   // Handle debug button clicks
-  debugBtn.onclick = function() {
-    debugTokenStorage();
-  };
+  // debugBtn.onclick = function() {
+  //   debugTokenStorage();
+  // };
 
   // Let users manually enter tokens if auto-detection isn't working
-  manualTokenBtn.onclick = async function() {
-    const accessToken = manualAccessToken.value.trim();
-    const refreshToken = manualRefreshToken.value.trim();
-    
-    if (!accessToken) {
-      statusEl.textContent = 'Please enter an access token.';
-      statusEl.className = 'status error';
-      return;
-    }
-    
-    this.disabled = true;
-    statusEl.textContent = 'Setting tokens manually...';
-    statusEl.className = 'status info';
-    
-    try {
-      await new Promise((resolve) => {
-        chrome.storage.local.set({
-          accessToken: accessToken,
-          refreshToken: refreshToken
-        }, () => {
-          resolve();
-        });
-      });
-      
-      statusEl.textContent = 'Tokens set manually! Try "Test Extension" now.';
-      statusEl.className = 'status success';
-      
-      // Clean up the input fields
-      manualAccessToken.value = '';
-      manualRefreshToken.value = '';
-      
-    } catch (error) {
-      statusEl.textContent = 'Failed to set tokens manually.';
-      statusEl.className = 'status error';
-    } finally {
-      this.disabled = false;
-    }
-  };
+  // manualTokenBtn.onclick = async function() {
+  //   const accessToken = manualAccessToken.value.trim();
+  //   const refreshToken = manualRefreshToken.value.trim();
+  //   
+  //   if (!accessToken) {
+  //     statusEl.textContent = 'Please enter an access token.';
+  //     statusEl.className = 'status error';
+  //     return;
+  //   }
+  //   
+  //   this.disabled = true;
+  //   statusEl.textContent = 'Setting tokens manually...';
+  //   statusEl.className = 'status info';
+  //   
+  //   try {
+  //     await new Promise((resolve) => {
+  //       chrome.storage.local.set({
+  //         accessToken: accessToken,
+  //         refreshToken: refreshToken
+  //       }, () => {
+  //         resolve();
+  //       });
+  //     });
+  //     
+  //     statusEl.textContent = 'Tokens set manually! Try "Test Extension" now.';
+  //     statusEl.className = 'status success';
+  //     
+  //     // Clean up the input fields
+  //     manualAccessToken.value = '';
+  //     manualRefreshToken.value = '';
+  //     
+  //   } catch (error) {
+  //     statusEl.textContent = 'Failed to set tokens manually.';
+  //     statusEl.className = 'status error';
+  //   } finally {
+  //     this.disabled = false;
+  //   }
+  // };
 
   // Test extension functionality
-  testBtn.onclick = async function() {
-    this.disabled = true;
-    statusEl.textContent = 'Testing extension...';
-    statusEl.className = 'status info';
+  // testBtn.onclick = async function() {
+  //   this.disabled = true;
+  //   statusEl.textContent = 'Testing extension...';
+  //   statusEl.className = 'status info';
 
-    try {
+  //   try {
       
-      // Test 1: Check if we're on YouTube
-      const tabs = await new Promise((resolve) => {
-        chrome.tabs.query({ active: true, currentWindow: true }, resolve);
-      });
+  //     // Test 1: Check if we're on YouTube
+  //     const tabs = await new Promise((resolve) => {
+  //       chrome.tabs.query({ active: true, currentWindow: true }, resolve);
+  //     });
       
-      const currentTab = tabs[0];
+  //     const currentTab = tabs[0];
       
-      if (!currentTab.url.includes('youtube.com/watch')) {
-        statusEl.textContent = 'Please go to a YouTube video first.';
-        statusEl.className = 'status error';
-        this.disabled = false;
-        return;
-      }
+  //     if (!currentTab.url.includes('youtube.com/watch')) {
+  //       statusEl.textContent = 'Please go to a YouTube video first.';
+  //       statusEl.className = 'status error';
+  //       this.disabled = false;
+  //       return;
+  //     }
 
-      // Test 2: Check stored tokens
-      const storedTokens = await new Promise((resolve) => {
-        chrome.storage.local.get(['accessToken', 'refreshToken'], resolve);
-      });
+  //     // Test 2: Check stored tokens
+  //     const storedTokens = await new Promise((resolve) => {
+  //       chrome.storage.local.get(['accessToken', 'refreshToken'], resolve);
+  //     });
       
-      if (!storedTokens.accessToken) {
-        statusEl.textContent = 'No tokens found. Try "Sync Tokens" first.';
-        statusEl.className = 'status error';
-        this.disabled = false;
-        return;
-      }
+  //     if (!storedTokens.accessToken) {
+  //       statusEl.textContent = 'No tokens found. Try "Sync Tokens" first.';
+  //       statusEl.className = 'status error';
+  //       this.disabled = false;
+  //       return;
+  //     }
 
-      // Test 3: Test backend connection
-      try {
-        const response = await fetch('https://ytnotes-server.onrender.com/auth/status', {
-          method: 'GET',
-          headers: {
-            'Authorization': `Bearer ${storedTokens.accessToken}`,
-            'Content-Type': 'application/json'
-          }
-        });
+  //     // Test 3: Test backend connection
+  //     try {
+  //       const response = await fetch('https://ytnotes-server.onrender.com/auth/status', {
+  //         method: 'GET',
+  //         headers: {
+  //             'Authorization': `Bearer ${storedTokens.accessToken}`,
+  //             'Content-Type': 'application/json'
+  //           }
+  //         });
 
-        if (response.ok) {
-          const data = await response.json();
+  //         if (response.ok) {
+  //           const data = await response.json();
           
-          if (data.authenticated) {
-            statusEl.textContent = '✅ Extension is working! You can save notes.';
-            statusEl.className = 'status success';
-          } else {
-            statusEl.textContent = '❌ Token is invalid. Try logging in again.';
-            statusEl.className = 'status error';
-          }
-        } else {
-          statusEl.textContent = '❌ Backend connection failed.';
-          statusEl.className = 'status error';
-        }
-      } catch (error) {
-        statusEl.textContent = '❌ Backend not reachable. Is the server running?';
-        statusEl.className = 'status error';
-      }
+  //           if (data.authenticated) {
+  //             statusEl.textContent = '✅ Extension is working! You can save notes.';
+  //             statusEl.className = 'status success';
+  //           } else {
+  //             statusEl.textContent = '❌ Token is invalid. Try logging in again.';
+  //             statusEl.className = 'status error';
+  //           }
+  //         } else {
+  //             statusEl.textContent = '❌ Backend connection failed.';
+  //             statusEl.className = 'status error';
+  //           }
+  //       } catch (error) {
+  //         statusEl.textContent = '❌ Backend not reachable. Is the server running?';
+  //         statusEl.className = 'status error';
+  //       }
 
-    } catch (error) {
-      statusEl.textContent = '❌ Test failed: ' + error.message;
-      statusEl.className = 'status error';
-    } finally {
-      this.disabled = false;
-    }
-  };
+  //     } catch (error) {
+  //       statusEl.textContent = '❌ Test failed: ' + error.message;
+  //       statusEl.className = 'status error';
+  //     } finally {
+  //       this.disabled = false;
+  //     }
+  //   };
 
   saveBtn.onclick = async function() {
     const note = noteInput.value.trim();
@@ -287,6 +288,11 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   };
 
+  // Dashboard button - open dashboard in new tab
+  dashboardBtn.onclick = function() {
+    chrome.tabs.create({ url: 'https://ytnotes.netlify.app/' });
+  };
+
   // Sync tokens from dashboard using background script
   syncBtn.onclick = async function() {
     this.disabled = true;
@@ -306,7 +312,7 @@ document.addEventListener('DOMContentLoaded', function() {
         statusEl.className = 'status success';
         
         // Refresh auto-detection status
-        checkAutoDetectionStatus();
+        // checkAutoDetectionStatus();
       } else {
         statusEl.textContent = `Sync failed: ${response?.error || 'Unknown error'}`;
         statusEl.className = 'status error';
@@ -320,47 +326,47 @@ document.addEventListener('DOMContentLoaded', function() {
   };
 
   // Debug function to test token storage
-  window.debugTokenStorage = async function() {
+  // window.debugTokenStorage = async function() {
     
-    // Test storing a dummy token
-    const testToken = 'test-access-token-' + Date.now();
-    const testRefreshToken = 'test-refresh-token-' + Date.now();
+  //   // Test storing a dummy token
+  //   const testToken = 'test-access-token-' + Date.now();
+  //   const testRefreshToken = 'test-refresh-token-' + Date.now();
     
-    try {
-      await new Promise((resolve) => {
-        chrome.storage.local.set({
-          accessToken: testToken,
-          refreshToken: testRefreshToken
-        }, () => {
-          resolve();
-        });
-      });
+  //   try {
+  //     await new Promise((resolve) => {
+  //       chrome.storage.local.set({
+  //         accessToken: testToken,
+  //         refreshToken: testRefreshToken
+  //       }, () => {
+  //         resolve();
+  //       });
+  //     });
       
-      // Verify storage
-      const stored = await new Promise((resolve) => {
-        chrome.storage.local.get(['accessToken', 'refreshToken'], (result) => {
-          resolve(result);
-        });
-      });
+  //     // Verify storage
+  //     const stored = await new Promise((resolve) => {
+  //       chrome.storage.local.get(['accessToken', 'refreshToken'], (result) => {
+  //         resolve(result);
+  //       });
+  //     });
       
-      if (stored.accessToken === testToken) {
-        statusEl.textContent = 'Debug: Token storage working';
-        statusEl.className = 'status success';
-      } else {
-        statusEl.textContent = 'Debug: Token storage failed';
-        statusEl.className = 'status error';
-      }
+  //     if (stored.accessToken === testToken) {
+  //       statusEl.textContent = 'Debug: Token storage working';
+  //       statusEl.className = 'status success';
+  //       } else {
+  //         statusEl.textContent = 'Debug: Token storage failed';
+  //         statusEl.className = 'status error';
+  //       }
       
-      // Clean up test tokens
-      await new Promise((resolve) => {
-        chrome.storage.local.remove(['accessToken', 'refreshToken'], () => {
-          resolve();
-        });
-      });
+  //     // Clean up test tokens
+  //     await new Promise((resolve) => {
+  //       chrome.storage.local.remove(['accessToken', 'refreshToken'], () => {
+  //         resolve();
+  //       });
+  //     });
       
-    } catch (error) {
-      statusEl.textContent = 'Debug: Token storage test failed';
-      statusEl.className = 'status error';
-    }
-  };
+  //   } catch (error) {
+  //     statusEl.textContent = 'Debug: Token storage test failed';
+  //     statusEl.className = 'status error';
+  //   }
+  // };
 });
