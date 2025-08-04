@@ -101,7 +101,7 @@ app.use((error, req, res, next) => {
 const oauth2Client = new google.auth.OAuth2(
   process.env.GOOGLE_CLIENT_ID,
   process.env.GOOGLE_CLIENT_SECRET,
-  process.env.GOOGLE_REDIRECT_URI || 'https://ytnotes-r6h4.onrender.com/auth/google/callback'
+  process.env.GOOGLE_REDIRECT_URI || 'https://ytnotes-server.onrender.com/auth/google/callback'
 );
 
 // Serve static files from screenshots directory

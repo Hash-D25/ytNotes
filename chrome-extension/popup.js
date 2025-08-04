@@ -28,7 +28,7 @@ document.addEventListener('DOMContentLoaded', function() {
       
       if (storedTokens.accessToken) {
         // Test if tokens are valid
-        const response = await fetch('https://ytnotes-r6h4.onrender.com/auth/status', {
+        const response = await fetch('https://ytnotes-server.onrender.com/auth/status', {
           headers: { 'Authorization': `Bearer ${storedTokens.accessToken}` }
         });
         
@@ -134,7 +134,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
       // Test 3: Test backend connection
       try {
-        const response = await fetch('https://ytnotes-r6h4.onrender.com/auth/status', {
+        const response = await fetch('https://ytnotes-server.onrender.com/auth/status', {
           method: 'GET',
           headers: {
             'Authorization': `Bearer ${storedTokens.accessToken}`,
@@ -255,7 +255,7 @@ document.addEventListener('DOMContentLoaded', function() {
             requestBody.screenshot = info.screenshot;
           }
 
-          const res = await fetch('https://ytnotes-r6h4.onrender.com/bookmark', {
+          const res = await fetch('https://ytnotes-server.onrender.com/bookmark', {
             method: 'POST',
             headers: { 
               'Content-Type': 'application/json',

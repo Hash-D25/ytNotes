@@ -56,7 +56,7 @@ async function fetchWithAuth(url, options = {}) {
       const { refreshToken } = await getStoredTokens();
       
       if (refreshToken) {
-        const refreshResponse = await fetch('https://ytnotes-r6h4.onrender.com/auth/refresh', {
+        const refreshResponse = await fetch('https://ytnotes-server.onrender.com/auth/refresh', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ refreshToken })
@@ -199,7 +199,7 @@ async function detectLogout() {
     const { accessToken } = await getStoredTokens();
     if (accessToken) {
       try {
-        const response = await fetch('https://ytnotes-r6h4.onrender.com/auth/status', {
+        const response = await fetch('https://ytnotes-server.onrender.com/auth/status', {
           headers: { 'Authorization': `Bearer ${accessToken}` }
         });
         
@@ -376,7 +376,7 @@ async function checkAuthStatus() {
     }
     
     // Use fetchWithAuth which handles token refresh automatically
-    const response = await fetchWithAuth('https://ytnotes-r6h4.onrender.com/auth/status');
+    const response = await fetchWithAuth('https://ytnotes-server.onrender.com/auth/status');
     const data = await response.json();
     
     return data.authenticated || false;
@@ -565,7 +565,7 @@ async function addBookmarkMarkers() {
     
     // Check if server is running first
     try {
-      const healthCheck = await fetchWithAuth('https://ytnotes-r6h4.onrender.com/');
+      const healthCheck = await fetchWithAuth('https://ytnotes-server.onrender.com/');
       if (!healthCheck.ok) {
         return;
       }
@@ -577,7 +577,7 @@ async function addBookmarkMarkers() {
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 5000); // 5 second timeout
     
-    const response = await fetchWithAuth(`https://ytnotes-r6h4.onrender.com/bookmark/${videoId}`, {
+    const response = await fetchWithAuth(`https://ytnotes-server.onrender.com/bookmark/${videoId}`, {
       signal: controller.signal
     });
     
@@ -712,7 +712,7 @@ async function addSilentScreenshot() {
         const controller = new AbortController();
         const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
         
-        const res = await fetchWithAuth('https://ytnotes-r6h4.onrender.com/bookmark', {
+        const res = await fetchWithAuth('https://ytnotes-server.onrender.com/bookmark', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(requestBody)
@@ -773,7 +773,7 @@ async function addSilentHighlight() {
         const controller = new AbortController();
         const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
         
-        const res = await fetchWithAuth('https://ytnotes-r6h4.onrender.com/bookmark', {
+        const res = await fetchWithAuth('https://ytnotes-server.onrender.com/bookmark', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(requestBody)
@@ -869,7 +869,7 @@ async function saveNote() {
         const controller = new AbortController();
         const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
         
-        const res = await fetchWithAuth('https://ytnotes-r6h4.onrender.com/bookmark', {
+        const res = await fetchWithAuth('https://ytnotes-server.onrender.com/bookmark', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(requestBody)
@@ -1251,7 +1251,7 @@ async function waitForServer() {
   
   while (attempts < maxAttempts) {
     try {
-      const response = await fetchWithAuth('https://ytnotes-r6h4.onrender.com/');
+      const response = await fetchWithAuth('https://ytnotes-server.onrender.com/');
       if (response.ok) {
         return true;
       }

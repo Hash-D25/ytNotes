@@ -10,7 +10,7 @@ export default function LoginPage() {
           Sign in with Google to access your notes and screenshots
         </p>
         <a
-          href="https://ytnotes-r6h4.onrender.com/auth/google"
+          href="https://ytnotes-server.onrender.com/auth/google"
           className="bg-red-600 hover:bg-red-700 text-white font-semibold py-3 px-6 rounded-lg transition-colors duration-200 inline-flex items-center"
         >
           <svg className="w-5 h-5 mr-2" viewBox="0 0 24 24" fill="currentColor">

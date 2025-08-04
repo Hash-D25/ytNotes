@@ -173,7 +173,7 @@ async function saveNoteInPage(note, captureScreenshot) {
       return;
     }
     
-    fetch('https://ytnotes-r6h4.onrender.com/bookmark', {
+    fetch('https://ytnotes-server.onrender.com/bookmark', {
       method: 'POST',
       headers: { 
         'Content-Type': 'application/json',

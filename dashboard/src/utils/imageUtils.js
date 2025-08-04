@@ -16,7 +16,7 @@ export const getImageUrl = (path) => {
         }
       }
       
-      const proxyUrl = `https://ytnotes-r6h4.onrender.com/proxy-image?url=${encodeURIComponent(processedUrl)}`;
+      const proxyUrl = `https://ytnotes-server.onrender.com/proxy-image?url=${encodeURIComponent(processedUrl)}`;
       return proxyUrl;
     }
     // Handle other HTTP URLs
@@ -24,7 +24,7 @@ export const getImageUrl = (path) => {
   }
   
   // Handle local paths
-  return `https://ytnotes-r6h4.onrender.com${path}`;
+  return `https://ytnotes-server.onrender.com${path}`;
 };
 
 // Helper function to check if an image is from Google Drive

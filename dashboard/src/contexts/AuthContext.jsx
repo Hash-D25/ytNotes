@@ -48,7 +48,7 @@ const clearStoredTokens = () => {
 // Create axios instance with improved auth interceptor
 const createAuthAxios = () => {
   const instance = axios.create({
-    baseURL: 'https://ytnotes-r6h4.onrender.com',
+    baseURL: 'https://ytnotes-server.onrender.com',
     headers: {
       'Content-Type': 'application/json'
     }
@@ -87,7 +87,7 @@ const createAuthAxios = () => {
             return Promise.reject(error);
           }
 
-          const response = await axios.post('https://ytnotes-r6h4.onrender.com/auth/refresh', {
+          const response = await axios.post('https://ytnotes-server.onrender.com/auth/refresh', {
             refreshToken
           });
 

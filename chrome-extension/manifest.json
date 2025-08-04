@@ -10,7 +10,7 @@
     "tabs"
   ],
   "host_permissions": [
-    "https://ytnotes-r6h4.onrender.com/*",
+    "https://ytnotes-server.onrender.com/*",
     "https://ytnotes.netlify.app/*",
     "*://*.youtube.com/*"
   ],
