@@ -1,8 +1,8 @@
 const jwt = require('jsonwebtoken');
 
 const JWT_SECRET = process.env.JWT_SECRET || 'your-super-secret-jwt-key-change-in-production';
-const ACCESS_TOKEN_EXPIRY = '24h'; // Changed from '15m' to '24h' for better development experience
-const REFRESH_TOKEN_EXPIRY = '7d';
+const ACCESS_TOKEN_EXPIRY = '1h'; 
+const REFRESH_TOKEN_EXPIRY = '180d'; 
 
 // Generate access token
 const generateAccessToken = (user) => {
