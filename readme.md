@@ -1,6 +1,6 @@
 # 🔖 YouTube Bookmark Notes Extension + Dashboard
 
-A **Chrome Extension + Full-Stack Web App** that empowers users to save meaningful **timestamped notes** while watching YouTube videos. These notes are stored in a database, grouped by video, and displayed beautifully on a web dashboard built with **React** and **DaisyUI**.
+A **Chrome Extension + Full-Stack Web App** that empowers users to save meaningful **timestamped notes** while watching YouTube videos. These notes are stored in a database, grouped by video, and displayed beautifully on a web dashboard built with **React** , **Tailwind CSS**.
 
 Ideal for:
 - Students learning from tutorials.
@@ -63,10 +63,9 @@ Ideal for:
 - Timestamps are displayed in readable **`MM:SS` format** for easy scanning.
 - (Optional improvement: Make timestamps clickable to jump directly to YouTube.)
 
-#### 💅 UI Design: Tailwind + DaisyUI
+#### 💅 UI Design: Tailwind 
 - The dashboard uses:
   - **Tailwind CSS** for utility-first design.
-  - **DaisyUI** components for beautifully styled cards, buttons, and typography.
 
 #### ⚡ Fast & Responsive
 - The UI is optimized for **speed and clarity**, fetching data once from the backend and displaying instantly.
