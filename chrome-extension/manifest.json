@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
-  "name": "YouTube Notes",
+  "name": "YouTube Notes & Screenshot Saver",
   "version": "1.0",
-  "description": "Take notes with timestamps on YouTube videos",
+  "description": "Take notes, capture screenshots, and save highlights while watching YouTube videos — all synced with your Google Drive.",
   "permissions": [
     "activeTab",
     "scripting",
